@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 
 class PersonTypeScreen extends StatefulWidget {
@@ -9,6 +11,7 @@ class PersonTypeScreen extends StatefulWidget {
 
 class _PersonTypeScreenState extends State<PersonTypeScreen> {
   String? selectedType;
+  static const Color govBlue = Color(0xFF0b3b60);
 
   void _navigate() {
     if (selectedType == 'fisica') {
@@ -23,20 +26,16 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
     required IconData icon,
     required String type,
   }) {
-    bool isSelected = selectedType == type;
-    const Color govBlue = Color(0xFF0b3b60);
-
+    final isSelected = selectedType == type;
     return Expanded(
       child: GestureDetector(
         onTap: () {
           setState(() {
             selectedType = type;
           });
-          Future.delayed(const Duration(milliseconds: 180), _navigate);
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
           margin: const EdgeInsets.symmetric(horizontal: 12),
           padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 8),
           decoration: BoxDecoration(
@@ -56,11 +55,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                size: 50,
-                color: isSelected ? Colors.white : govBlue,
-              ),
+              Icon(icon, size: 50, color: isSelected ? Colors.white : govBlue),
               const SizedBox(height: 14),
               Text(
                 title,
@@ -80,15 +75,13 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color govBlue = Color(0xFF0b3b60);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        elevation: 0,
+        elevation: 1,
         backgroundColor: Colors.white,
         title: const Text(
-          'Paso 1: Tipo de Persona',
+          'Registro Cívico',
           style: TextStyle(color: govBlue, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -96,7 +89,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
       ),
       body: Stack(
         children: [
-          // Fondo decorativo minimalista con curvas
+          // fondos decorativos
           Positioned(
             top: -80,
             left: -60,
@@ -121,7 +114,8 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
               ),
             ),
           ),
-          // Contenido principal
+
+          // contenido principal
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -130,7 +124,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
                   '¿Qué tipo de persona deseas registrar?',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: govBlue,
                       ),
@@ -154,32 +148,38 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
-                  'Esta información nos permite ofrecerte un proceso adecuado para tu tipo de registro.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+                  'Selecciona una opción para habilitar el botón “Continuar”.',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: Colors.grey.shade700),
                 ),
               ),
               const Spacer(),
+
+              // BOTÓN CONTINUAR
               Padding(
                 padding: const EdgeInsets.all(24),
                 child: SizedBox(
                   width: double.infinity,
                   height: 48,
                   child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: govBlue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
                     onPressed: selectedType != null ? _navigate : null,
                     icon: const Icon(Icons.arrow_forward_ios_rounded),
                     label: const Text(
                       'Continuar',
                       style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: govBlue,
+                      disabledBackgroundColor: govBlue.withOpacity(0.4),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),

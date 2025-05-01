@@ -1,9 +1,8 @@
 // lib/screens/onboarding_screen.dart
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, deprecated_member_use
 
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'components/privacy_policy_screen.dart';      
+import 'components/privacy_policy_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -16,7 +15,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
   int _currentPage = 0;
 
-  // Definimos cuatro páginas
+  //* Definimos cuatro páginas
   final List<_PageData> _pages = [
     const _PageData(
       title: 'Bienvenido a CUS',
@@ -68,66 +67,108 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: const [
               BoxShadow(
-                  color: Colors.black12, blurRadius: 12, offset: Offset(0, 6)),
+                color: Colors.black12,
+                blurRadius: 12,
+                offset: Offset(0, 6),
+              ),
             ],
           ),
           child: Stack(
-            clipBehavior: Clip.none,
             children: [
+              //* 🫧 Burbujas internas, sutiles y contenidas dentro de la card
               Positioned(
-                top: -30,
-                left: -30,
-                child: Transform.rotate(
-                  angle: -pi / 4,
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    color: const Color(0xFF0B3B60),
+                top: -20,
+                left: -20,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0x1A0E385D),
                   ),
                 ),
               ),
               Positioned(
-                bottom: -30,
-                right: -30,
-                child: Transform.rotate(
-                  angle: -pi / 4,
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    color: const Color(0xFF0B3B60),
+                bottom: -25,
+                right: -25,
+                child: Container(
+                  width: 90,
+                  height: 90,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0x1A0E385D),
                   ),
                 ),
               ),
+              Positioned(
+                top: 60,
+                right: -20,
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0x120E385D), //! 7% opacidad
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 100,
+                left: -15,
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0x0F0E385D), //! 6% opacidad
+                  ),
+                ),
+              ),
+
+              //* 🔄 Contenido principal de la tarjeta
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    //* SALTAR
                     Align(
                       alignment: Alignment.topRight,
-                      child: TextButton(
+                      child: TextButton.icon(
                         onPressed: _skip,
-                        child: const Text(
+                        icon: Icon(
+                          Icons.skip_next,
+                          size: 16,
+                          color: const Color(0xFF0B3B60).withOpacity(0.7),
+                        ),
+                        label: Text(
                           'Saltar',
-                          style: TextStyle(color: Color(0xFF0B3B60)),
+                          style: TextStyle(
+                            color: const Color(0xFF0B3B60).withOpacity(0.7),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          backgroundColor:
+                              const Color(0xFF0B3B60).withOpacity(0.05),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 8),
-
-                    //* PAGEVIEW
                     SizedBox(
                       height: 320,
                       child: PageView.builder(
                         controller: _controller,
                         itemCount: _pages.length,
-                        onPageChanged: (i) =>
-                            setState(() => _currentPage = i),
+                        onPageChanged: (i) => setState(() => _currentPage = i),
                         itemBuilder: (_, i) {
                           final page = _pages[i];
-                          //* Si es la página de privacidad:
                           if (page.isPrivacy) {
                             return Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -138,16 +179,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 Text(
                                   page.title,
                                   style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF0B3B60)),
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0B3B60),
+                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
                                   page.subtitle,
                                   style: const TextStyle(
-                                      fontSize: 16, color: Colors.black54),
+                                    fontSize: 16,
+                                    color: Colors.black54,
+                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 24),
@@ -174,38 +218,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             );
                           }
 
-                          //* Páginas estándar con imagen
                           return Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Card(
-                                elevation: 8,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(24)),
-                                clipBehavior: Clip.antiAlias,
-                                child: page.imageAsset != null
-                                    ? Image.asset(
-                                        page.imageAsset!,
-                                        width: 180,
-                                        height: 180,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : const SizedBox.shrink(),
+                              Image.asset(
+                                page.imageAsset!,
+                                width: 280,
+                                height: 180,
+                                fit: BoxFit.contain,
                               ),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 15),
                               Text(
                                 page.title,
                                 style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0B3B60)),
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0B3B60),
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 12),
                               Text(
                                 page.subtitle,
                                 style: const TextStyle(
-                                    fontSize: 16, color: Colors.black54),
+                                  fontSize: 16,
+                                  color: Colors.black54,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                             ],
@@ -213,10 +251,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         },
                       ),
                     ),
-
                     const SizedBox(height: 16),
-
-                    //* INDICADORES
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(_pages.length, (i) {
@@ -235,10 +270,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         );
                       }),
                     ),
-
                     const SizedBox(height: 24),
-
-                    //* BOTÓN SIGUIENTE / LISTO
                     ElevatedButton.icon(
                       onPressed: _nextOrFinish,
                       icon: Icon(
@@ -258,7 +290,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         backgroundColor: const Color(0xFF0B3B60),
                         minimumSize: const Size.fromHeight(52),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ],

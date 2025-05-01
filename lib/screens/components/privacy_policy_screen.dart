@@ -52,11 +52,10 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
             ),
           ],
         ),
-        // Removed reload action as requested
       ),
       body: Column(
         children: [
-          // Encabezado descriptivo
+          //* Encabezado descriptivo
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             child: Text(
@@ -70,7 +69,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
             ),
           ),
 
-          // Contenedor del PDF
+          //* Contenedor del PDF
           Expanded(
             child: Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -100,7 +99,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
             ),
           ),
 
-          // Pie con botón de cierre
+          //* Pie con botón de cierre
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: TextButton.icon(
