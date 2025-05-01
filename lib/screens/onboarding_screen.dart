@@ -1,8 +1,9 @@
-// lib/screens/onboarding_screen.dart
-// ignore_for_file: library_private_types_in_public_api, deprecated_member_use
+// ignore_for_file: deprecated_member_use, library_private_types_in_public_api
 
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'components/privacy_policy_screen.dart';
+import 'components/bubble.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -14,8 +15,9 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
   int _currentPage = 0;
+  final Random _random = Random();
+  late List<BubbleConfig> _bubbles;
 
-  //* Definimos cuatro páginas
   final List<_PageData> _pages = [
     const _PageData(
       title: 'Bienvenido a CUS',
@@ -24,8 +26,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     const _PageData(
       title: 'Único para ti',
-      subtitle:
-          'Este proceso es por única ocasión y servirá para trámites futuros.',
+      subtitle: 'Este proceso es por única ocasión y servirá para trámites futuros.',
       imageAsset: 'assets/mejor_sanjuan.png',
     ),
     const _PageData(
@@ -36,9 +37,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     const _PageData(
       title: 'Aviso de Privacidad',
       subtitle: 'Consulta nuestro Aviso de Privacidad completo.',
-      isPrivacy: true, //* detectamos que es la página de privacidad
+      isPrivacy: true,
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _generateBubbles();
+  }
+
+  void _generateBubbles() {
+    const alignments = [
+      Alignment.topLeft,
+      Alignment.topRight,
+      Alignment.bottomLeft,
+      Alignment.bottomRight,
+    ];
+
+    _bubbles = List.generate(4, (i) {
+      return BubbleConfig(
+        alignment: alignments[i],
+        size: 60 + _random.nextDouble() * 60,
+        opacity: 0.04 + _random.nextDouble() * 0.06,
+      );
+    });
+  }
 
   void _nextOrFinish() {
     if (_currentPage < _pages.length - 1) {
@@ -61,7 +85,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       backgroundColor: const Color(0xFFF1F3F5),
       body: Center(
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 80),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -75,57 +99,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           child: Stack(
             children: [
-              //* 🫧 Burbujas internas, sutiles y contenidas dentro de la card
-              Positioned(
-                top: -20,
-                left: -20,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0x1A0E385D),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: -25,
-                right: -25,
-                child: Container(
-                  width: 90,
-                  height: 90,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0x1A0E385D),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 60,
-                right: -20,
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0x120E385D), //! 7% opacidad
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 100,
-                left: -15,
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0x0F0E385D), //! 6% opacidad
-                  ),
+              // Burbujas parcialmente visibles con animación de tamaño
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Stack(
+                  children: _bubbles.map((b) {
+                    return Align(
+                      alignment: b.alignment,
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: 1),
+                        duration: const Duration(milliseconds: 400),
+                        builder: (_, value, child) => Transform.scale(
+                          scale: value,
+                          child: child,
+                        ),
+                        child: Transform.translate(
+                          offset: Offset(
+                            b.alignment.x * 30,
+                            b.alignment.y * 30,
+                          ),
+                          child: Bubble(
+                            size: b.size,
+                            opacity: b.opacity,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
 
-              //* 🔄 Contenido principal de la tarjeta
+              // Contenido principal
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
                 child: Column(
@@ -149,10 +153,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         style: TextButton.styleFrom(
-                          backgroundColor:
-                              const Color(0xFF0B3B60).withOpacity(0.05),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                          backgroundColor: const Color(0xFF0B3B60).withOpacity(0.05),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -166,15 +168,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: PageView.builder(
                         controller: _controller,
                         itemCount: _pages.length,
-                        onPageChanged: (i) => setState(() => _currentPage = i),
+                        onPageChanged: (i) {
+                          setState(() {
+                            _currentPage = i;
+                            _generateBubbles();
+                          });
+                        },
                         itemBuilder: (_, i) {
                           final page = _pages[i];
                           if (page.isPrivacy) {
                             return Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.privacy_tip,
-                                    size: 100, color: Color(0xFF0B3B60)),
+                                const Icon(Icons.privacy_tip, size: 100, color: Color(0xFF0B3B60)),
                                 const SizedBox(height: 24),
                                 Text(
                                   page.title,
@@ -188,10 +194,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 const SizedBox(height: 12),
                                 Text(
                                   page.subtitle,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black54,
-                                  ),
+                                  style: const TextStyle(fontSize: 16, color: Colors.black54),
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 24),
@@ -200,8 +203,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) =>
-                                            const PrivacyPolicyScreen(),
+                                        builder: (_) => const PrivacyPolicyScreen(),
                                       ),
                                     );
                                   },
@@ -240,10 +242,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               const SizedBox(height: 12),
                               Text(
                                 page.subtitle,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black54,
-                                ),
+                                style: const TextStyle(fontSize: 16, color: Colors.black54),
                                 textAlign: TextAlign.center,
                               ),
                             ],
@@ -262,9 +261,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           width: active ? 20 : 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: active
-                                ? const Color(0xFF0B3B60)
-                                : Colors.grey.shade300,
+                            color: active ? const Color(0xFF0B3B60) : Colors.grey.shade300,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         );
@@ -274,17 +271,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ElevatedButton.icon(
                       onPressed: _nextOrFinish,
                       icon: Icon(
-                        _currentPage == _pages.length - 1
-                            ? Icons.check
-                            : Icons.arrow_forward,
+                        _currentPage == _pages.length - 1 ? Icons.check : Icons.arrow_forward,
                         color: Colors.white,
                       ),
                       label: Text(
-                        _currentPage == _pages.length - 1
-                            ? 'Listo'
-                            : 'Siguiente',
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 16),
+                        _currentPage == _pages.length - 1 ? 'Listo' : 'Siguiente',
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0B3B60),
@@ -310,10 +302,23 @@ class _PageData {
   final String subtitle;
   final String? imageAsset;
   final bool isPrivacy;
+
   const _PageData({
     required this.title,
     required this.subtitle,
     this.imageAsset,
     this.isPrivacy = false,
+  });
+}
+
+class BubbleConfig {
+  final Alignment alignment;
+  final double size;
+  final double opacity;
+
+  BubbleConfig({
+    required this.alignment,
+    required this.size,
+    required this.opacity,
   });
 }
