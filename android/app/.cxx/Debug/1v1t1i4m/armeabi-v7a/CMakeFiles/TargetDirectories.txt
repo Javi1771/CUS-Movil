@@ -1,0 +1,2 @@
+D:/Proyectos-Presidencia/cus_movil/android/app/.cxx/Debug/1v1t1i4m/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/Proyectos-Presidencia/cus_movil/android/app/.cxx/Debug/1v1t1i4m/armeabi-v7a/CMakeFiles/rebuild_cache.dir
