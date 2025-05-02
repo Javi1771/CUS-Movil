@@ -21,12 +21,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<_PageData> _pages = [
     const _PageData(
       title: 'Bienvenido a CUS',
-      subtitle: 'Genera tu expediente digital en tan solo 5 pasos.',
+      subtitle: 'Genera tu expediente digital en tan solo 6 pasos.',
       imageAsset: 'assets/mejor_sanjuan.png',
     ),
     const _PageData(
       title: 'Único para ti',
-      subtitle: 'Este proceso es por única ocasión y servirá para trámites futuros.',
+      subtitle:
+          'Este proceso es por única ocasión y servirá para trámites futuros.',
       imageAsset: 'assets/mejor_sanjuan.png',
     ),
     const _PageData(
@@ -58,8 +59,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _bubbles = List.generate(4, (i) {
       return BubbleConfig(
         alignment: alignments[i],
-        size: 60 + _random.nextDouble() * 60,
-        opacity: 0.04 + _random.nextDouble() * 0.06,
+        size: 65 + _random.nextDouble() * 10, //* 45 hasta 55
+        opacity: 0.25 + _random.nextDouble() * 0.15, //* visible pero elegante
       );
     });
   }
@@ -99,7 +100,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           child: Stack(
             children: [
-              // Burbujas parcialmente visibles con animación de tamaño
+              //* Burbujas parcialmente visibles con animación de tamaño
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Stack(
@@ -129,7 +130,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
 
-              // Contenido principal
+              //* Contenido principal
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
                 child: Column(
@@ -153,8 +154,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         style: TextButton.styleFrom(
-                          backgroundColor: const Color(0xFF0B3B60).withOpacity(0.05),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          backgroundColor:
+                              const Color(0xFF0B3B60).withOpacity(0.05),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -180,7 +183,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             return Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.privacy_tip, size: 100, color: Color(0xFF0B3B60)),
+                                const Icon(Icons.privacy_tip,
+                                    size: 100, color: Color(0xFF0B3B60)),
                                 const SizedBox(height: 24),
                                 Text(
                                   page.title,
@@ -194,7 +198,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 const SizedBox(height: 12),
                                 Text(
                                   page.subtitle,
-                                  style: const TextStyle(fontSize: 16, color: Colors.black54),
+                                  style: const TextStyle(
+                                      fontSize: 16, color: Colors.black54),
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 24),
@@ -203,7 +208,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => const PrivacyPolicyScreen(),
+                                        builder: (_) =>
+                                            const PrivacyPolicyScreen(),
                                       ),
                                     );
                                   },
@@ -242,7 +248,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               const SizedBox(height: 12),
                               Text(
                                 page.subtitle,
-                                style: const TextStyle(fontSize: 16, color: Colors.black54),
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.black54),
                                 textAlign: TextAlign.center,
                               ),
                             ],
@@ -261,7 +268,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           width: active ? 20 : 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: active ? const Color(0xFF0B3B60) : Colors.grey.shade300,
+                            color: active
+                                ? const Color(0xFF0B3B60)
+                                : Colors.grey.shade300,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         );
@@ -271,12 +280,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ElevatedButton.icon(
                       onPressed: _nextOrFinish,
                       icon: Icon(
-                        _currentPage == _pages.length - 1 ? Icons.check : Icons.arrow_forward,
+                        _currentPage == _pages.length - 1
+                            ? Icons.check
+                            : Icons.arrow_forward,
                         color: Colors.white,
                       ),
                       label: Text(
-                        _currentPage == _pages.length - 1 ? 'Listo' : 'Siguiente',
-                        style: const TextStyle(color: Colors.white, fontSize: 16),
+                        _currentPage == _pages.length - 1
+                            ? 'Listo'
+                            : 'Siguiente',
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 16),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0B3B60),

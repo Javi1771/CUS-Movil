@@ -1,6 +1,10 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import '../routes/slide_up_route.dart';
+import 'moral_screens/moral_data_screen.dart';
+import 'person_screens/fisica_data_screen.dart';
+import 'widgets/steap_header.dart';
 
 class PersonTypeScreen extends StatefulWidget {
   const PersonTypeScreen({super.key});
@@ -11,14 +15,16 @@ class PersonTypeScreen extends StatefulWidget {
 
 class _PersonTypeScreenState extends State<PersonTypeScreen> {
   String? selectedType;
-  static const Color govBlue = Color(0xFF0b3b60);
+  static const Color govBlue = Color(0xFF0B3B60);
 
   void _navigate() {
-    if (selectedType == 'fisica') {
-      Navigator.pushNamed(context, '/fisica-data');
-    } else if (selectedType == 'moral') {
-      Navigator.pushNamed(context, '/moral-data');
-    }
+    final nextPage = selectedType == 'fisica'
+        ? const FisicaDataScreen()
+        : const MoralDataScreen();
+
+    Navigator.of(context).push(
+      SlideUpRoute(page: nextPage),
+    );
   }
 
   Widget _option({
@@ -29,34 +35,27 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
     final isSelected = selectedType == type;
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          setState(() {
-            selectedType = type;
-          });
-        },
+        onTap: () => setState(() => selectedType = type),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 12),
-          padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 12),
           decoration: BoxDecoration(
             color: isSelected ? govBlue : Colors.white,
             border: Border.all(color: govBlue, width: 2),
             borderRadius: BorderRadius.circular(16),
-            boxShadow: isSelected
-                ? [
-                    const BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    )
-                  ]
-                : [],
+            boxShadow: [
+              BoxShadow(
+                color: isSelected ? govBlue.withOpacity(0.4) : Colors.black12,
+                blurRadius: 10,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 50, color: isSelected ? Colors.white : govBlue),
-              const SizedBox(height: 14),
+              Icon(icon, size: 56, color: isSelected ? Colors.white : govBlue),
+              const SizedBox(height: 12),
               Text(
                 title,
                 textAlign: TextAlign.center,
@@ -76,115 +75,86 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        elevation: 1,
-        backgroundColor: Colors.white,
-        title: const Text(
-          'Registro Cívico',
-          style: TextStyle(color: govBlue, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: govBlue),
-      ),
-      body: Stack(
+      backgroundColor: const Color(0xFFF1F4F8),
+      body: Column(
         children: [
-          // fondos decorativos
-          Positioned(
-            top: -80,
-            left: -60,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0x110b3b60),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -60,
-            right: -40,
-            child: Container(
-              width: 160,
-              height: 160,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0x220b3b60),
-              ),
-            ),
+          // aquí va la cabecera ya estilizada
+          const PasoHeader(
+            pasoActual: 1,
+            tituloPaso: 'Tipo de persona',
+            tituloSiguiente: 'Datos personales',
           ),
 
-          // contenido principal
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 32),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  '¿Qué tipo de persona deseas registrar?',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: govBlue,
+          const SizedBox(height: 32),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '¿Qué tipo de persona deseas registrar?',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: govBlue,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Row(
+                    children: [
+                      _option(
+                        title: 'Persona Física',
+                        icon: Icons.person_outline,
+                        type: 'fisica',
                       ),
-                ),
-              ),
-              const SizedBox(height: 40),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    _option(
-                      title: 'Persona Física',
-                      icon: Icons.person_outline,
-                      type: 'fisica',
+                      _option(
+                        title: 'Persona Moral',
+                        icon: Icons.apartment_outlined,
+                        type: 'moral',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Selecciona una opción para habilitar el botón “Continuar”.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade700,
                     ),
-                    _option(
-                      title: 'Persona Moral',
-                      icon: Icons.apartment_outlined,
-                      type: 'moral',
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  'Selecciona una opción para habilitar el botón “Continuar”.',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: Colors.grey.shade700),
-                ),
-              ),
-              const Spacer(),
-
-              // BOTÓN CONTINUAR
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: FilledButton.icon(
-                    onPressed: selectedType != null ? _navigate : null,
-                    icon: const Icon(Icons.arrow_forward_ios_rounded),
-                    label: const Text(
-                      'Continuar',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: govBlue,
-                      disabledBackgroundColor: govBlue.withOpacity(0.4),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  ),
+                  const SizedBox(height: 150),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: selectedType != null ? _navigate : null,
+                      icon: AnimatedRotation(
+                        duration: const Duration(milliseconds: 300),
+                        turns: selectedType != null ? 0.25 : 0,
+                        child: const Icon(Icons.arrow_forward_rounded),
+                      ),
+                      label: const Text(
+                        'Continuar',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: govBlue,
+                        disabledBackgroundColor: govBlue.withOpacity(0.4),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+                ],
               ),
-            ],
+            ),
           ),
         ],
       ),

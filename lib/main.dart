@@ -1,12 +1,17 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
-import 'routes.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'routes/routes.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('es', null);
   runApp(const CusApp());
 }
 
 class CusApp extends StatelessWidget {
   const CusApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
