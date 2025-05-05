@@ -78,7 +78,6 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
       backgroundColor: const Color(0xFFF1F4F8),
       body: Column(
         children: [
-          // aquí va la cabecera ya estilizada
           const PasoHeader(
             pasoActual: 1,
             tituloPaso: 'Tipo de persona',

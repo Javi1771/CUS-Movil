@@ -72,12 +72,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      Navigator.pushReplacementNamed(context, '/person-type');
+      Navigator.pushReplacementNamed(context, '/auth');
     }
   }
 
   void _skip() {
-    Navigator.pushReplacementNamed(context, '/person-type');
+    Navigator.pushReplacementNamed(context, '/auth');
   }
 
   @override
