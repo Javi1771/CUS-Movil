@@ -1,7 +1,7 @@
 // lib/components/help_button.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Necesario para Clipboard
+import 'package:flutter/services.dart'; //* Necesario para Clipboard
 
 class HelpButton extends StatelessWidget {
   final Color? iconColor;
