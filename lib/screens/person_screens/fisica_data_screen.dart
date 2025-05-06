@@ -1,16 +1,12 @@
-// lib/screens/fisica_data_screen.dart
-
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../utils/curp_utils.dart';
 import '../widgets/steap_header.dart';
+import '../widgets/navigation_buttons.dart';
 
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
     return newValue.copyWith(
       text: newValue.text.toUpperCase(),
       selection: newValue.selection,
@@ -40,8 +36,30 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
   final _passCtrl = TextEditingController();
   final _confirmPassCtrl = TextEditingController();
 
+  final _focusCurp = FocusNode();
+  final _focusCurpVerify = FocusNode();
+  final _focusNombre = FocusNode();
+  final _focusApellidoP = FocusNode();
+  final _focusApellidoM = FocusNode();
+  final _focusPass = FocusNode();
+  final _focusConfirmPass = FocusNode();
+
   bool _showPass = false;
-  bool _submitted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    for (var c in [
+      _curpCtrl,
+      _curpVerifyCtrl,
+      _nombreCtrl,
+      _apellidoPCtrl,
+      _passCtrl,
+      _confirmPassCtrl,
+    ]) {
+      c.addListener(() => setState(() {}));
+    }
+  }
 
   @override
   void dispose() {
@@ -59,93 +77,108 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
     ]) {
       c.dispose();
     }
+    for (var f in [
+      _focusCurp,
+      _focusCurpVerify,
+      _focusNombre,
+      _focusApellidoP,
+      _focusApellidoM,
+      _focusPass,
+      _focusConfirmPass,
+    ]) {
+      f.dispose();
+    }
     super.dispose();
   }
 
   void _onCurpChanged(String v) {
     final curp = v.toUpperCase();
-    if (curp.length == 18) {
-      setState(() {
-        _fechaNacCtrl.text =
-            (obtenerFechaNacimientoDeCurp(curp) ?? '').toUpperCase();
-        _generoCtrl.text = (obtenerGeneroDeCurp(curp) ?? '').toUpperCase();
-        _estadoNacCtrl.text = (obtenerEstadoDeCurp(curp) ?? '').toUpperCase();
-      });
+    if (curp.length == 18 && _validateCurp(curp) == null) {
+      _fechaNacCtrl.text = (obtenerFechaNacimientoDeCurp(curp) ?? '').toUpperCase();
+      _generoCtrl.text = (obtenerGeneroDeCurp(curp) ?? '').toUpperCase();
+      _estadoNacCtrl.text = (obtenerEstadoDeCurp(curp) ?? '').toUpperCase();
+      FocusScope.of(context).requestFocus(_focusCurpVerify);
     }
   }
 
-  String? _validateCurp(String? v) =>
-      v != null && v.length == 18 ? null : 'Deben ser 18 caracteres';
+  String? _validateCurp(String? v) {
+    final curpRegExp = RegExp(r'^[A-Z]{4}\d{6}[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d$', caseSensitive: false);
+    if (v == null || v.length != 18) return 'Deben ser 18 caracteres';
+    if (!curpRegExp.hasMatch(v)) return 'CURP no válida';
+    return null;
+  }
 
   String? _validateVerify(String? v) {
-    if (v == null || v.isEmpty) return 'Requerido';
-    return v.toUpperCase() != _curpCtrl.text.toUpperCase()
-        ? 'No coincide con CURP'
-        : null;
+    if (v == null || v.length < 18) return null;
+    return v.toUpperCase() != _curpCtrl.text.toUpperCase() ? 'No coincide con CURP' : null;
   }
 
-  InputDecoration _inputDecoration(String label, [IconData? icon]) {
-    return InputDecoration(
-      labelText: label,
-      prefixIcon: icon != null ? Icon(icon, color: govBlue) : null,
-      filled: true,
-      fillColor: Colors.grey[50],
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: govBlue, width: 2),
-      ),
-    );
+  String? _validateRequired(String? v) => v != null && v.isNotEmpty ? null : 'Deben llenar este campo';
+
+  String? _validatePassword(String? v) => v != null && v.length >= 6 ? null : 'Mínimo 6 caracteres';
+
+  String? _validateConfirm(String? v) {
+    if (v == null || v.isEmpty || _passCtrl.text.isEmpty) return null;
+    return v != _passCtrl.text ? 'No coinciden' : null;
   }
+
+  InputDecoration _inputDecoration(String label, [IconData? icon]) => InputDecoration(
+        labelText: label,
+        prefixIcon: icon != null ? Icon(icon, color: govBlue) : null,
+        filled: true,
+        fillColor: Colors.grey[50],
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: govBlue, width: 2),
+        ),
+      );
 
   bool get _isFormValid => _formKey.currentState?.validate() == true;
 
   void _goNext() {
-    setState(() => _submitted = true);
     if (_isFormValid) {
       Navigator.pushNamed(context, '/direccion-data');
+    } else {
+      setState(() {});
     }
   }
 
-  Widget _sectionHeader(IconData icon, String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Icon(icon, color: govBlue),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: govBlue,
+  Widget _sectionHeader(IconData icon, String title) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Icon(icon, color: govBlue),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: govBlue,
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 
-  Widget _sectionCard({required List<Widget> children}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
-        ],
-      ),
-      child: Column(children: children),
-    );
-  }
+  Widget _sectionCard({required List<Widget> children}) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
+          ],
+        ),
+        child: Column(children: children),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -163,17 +196,21 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
               child: Form(
                 key: _formKey,
-                autovalidateMode: _submitted
-                    ? AutovalidateMode.always
-                    : AutovalidateMode.disabled,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _sectionHeader(Icons.badge, 'CURP'),
+                    _sectionHeader(Icons.folder_shared, 'CURP'),
                     _sectionCard(children: [
                       TextFormField(
                         controller: _curpCtrl,
-                        onChanged: _onCurpChanged,
+                        focusNode: _focusCurp,
+                        onChanged: (v) {
+                          _onCurpChanged(v);
+                          setState(() {});
+                        },
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusCurpVerify),
                         decoration: _inputDecoration('CURP', Icons.badge),
                         validator: _validateCurp,
                         inputFormatters: [
@@ -184,9 +221,10 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _curpVerifyCtrl,
-                        onChanged: (_) => setState(() {}),
-                        decoration: _inputDecoration(
-                            'Verificar CURP', Icons.check_circle_outline),
+                        focusNode: _focusCurpVerify,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusNombre),
+                        decoration: _inputDecoration('Verificar CURP', Icons.check_circle_outline),
                         validator: _validateVerify,
                         inputFormatters: [
                           LengthLimitingTextInputFormatter(18),
@@ -198,25 +236,30 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                     _sectionCard(children: [
                       TextFormField(
                         controller: _nombreCtrl,
-                        decoration: _inputDecoration(
-                            'Nombre(s)', Icons.account_circle),
-                        validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                        focusNode: _focusNombre,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusApellidoP),
+                        decoration: _inputDecoration('Nombre(s)', Icons.account_circle),
+                        validator: _validateRequired,
                         inputFormatters: [UpperCaseTextFormatter()],
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _apellidoPCtrl,
-                        decoration:
-                            _inputDecoration('Apellido paterno', Icons.person),
-                        validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                        focusNode: _focusApellidoP,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusApellidoM),
+                        decoration: _inputDecoration('Apellido paterno', Icons.person),
+                        validator: _validateRequired,
                         inputFormatters: [UpperCaseTextFormatter()],
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _apellidoMCtrl,
-                        decoration:
-                            _inputDecoration('Apellido materno', Icons.person),
-                        validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                        focusNode: _focusApellidoM,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusPass),
+                        decoration: _inputDecoration('Apellido materno (opcional)', Icons.person),
                         inputFormatters: [UpperCaseTextFormatter()],
                       ),
                     ]),
@@ -226,11 +269,8 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                         controller: _fechaNacCtrl,
                         readOnly: true,
                         enabled: false,
-                        style: const TextStyle(
-                            color: Colors.black87, fontSize: 16),
-                        decoration: _inputDecoration(
-                            'Fecha de nacimiento', Icons.calendar_month),
-                        validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                        style: const TextStyle(color: Colors.black87, fontSize: 16),
+                        decoration: _inputDecoration('Fecha de nacimiento', Icons.calendar_month),
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -240,10 +280,7 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                               controller: _generoCtrl,
                               readOnly: true,
                               enabled: false,
-                              decoration:
-                                  _inputDecoration('Género', Icons.wc),
-                              validator: (v) =>
-                                  v!.isEmpty ? 'Requerido' : null,
+                              decoration: _inputDecoration('Género', Icons.wc),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -252,44 +289,40 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                               controller: _estadoNacCtrl,
                               readOnly: true,
                               enabled: false,
-                              decoration: _inputDecoration(
-                                  'Estado nacimiento', Icons.public),
-                              validator: (v) =>
-                                  v!.isEmpty ? 'Requerido' : null,
+                              decoration: _inputDecoration('Estado nacimiento', Icons.public),
                             ),
                           ),
                         ],
                       ),
                     ]),
-                    _sectionHeader(Icons.password, 'Contraseña'),
+                    _sectionHeader(Icons.lock, 'Contraseña'),
                     _sectionCard(children: [
                       TextFormField(
                         controller: _passCtrl,
+                        focusNode: _focusPass,
                         obscureText: !_showPass,
-                        decoration:
-                            _inputDecoration('Contraseña', Icons.lock)
-                                .copyWith(
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusConfirmPass),
+                        decoration: _inputDecoration('Contraseña', Icons.lock).copyWith(
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _showPass
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
+                              _showPass ? Icons.visibility_off : Icons.visibility,
                               color: govBlue,
                             ),
-                            onPressed: () =>
-                                setState(() => _showPass = !_showPass),
+                            onPressed: () => setState(() => _showPass = !_showPass),
                           ),
                         ),
-                        validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                        validator: _validatePassword,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _confirmPassCtrl,
+                        focusNode: _focusConfirmPass,
                         obscureText: !_showPass,
-                        decoration: _inputDecoration(
-                            'Confirmar contraseña', Icons.check_circle_outline),
-                        validator: (v) =>
-                            v != _passCtrl.text ? 'No coinciden' : null,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _goNext(),
+                        decoration: _inputDecoration('Confirmar contraseña', Icons.check_circle_outline),
+                        validator: _validateConfirm,
                       ),
                     ]),
                   ],
@@ -299,47 +332,10 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, -2))
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back),
-                label: const Text('Anterior'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: govBlue,
-                  side: const BorderSide(color: govBlue),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _isFormValid ? _goNext : null,
-                icon: const Icon(Icons.arrow_forward),
-                label: const Text('Siguiente'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: govBlue,
-                  disabledBackgroundColor: govBlue.withOpacity(0.4),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-          ],
-        ),
+      bottomNavigationBar: NavigationButtons(
+        enabled: _isFormValid,
+        onBack: () => Navigator.pop(context),
+        onNext: _goNext,
       ),
     );
   }

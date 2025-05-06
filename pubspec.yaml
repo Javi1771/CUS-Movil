@@ -38,6 +38,10 @@ dependencies:
   url_launcher: ^6.3.1
   syncfusion_flutter_pdfviewer: ^29.1.38
   intl: ^0.20.2
+  google_maps_flutter: ^2.12.1
+  http: ^1.3.0
+  xml: ^6.5.0
+  geocoding: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +72,7 @@ flutter:
     - assets/fondo.png
     - assets/fondo_2.png
     - assets/logo_blanco.png
+    - assets/codigos_postales_queretaro.xml
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

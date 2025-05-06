@@ -1,8 +1,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--* Permite cargar los mapas desde Internet -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--* Permisos de ubicación, si vas a centrar el mapa en la posición del usuario -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    
     <application
         android:label="CUS Mobile"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAMTqevh3n5dNxKvKvqVq-1tqxxPzI_rvo" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -1,4 +1,3 @@
-// lib/screens/auth_screen.dart
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
@@ -6,7 +5,7 @@ import 'package:flutter/material.dart';
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
 
-  // Paleta Regal Blue
+  //? Paleta Regal Blue
   static const Color regal50  = Color(0xFFF0F8FF);
   static const Color regal700 = Color(0xFF045EA0);
   static const Color regal900 = Color(0xFF0B3B60);
@@ -21,7 +20,7 @@ class AuthScreen extends StatelessWidget {
       backgroundColor: regal50,
       body: Stack(
         children: [
-          // ─── Header con logo ampliado ──────────────────────
+          //* ─── Header con logo ampliado ──────────────────────
           Positioned(
             top: 0, left: 0, right: 0,
             child: ClipPath(
@@ -39,7 +38,7 @@ class AuthScreen extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      // Logo grande centrado
+                      //* Logo grande centrado
                       Positioned(
                         top: 15,
                         child: Image.asset(
@@ -79,7 +78,7 @@ class AuthScreen extends StatelessWidget {
             ),
           ),
 
-          // ─── Formulario ────────────────────────────────
+          //* ─── Formulario ────────────────────────────────
           Align(
             alignment: Alignment.bottomCenter,
             child: SingleChildScrollView(
@@ -100,7 +99,7 @@ class AuthScreen extends StatelessWidget {
                     _label('Correo o CURP'),
                     _pillInput(
                       controller: userCtrl,
-                      hint: 'demo@mail.com', // placeholder más evidente
+                      hint: 'example@gmail.com', //* placeholder más evidente
                       prefix: Icons.email_outlined,
                       keyboard: TextInputType.emailAddress,
                     ),
@@ -220,7 +219,7 @@ class AuthScreen extends StatelessWidget {
   }
 }
 
-/// Clipper para la onda inferior del header
+//* Clipper para la onda inferior del header
 class _BottomWaveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
