@@ -24,6 +24,5 @@ class CodigoPostalLoader {
     return LinkedHashSet<String>.from(list).toList();
   }
 
-  // Como no hay 'd_calle' en el XML, devolvemos una lista vacía.
   List<String> buscarCallesPorCP(String cp) => [];
 }

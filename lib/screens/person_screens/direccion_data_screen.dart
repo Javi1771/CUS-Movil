@@ -43,6 +43,7 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
   List<String> _calles = [];
   LatLng? _pickedLocation;
   final _loader = CodigoPostalLoader();
+
   bool _submitted = false;
 
   bool get _isManualColonia =>
@@ -52,7 +53,20 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
   @override
   void initState() {
     super.initState();
-    _inicializarDatos();
+
+    // Inicia la carga del XML tan pronto como entras en esta pantalla,
+    // sin bloquear la UI. Al terminar, _loader tendrá los datos listos.
+    _loader.cargarDesdeXML().catchError((e) {
+      debugPrint('Error cargando XML de CP: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error cargando datos de CP')),
+      );
+    });
+
+    // Listener del CP para poblar colonias y calles
+    _cpCtrl.addListener(_onCpChanged);
+
+    // Listeners para refrescar mapa/validaciones
     for (final c in [
       _cpCtrl,
       _numExtCtrl,
@@ -65,11 +79,6 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
         _actualizarUbicacionDesdeFormulario();
       });
     }
-  }
-
-  Future<void> _inicializarDatos() async {
-    await _loader.cargarDesdeXML();
-    _cpCtrl.addListener(_onCpChanged);
   }
 
   void _onCpChanged() {
@@ -118,11 +127,9 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
     final validColonia = _isManualColonia
         ? _manualComunidadCtrl.text.trim().isNotEmpty
         : _selectedColonia != null && _selectedColonia!.isNotEmpty;
-
     final validCalle = _isManualCalle
         ? _manualCalleCtrl.text.trim().isNotEmpty
         : _selectedCalle != null && _selectedCalle!.isNotEmpty;
-
     return _formKey.currentState?.validate() == true &&
         validColonia &&
         validCalle &&
@@ -132,7 +139,7 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
   void _goNext() {
     setState(() => _submitted = true);
     if (!_isFormValid) return;
-    Navigator.pushNamed(context, '/contacto-data');
+    Navigator.pushNamed(context, '/contact-data');
   }
 
   InputDecoration _inputDecoration(String label, [IconData? icon]) {
@@ -141,7 +148,8 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
       prefixIcon: icon != null ? Icon(icon, color: govBlue) : null,
       filled: true,
       fillColor: Colors.grey[50],
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -194,9 +202,10 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
       body: Column(
         children: [
           const PasoHeader(
-              pasoActual: 3,
-              tituloPaso: 'Dirección',
-              tituloSiguiente: 'Contacto'),
+            pasoActual: 3,
+            tituloPaso: 'Dirección',
+            tituloSiguiente: 'Contacto',
+          ),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
@@ -209,8 +218,9 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _sectionHeader(
-                        Icons.travel_explore, 'Dirección del Ciudadano'),
+                        Icons.location_city, 'Dirección del Ciudadano'),
                     _sectionCard(children: [
+                      // Código Postal
                       TextFormField(
                         controller: _cpCtrl,
                         decoration: _inputDecoration(
@@ -218,69 +228,63 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(5)
+                          LengthLimitingTextInputFormatter(5),
                         ],
                         validator: (v) =>
                             v != null && v.length == 5 ? null : '5 dígitos',
+                        textInputAction: TextInputAction.next,
                       ),
                       const SizedBox(height: 12),
+                      // Colonia
                       _colonias.isEmpty
                           ? TextFormField(
                               controller: _manualComunidadCtrl,
                               decoration: _inputDecoration(
-                                  'Comunidad (escríbela)', Icons.home_work),
+                                  'Comunidad (escríbela)', Icons.apartment),
                               inputFormatters: [UpperCaseTextFormatter()],
                               validator: (v) => v == null || v.trim().isEmpty
                                   ? 'Requerido'
                                   : null,
                             )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                DropdownButtonFormField<String>(
-                                  decoration: _inputDecoration(
-                                      'Selecciona tu comunidad'),
-                                  items: [
-                                    ..._colonias
-                                        .map((colonia) => DropdownMenuItem(
-                                              value: colonia,
-                                              child: Text(colonia),
-                                            )),
-                                    const DropdownMenuItem(
-                                      value: '__OTRA__',
-                                      child: Text('Otra...'),
-                                    ),
-                                  ],
-                                  value: _selectedColonia,
-                                  onChanged: (val) {
-                                    setState(() {
-                                      _selectedColonia = val;
-                                      if (val != '__OTRA__') {
-                                        _manualComunidadCtrl.clear();
-                                      }
-                                    });
-                                    _actualizarUbicacionDesdeFormulario();
-                                  },
-                                  validator: (val) => val == null || val.isEmpty
-                                      ? 'Selecciona una'
-                                      : null,
+                          : DropdownButtonFormField<String>(
+                              decoration: _inputDecoration('Comunidad'),
+                              items: [
+                                ..._colonias.map((col) => DropdownMenuItem(
+                                      value: col,
+                                      child: Text(col),
+                                    )),
+                                const DropdownMenuItem(
+                                  value: '__OTRA__',
+                                  child: Text('Otra...'),
                                 ),
-                                if (_selectedColonia == '__OTRA__') ...[
-                                  const SizedBox(height: 12),
-                                  TextFormField(
-                                    controller: _manualComunidadCtrl,
-                                    decoration: _inputDecoration(
-                                        'Escribe tu comunidad'),
-                                    inputFormatters: [UpperCaseTextFormatter()],
-                                    validator: (v) =>
-                                        v == null || v.trim().isEmpty
-                                            ? 'Requerido'
-                                            : null,
-                                  ),
-                                ],
                               ],
+                              value: _selectedColonia,
+                              onChanged: (val) {
+                                setState(() {
+                                  _selectedColonia = val;
+                                  if (val != '__OTRA__') {
+                                    _manualComunidadCtrl.clear();
+                                  }
+                                });
+                                _actualizarUbicacionDesdeFormulario();
+                              },
+                              validator: (v) => v == null || v.isEmpty
+                                  ? 'Selecciona una'
+                                  : null,
                             ),
+                      if (_selectedColonia == '__OTRA__') ...[
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _manualComunidadCtrl,
+                          decoration: _inputDecoration(
+                              'Escribe tu comunidad', Icons.edit),
+                          inputFormatters: [UpperCaseTextFormatter()],
+                          validator: (v) =>
+                              v == null || v.trim().isEmpty ? 'Requerido' : null,
+                        ),
+                      ],
                       const SizedBox(height: 12),
+                      // Calle
                       _calles.isEmpty
                           ? TextFormField(
                               controller: _manualCalleCtrl,
@@ -291,61 +295,55 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
                                   ? 'Requerido'
                                   : null,
                             )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                DropdownButtonFormField<String>(
-                                  decoration:
-                                      _inputDecoration('Selecciona tu calle'),
-                                  items: [
-                                    ..._calles.map((calle) => DropdownMenuItem(
-                                          value: calle,
-                                          child: Text(calle),
-                                        )),
-                                    const DropdownMenuItem(
-                                      value: '__OTRA__',
-                                      child: Text('Otra...'),
-                                    ),
-                                  ],
-                                  value: _selectedCalle,
-                                  onChanged: (val) {
-                                    setState(() {
-                                      _selectedCalle = val;
-                                      if (val != '__OTRA__') {
-                                        _manualCalleCtrl.clear();
-                                      }
-                                    });
-                                    _actualizarUbicacionDesdeFormulario();
-                                  },
-                                  validator: (val) => val == null || val.isEmpty
-                                      ? 'Selecciona una'
-                                      : null,
+                          : DropdownButtonFormField<String>(
+                              decoration: _inputDecoration('Calle'),
+                              items: [
+                                ..._calles.map((cal) => DropdownMenuItem(
+                                      value: cal,
+                                      child: Text(cal),
+                                    )),
+                                const DropdownMenuItem(
+                                  value: '__OTRA__',
+                                  child: Text('Otra...'),
                                 ),
-                                if (_selectedCalle == '__OTRA__') ...[
-                                  const SizedBox(height: 12),
-                                  TextFormField(
-                                    controller: _manualCalleCtrl,
-                                    decoration:
-                                        _inputDecoration('Escribe tu calle'),
-                                    inputFormatters: [UpperCaseTextFormatter()],
-                                    validator: (v) =>
-                                        v == null || v.trim().isEmpty
-                                            ? 'Requerido'
-                                            : null,
-                                  ),
-                                ],
                               ],
+                              value: _selectedCalle,
+                              onChanged: (val) {
+                                setState(() {
+                                  _selectedCalle = val;
+                                  if (val != '__OTRA__') {
+                                    _manualCalleCtrl.clear();
+                                  }
+                                });
+                                _actualizarUbicacionDesdeFormulario();
+                              },
+                              validator: (v) =>
+                                  v == null || v.isEmpty ? 'Selecciona una' : null,
                             ),
+                      if (_selectedCalle == '__OTRA__') ...[
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _manualCalleCtrl,
+                          decoration: _inputDecoration(
+                              'Escribe tu calle', Icons.edit_location),
+                          inputFormatters: [UpperCaseTextFormatter()],
+                          validator: (v) => v == null || v.trim().isEmpty
+                              ? 'Requerido'
+                              : null,
+                        ),
+                      ],
                       const SizedBox(height: 12),
+                      // Números
                       Row(children: [
                         Expanded(
                           child: TextFormField(
                             controller: _numExtCtrl,
                             decoration: _inputDecoration(
-                                'Número exterior', Icons.confirmation_number),
+                                'Número ext.', Icons.confirmation_number),
                             keyboardType: TextInputType.number,
-                            validator: (v) =>
-                                v!.isNotEmpty ? null : 'Requerido',
+                            validator: (v) => v != null && v.isNotEmpty
+                                ? null
+                                : 'Requerido',
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -353,12 +351,13 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
                           child: TextFormField(
                             controller: _numIntCtrl,
                             decoration: _inputDecoration(
-                                'Número interior (opcional)',
+                                'Número int. (opcional)',
                                 Icons.confirmation_number_outlined),
                           ),
                         ),
                       ]),
                       const SizedBox(height: 16),
+                      // Selector de mapa
                       MapSelector(
                         initialLocation: _pickedLocation,
                         onLocationSelected: (pos) =>
@@ -367,10 +366,12 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
                       const SizedBox(height: 8),
                       if (_pickedLocation != null)
                         Text(
-                          'Ubicación: ${_pickedLocation!.latitude.toStringAsFixed(4)}, ${_pickedLocation!.longitude.toStringAsFixed(4)}',
-                          style: const TextStyle(color: Color(0xFF0B3B60)),
+                          'Ubicación: '
+                          '${_pickedLocation!.latitude.toStringAsFixed(4)}, '
+                          '${_pickedLocation!.longitude.toStringAsFixed(4)}',
+                          style: const TextStyle(color: govBlue),
                         ),
-                    ])
+                    ]),
                   ],
                 ),
               ),
