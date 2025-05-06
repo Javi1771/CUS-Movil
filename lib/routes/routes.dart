@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../screens/auth_screen.dart';
+import '../screens/moral_screens/moral_contact_screen.dart';
 import '../screens/moral_screens/moral_direccion_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/components/privacy_policy_screen.dart';
@@ -22,4 +23,5 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/direccion-data': (_) => const DireccionDataScreen(),
   '/direccion-moral': (_) => const DireccionMoralScreen(),
   '/contact-data': (_) => const ContactDataScreen(),
+  '/contact-moral': (_) => const ContactMoralScreen(),
 };

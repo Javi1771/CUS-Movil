@@ -114,6 +114,42 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
     );
   }
 
+  Widget _sectionHeader(IconData icon, String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Icon(icon, color: govBlue),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: govBlue,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionCard({required List<Widget> children}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
+        ],
+      ),
+      child: Column(children: children),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -136,70 +172,72 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Email (optional)
-                    TextFormField(
-                      controller: _emailCtrl,
-                      focusNode: _focusEmail,
-                      decoration: _inputDecoration(
-                          'Correo electrónico (opcional)', Icons.email),
-                      validator: _validateEmail,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) =>
-                          FocusScope.of(context).requestFocus(_focusEmailVerify),
-                    ),
-                    const SizedBox(height: 12),
-                    // Verify Email
-                    TextFormField(
-                      controller: _emailVerifyCtrl,
-                      focusNode: _focusEmailVerify,
-                      decoration: _inputDecoration(
-                          'Verificar correo', Icons.verified_user),
-                      validator: _validateEmailVerify,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) =>
-                          FocusScope.of(context).requestFocus(_focusPhone),
-                    ),
-                    const SizedBox(height: 24),
-                    // Phone (required)
-                    TextFormField(
-                      controller: _phoneCtrl,
-                      focusNode: _focusPhone,
-                      decoration:
-                          _inputDecoration('Teléfono', Icons.phone_android),
-                      validator: _validatePhone,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(10),
-                      ],
-                      textInputAction: TextInputAction.next,
-                      onChanged: (v) {
-                        if (v.length == 10) {
-                          FocusScope.of(context)
-                              .requestFocus(_focusPhoneVerify);
-                        }
-                      },
-                      onFieldSubmitted: (_) =>
-                          FocusScope.of(context).requestFocus(_focusPhoneVerify),
-                    ),
-                    const SizedBox(height: 12),
-                    // Verify Phone
-                    TextFormField(
-                      controller: _phoneVerifyCtrl,
-                      focusNode: _focusPhoneVerify,
-                      decoration:
-                          _inputDecoration('Verificar teléfono', Icons.check),
-                      validator: _validatePhoneVerify,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(10),
-                      ],
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _goNext(),
-                    ),
+                    // Sección Email
+                    _sectionHeader(Icons.contact_mail, 'Correo electrónico'),
+                    _sectionCard(children: [
+                      TextFormField(
+                        controller: _emailCtrl,
+                        focusNode: _focusEmail,
+                        decoration: _inputDecoration(
+                            'Opcional: correo electrónico', Icons.email),
+                        validator: _validateEmail,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).requestFocus(_focusEmailVerify),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _emailVerifyCtrl,
+                        focusNode: _focusEmailVerify,
+                        decoration: _inputDecoration(
+                            'Verificar correo', Icons.verified_user),
+                        validator: _validateEmailVerify,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).requestFocus(_focusPhone),
+                      ),
+                    ]),
+
+                    // Sección Teléfono
+                    _sectionHeader(Icons.phone_android, 'Teléfono'),
+                    _sectionCard(children: [
+                      TextFormField(
+                        controller: _phoneCtrl,
+                        focusNode: _focusPhone,
+                        decoration:
+                            _inputDecoration('Requerido: teléfono', Icons.phone),
+                        validator: _validatePhone,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(10),
+                        ],
+                        textInputAction: TextInputAction.next,
+                        onChanged: (v) {
+                          if (v.length == 10) {
+                            FocusScope.of(context)
+                                .requestFocus(_focusPhoneVerify);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _phoneVerifyCtrl,
+                        focusNode: _focusPhoneVerify,
+                        decoration:
+                            _inputDecoration('Verificar teléfono', Icons.check),
+                        validator: _validatePhoneVerify,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(10),
+                        ],
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _goNext(),
+                      ),
+                    ]),
                   ],
                 ),
               ),
