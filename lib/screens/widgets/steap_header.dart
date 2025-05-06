@@ -1,9 +1,6 @@
-
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import '../components/help_button.dart';
-
 
 class PasoHeader extends StatelessWidget {
   final int pasoActual;
@@ -33,6 +30,7 @@ class PasoHeader extends StatelessWidget {
       ),
       child: Stack(
         children: [
+          // círculos decorativos
           Positioned(
             top: -20,
             left: -60,
@@ -60,35 +58,25 @@ class PasoHeader extends StatelessWidget {
               ),
             ),
           ),
+
+          // contenido real del header
           SafeArea(
             bottom: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 16, 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Flexible(
-                        child: Text(
-                          'Registro Cívico',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                      // Asumiendo que HelpButton viene de cus_movil/components/help_button.dart
-                      HelpButton(iconColor: Colors.white.withOpacity(0.9)),
-                    ],
+                  const Text(
+                    'Registro Cívico',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       CircleAvatar(
@@ -108,30 +96,20 @@ class PasoHeader extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Flexible(
-                              // Envolver el Text con Flexible
-                              child: Text(
-                                'Paso $pasoActual: $tituloPaso',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                            Text(
+                              'Paso $pasoActual: $tituloPaso',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                             ),
                             const SizedBox(height: 2),
-                            Flexible(
-                              // Envolver el Text con Flexible
-                              child: Text(
-                                'Siguiente: $tituloSiguiente',
-                                style: const TextStyle(
-                                  color: Color(0xFFE2ECF4),
-                                  fontSize: 13,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                            Text(
+                              'Siguiente: $tituloSiguiente',
+                              style: const TextStyle(
+                                color: Color(0xFFE2ECF4),
+                                fontSize: 13,
                               ),
                             ),
                           ],
