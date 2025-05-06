@@ -8,7 +8,8 @@ import '../widgets/steap_header.dart';
 
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     return newValue.copyWith(
       text: newValue.text.toUpperCase(),
       selection: newValue.selection,
@@ -104,7 +105,8 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
   void _onCurpChanged(String v) {
     final curp = v.toUpperCase();
     if (curp.length == 18 && _validateCurp(curp) == null) {
-      _fechaNacCtrl.text = (obtenerFechaNacimientoDeCurp(curp) ?? '').toUpperCase();
+      _fechaNacCtrl.text =
+          (obtenerFechaNacimientoDeCurp(curp) ?? '').toUpperCase();
       _generoCtrl.text = (obtenerGeneroDeCurp(curp) ?? '').toUpperCase();
       _estadoNacCtrl.text = (obtenerEstadoDeCurp(curp) ?? '').toUpperCase();
       FocusScope.of(context).requestFocus(_focusCurpVerify);
@@ -112,7 +114,9 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
   }
 
   String? _validateCurp(String? v) {
-    final curpRegExp = RegExp(r'^[A-Z]{4}\d{6}[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d$', caseSensitive: false);
+    final curpRegExp = RegExp(
+        r'^[A-Z]{4}\d{6}[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d$',
+        caseSensitive: false);
     if (v == null || v.length != 18) return 'Deben ser 18 caracteres';
     if (!curpRegExp.hasMatch(v)) return 'CURP no válida';
     return null;
@@ -120,7 +124,9 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
 
   String? _validateVerify(String? v) {
     if (v == null || v.isEmpty) return 'Requerido';
-    return v.toUpperCase() != _curpCtrl.text.toUpperCase() ? 'No coincide con CURP' : null;
+    return v.toUpperCase() != _curpCtrl.text.toUpperCase()
+        ? 'No coincide con CURP'
+        : null;
   }
 
   bool get _isFormValid => _formKey.currentState?.validate() == true;
@@ -178,7 +184,9 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))],
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
+        ],
       ),
       child: Column(children: children),
     );
@@ -200,7 +208,9 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
               child: Form(
                 key: _formKey,
-                autovalidateMode: _submitted ? AutovalidateMode.always : AutovalidateMode.disabled,
+                autovalidateMode: _submitted
+                    ? AutovalidateMode.always
+                    : AutovalidateMode.disabled,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -208,23 +218,37 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
                     _sectionCard(children: [
                       TextFormField(
                         controller: _rfcCtrl,
-                        inputFormatters: [UpperCaseTextFormatter()],
-                        validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                        //! Limita a 13 caracteres y fuerza mayúsculas
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(13),
+                          UpperCaseTextFormatter(),
+                        ],
                         decoration: _inputDecoration('RFC', Icons.description),
+                        validator: (v) => v!.isEmpty ? 'Requerido' : null,
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusCurp),
+                        //* Cuando se escribe el carácter 13, pasa al siguiente campo (_focusCurp)
+                        onChanged: (v) {
+                          if (v.length == 13) {
+                            FocusScope.of(context).requestFocus(_focusCurp);
+                          }
+                        },
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).requestFocus(_focusCurp),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _razonSocialCtrl,
                         inputFormatters: [UpperCaseTextFormatter()],
                         validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                        decoration: _inputDecoration('Razón Social', Icons.border_color),
+                        decoration: _inputDecoration(
+                            'Razón Social', Icons.border_color),
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusCurp),
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).requestFocus(_focusCurp),
                       ),
                     ]),
-                    _sectionHeader(Icons.folder_shared, 'Datos del representante legal'),
+                    _sectionHeader(
+                        Icons.folder_shared, 'Datos del representante legal'),
                     _sectionCard(children: [
                       TextFormField(
                         controller: _curpCtrl,
@@ -232,20 +256,29 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
                         onChanged: _onCurpChanged,
                         decoration: _inputDecoration('CURP', Icons.badge),
                         validator: _validateCurp,
-                        inputFormatters: [LengthLimitingTextInputFormatter(18), UpperCaseTextFormatter()],
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(18),
+                          UpperCaseTextFormatter()
+                        ],
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusCurpVerify),
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusCurpVerify),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _curpVerifyCtrl,
                         focusNode: _focusCurpVerify,
                         onChanged: (_) => setState(() {}),
-                        decoration: _inputDecoration('Verificar CURP', Icons.verified),
+                        decoration:
+                            _inputDecoration('Verificar CURP', Icons.verified),
                         validator: _validateVerify,
-                        inputFormatters: [LengthLimitingTextInputFormatter(18), UpperCaseTextFormatter()],
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(18),
+                          UpperCaseTextFormatter()
+                        ],
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusNombre),
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).requestFocus(_focusNombre),
                       ),
                     ]),
                     _sectionHeader(Icons.assignment_ind, 'Nombre completo'),
@@ -253,31 +286,34 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
                       TextFormField(
                         controller: _nombreCtrl,
                         focusNode: _focusNombre,
-                        decoration: _inputDecoration('Nombre(s)', Icons.account_circle),
+                        decoration:
+                            _inputDecoration('Nombre(s)', Icons.account_circle),
                         validator: (v) => v!.isEmpty ? 'Requerido' : null,
                         inputFormatters: [UpperCaseTextFormatter()],
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusApellidoP),
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusApellidoP),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _apellidoPCtrl,
                         focusNode: _focusApellidoP,
-                        decoration: _inputDecoration('Apellido paterno', Icons.person),
+                        decoration:
+                            _inputDecoration('Apellido paterno', Icons.person),
                         validator: (v) => v!.isEmpty ? 'Requerido' : null,
                         inputFormatters: [UpperCaseTextFormatter()],
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusApellidoM),
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusApellidoM),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _apellidoMCtrl,
                         focusNode: _focusApellidoM,
-                        decoration: _inputDecoration('Apellido materno', Icons.person),
-                        validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                        inputFormatters: [UpperCaseTextFormatter()],
                         textInputAction: TextInputAction.next,
                         onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusPass),
+                        decoration: _inputDecoration('Apellido materno (opcional)', Icons.person),
+                        inputFormatters: [UpperCaseTextFormatter()],
                       ),
                     ]),
                     _sectionHeader(Icons.cake, 'Nacimiento'),
@@ -286,7 +322,8 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
                         controller: _fechaNacCtrl,
                         readOnly: true,
                         enabled: false,
-                        decoration: _inputDecoration('Fecha de nacimiento', Icons.calendar_month),
+                        decoration: _inputDecoration(
+                            'Fecha de nacimiento', Icons.calendar_month),
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -305,7 +342,8 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
                               controller: _estadoNacCtrl,
                               readOnly: true,
                               enabled: false,
-                              decoration: _inputDecoration('Estado nacimiento', Icons.public),
+                              decoration: _inputDecoration(
+                                  'Estado nacimiento', Icons.public),
                             ),
                           ),
                         ],
@@ -317,23 +355,32 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
                         controller: _passCtrl,
                         focusNode: _focusPass,
                         obscureText: !_showPass,
-                        decoration: _inputDecoration('Contraseña', Icons.lock).copyWith(
+                        decoration:
+                            _inputDecoration('Contraseña', Icons.lock).copyWith(
                           suffixIcon: IconButton(
-                            icon: Icon(_showPass ? Icons.visibility_off : Icons.visibility, color: govBlue),
-                            onPressed: () => setState(() => _showPass = !_showPass),
+                            icon: Icon(
+                                _showPass
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                color: govBlue),
+                            onPressed: () =>
+                                setState(() => _showPass = !_showPass),
                           ),
                         ),
                         validator: (v) => v!.isEmpty ? 'Requerido' : null,
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusConfirmPass),
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusConfirmPass),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _confirmPassCtrl,
                         focusNode: _focusConfirmPass,
                         obscureText: !_showPass,
-                        decoration: _inputDecoration('Confirmar contraseña', Icons.check_circle),
-                        validator: (v) => v != _passCtrl.text ? 'No coinciden' : null,
+                        decoration: _inputDecoration(
+                            'Confirmar contraseña', Icons.check_circle),
+                        validator: (v) =>
+                            v != _passCtrl.text ? 'No coinciden' : null,
                         textInputAction: TextInputAction.done,
                         onFieldSubmitted: (_) => _goNext(),
                       ),
