@@ -16,30 +16,43 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
   final _formKey = GlobalKey<FormState>();
   static const govBlue = Color(0xFF0B3B60);
 
-  // controllers
+  //* controllers
   final _emailCtrl = TextEditingController();
   final _emailVerifyCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _phoneVerifyCtrl = TextEditingController();
+  final _smsCodeCtrl = TextEditingController();
 
-  // focus nodes
+  //* focus nodes
   final _focusEmail = FocusNode();
   final _focusEmailVerify = FocusNode();
   final _focusPhone = FocusNode();
   final _focusPhoneVerify = FocusNode();
+  final _focusSmsCode = FocusNode();
 
   bool _submitted = false;
+  bool _isPhoneVerified = false;
+  bool _codeSent = false;
 
   @override
   void initState() {
     super.initState();
+    //* rebuild when inputs change
     for (var c in [
       _emailCtrl,
       _emailVerifyCtrl,
       _phoneCtrl,
       _phoneVerifyCtrl,
+      _smsCodeCtrl,
     ]) {
-      c.addListener(() => setState(() {}));
+      c.addListener(() {
+        setState(() {
+          //* check if phone and its verification match
+          _isPhoneVerified = _phoneCtrl.text.length == 10 &&
+              _phoneVerifyCtrl.text == _phoneCtrl.text;
+          if (!_isPhoneVerified) _codeSent = false;
+        });
+      });
     }
   }
 
@@ -50,6 +63,7 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
       _emailVerifyCtrl,
       _phoneCtrl,
       _phoneVerifyCtrl,
+      _smsCodeCtrl,
     ]) {
       c.dispose();
     }
@@ -58,6 +72,7 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
       _focusEmailVerify,
       _focusPhone,
       _focusPhoneVerify,
+      _focusSmsCode,
     ]) {
       f.dispose();
     }
@@ -65,7 +80,7 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
   }
 
   String? _validateEmail(String? v) {
-    if (v == null || v.isEmpty) return null; // optional
+    if (v == null || v.isEmpty) return null; //* optional
     final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     if (!emailRegex.hasMatch(v)) return 'Email inválido';
     return null;
@@ -87,7 +102,19 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
     return v != _phoneCtrl.text ? 'No coincide' : null;
   }
 
-  bool get _isFormValid => _formKey.currentState?.validate() == true;
+  String? _validateSmsCode(String? v) {
+    if (!_codeSent) return null;
+    if (v == null || v.isEmpty) return 'Requerido';
+    return null;
+  }
+
+  bool get _isFormValid {
+    final baseValid = _formKey.currentState?.validate() == true;
+    if (!_isPhoneVerified) return baseValid;
+    //* if code sent, require SMS code
+    if (_codeSent) return baseValid && _smsCodeCtrl.text.isNotEmpty;
+    return baseValid;
+  }
 
   void _goNext() {
     setState(() => _submitted = true);
@@ -157,8 +184,8 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
       body: Column(
         children: [
           const PasoHeader(
-            pasoActual: 3,
-            tituloPaso: 'Contacto',
+            pasoActual: 4,
+            tituloPaso: 'Contacto Personal',
             tituloSiguiente: 'Términos y Condiciones',
           ),
           Expanded(
@@ -172,7 +199,7 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Sección Email
+                    //? Email Section
                     _sectionHeader(Icons.contact_mail, 'Correo electrónico'),
                     _sectionCard(children: [
                       TextFormField(
@@ -183,8 +210,8 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
                         validator: _validateEmail,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) =>
-                            FocusScope.of(context).requestFocus(_focusEmailVerify),
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusEmailVerify),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -200,14 +227,14 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
                       ),
                     ]),
 
-                    // Sección Teléfono
-                    _sectionHeader(Icons.phone_android, 'Teléfono'),
+                    //? Phone Section
+                    _sectionHeader(Icons.phone_android, 'Contacto Telefónico'),
                     _sectionCard(children: [
                       TextFormField(
                         controller: _phoneCtrl,
                         focusNode: _focusPhone,
-                        decoration:
-                            _inputDecoration('Requerido: teléfono', Icons.phone),
+                        decoration: _inputDecoration(
+                            'Requerido: número de teléfono', Icons.phone),
                         validator: _validatePhone,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
@@ -237,6 +264,44 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
                         textInputAction: TextInputAction.done,
                         onFieldSubmitted: (_) => _goNext(),
                       ),
+
+                      //Todo: Send code button & SMS code input
+                      if (_isPhoneVerified) ...[
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () => setState(() => _codeSent = true),
+                          icon: const Icon(Icons.send, color: Colors.white),
+                          label: const Text(
+                            'Enviar código de verificación',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: govBlue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                          ),
+                        ),
+                        if (_codeSent) ...[
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _smsCodeCtrl,
+                            focusNode: _focusSmsCode,
+                            decoration: _inputDecoration(
+                                'Código de verificación', Icons.sms),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(6),
+                            ],
+                            validator: _validateSmsCode,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => _goNext(),
+                          ),
+                        ],
+                      ],
                     ]),
                   ],
                 ),

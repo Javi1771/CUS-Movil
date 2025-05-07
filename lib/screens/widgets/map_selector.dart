@@ -1,5 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -20,36 +22,39 @@ class MapSelector extends StatefulWidget {
 class _MapSelectorState extends State<MapSelector> {
   GoogleMapController? _controller;
   MapType _currentMapType = MapType.normal;
+  LatLng? _markerPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    _markerPosition = widget.initialLocation;
+  }
 
   @override
   void didUpdateWidget(MapSelector oldWidget) {
     super.didUpdateWidget(oldWidget);
+    //? cuando cambie initialLocation, centramos el mapa
     if (widget.initialLocation != null &&
         widget.initialLocation != oldWidget.initialLocation &&
         _controller != null) {
       _controller!.animateCamera(
         CameraUpdate.newLatLng(widget.initialLocation!),
       );
+      setState(() => _markerPosition = widget.initialLocation);
     }
   }
 
   void _centerMap() {
-    if (_controller != null && widget.initialLocation != null) {
-      _controller!.animateCamera(
-        CameraUpdate.newLatLngZoom(widget.initialLocation!, 17),
-      );
+    if (_controller != null && _markerPosition != null) {
+      _controller!
+          .animateCamera(CameraUpdate.newLatLngZoom(_markerPosition!, 17));
     }
   }
 
   void _toggleMapType() {
     setState(() {
-      _currentMapType = _currentMapType == MapType.normal
-          ? MapType.satellite
-          : _currentMapType == MapType.satellite
-              ? MapType.hybrid
-              : _currentMapType == MapType.hybrid
-                  ? MapType.terrain
-                  : MapType.normal;
+      _currentMapType = MapType.values[
+          (_currentMapType.index + 1) % MapType.values.length];
     });
   }
 
@@ -73,48 +78,72 @@ class _MapSelectorState extends State<MapSelector> {
           clipBehavior: Clip.hardEdge,
           child: GoogleMap(
             initialCameraPosition: CameraPosition(
-              target: widget.initialLocation ?? const LatLng(19.4326, -99.1332),
+              target: widget.initialLocation ??
+                  const LatLng(19.4326, -99.1332),
               zoom: 14,
             ),
-            onMapCreated: (controller) => _controller = controller,
-            onTap: widget.onLocationSelected,
-            markers: widget.initialLocation == null
+            onMapCreated: (c) => _controller = c,
+            mapType: _currentMapType,
+            zoomControlsEnabled: true,
+            myLocationEnabled: true,
+            mapToolbarEnabled: true,
+
+            //! deshabilitamos el paneo estándar con un dedo:
+            scrollGesturesEnabled: false,
+            //? y dejamos sólo zoom y paneo mediante ScaleGestureRecognizer:
+            zoomGesturesEnabled: true,
+            gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+              Factory<OneSequenceGestureRecognizer>(
+                () => ScaleGestureRecognizer(),
+              ),
+            },
+
+            markers: _markerPosition == null
                 ? {}
                 : {
                     Marker(
-                      markerId: const MarkerId('ubicacion'),
-                      position: widget.initialLocation!,
+                      markerId: const MarkerId('pin'),
+                      position: _markerPosition!,
+                      draggable: true,
+                      onDragEnd: (pos) {
+                        setState(() => _markerPosition = pos);
+                        widget.onLocationSelected(pos);
+                      },
                     ),
                   },
-            myLocationEnabled: true,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: true,
-            mapType: _currentMapType,
+
+            onTap: (pos) {
+              setState(() => _markerPosition = pos);
+              widget.onLocationSelected(pos);
+            },
           ),
         ),
-        if (widget.initialLocation != null)
+
+        //? Botones de centrar y cambiar tipo de mapa
+        if (_markerPosition != null)
           Positioned(
             bottom: 12,
             right: 12,
             child: Column(
               children: [
                 FloatingActionButton(
-                  heroTag: "centerMapBtn",
+                  heroTag: 'center',
                   mini: true,
                   backgroundColor: Colors.white,
                   onPressed: _centerMap,
-                  tooltip: 'Centrar en ubicación',
-                  elevation: 4,
-                  child: const Icon(Icons.center_focus_strong, color: Colors.blue),
+                  tooltip: 'Centrar',
+                  child: const Icon(
+                    Icons.center_focus_strong,
+                    color: Colors.blue,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 FloatingActionButton(
-                  heroTag: "mapTypeToggleBtn",
+                  heroTag: 'toggle',
                   mini: true,
                   backgroundColor: Colors.white,
                   onPressed: _toggleMapType,
-                  tooltip: 'Cambiar tipo de mapa',
-                  elevation: 4,
+                  tooltip: 'Tipo de mapa',
                   child: const Icon(Icons.layers, color: Colors.blue),
                 ),
               ],
