@@ -119,7 +119,7 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
   void _goNext() {
     setState(() => _submitted = true);
     if (_isFormValid) {
-      Navigator.pushNamed(context, '/terms-and-conditions');
+      Navigator.pushNamed(context, '/terms-data');
     }
   }
 
