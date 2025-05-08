@@ -118,8 +118,26 @@ class _ContactMoralScreenState extends State<ContactMoralScreen> {
 
   void _goNext() {
     setState(() => _submitted = true);
+
     if (_isFormValid) {
-      Navigator.pushNamed(context, '/terms-and-conditions');
+      //* Datos capturados en esta pantalla:
+      List<String> datosContacto = [
+        _emailCtrl.text,
+        _emailVerifyCtrl.text,
+        _phoneCtrl.text,
+        _phoneVerifyCtrl.text,
+        _smsCodeCtrl.text,
+      ];
+
+      //* Obtenemos los datos que vienen de la pantalla anterior:
+      final List<String> datosCompletos =
+          ModalRoute.of(context)!.settings.arguments as List<String>;
+
+      //* Combinamos los datos personales + dirección + contacto
+      final List<String> datosFinales = [...datosCompletos, ...datosContacto];
+
+      //* Navegamos a la siguiente pantalla con todos los datos combinados
+      Navigator.pushNamed(context, '/terms-moral', arguments: datosFinales);
     }
   }
 
@@ -210,8 +228,8 @@ class _ContactMoralScreenState extends State<ContactMoralScreen> {
                         validator: _validateEmail,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) =>
-                            FocusScope.of(context).requestFocus(_focusEmailVerify),
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusEmailVerify),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -253,8 +271,8 @@ class _ContactMoralScreenState extends State<ContactMoralScreen> {
                       TextFormField(
                         controller: _phoneVerifyCtrl,
                         focusNode: _focusPhoneVerify,
-                        decoration: _inputDecoration(
-                            'Verificar teléfono', Icons.check),
+                        decoration:
+                            _inputDecoration('Verificar teléfono', Icons.check),
                         validator: _validatePhoneVerify,
                         keyboardType: TextInputType.number,
                         inputFormatters: [

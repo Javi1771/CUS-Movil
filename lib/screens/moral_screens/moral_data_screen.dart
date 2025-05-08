@@ -43,6 +43,7 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
 
   final _focusCurp = FocusNode();
   final _focusCurpVerify = FocusNode();
+  final _focusRazonSocial = FocusNode();
   final _focusNombre = FocusNode();
   final _focusApellidoP = FocusNode();
   final _focusApellidoM = FocusNode();
@@ -113,6 +114,14 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
     }
   }
 
+  String? _validatePassword(String? v) =>
+      v != null && v.length >= 6 ? null : 'Mínimo 6 caracteres';
+
+  String? _validateConfirm(String? v) {
+    if (v == null || v.isEmpty || _passCtrl.text.isEmpty) return null;
+    return v != _passCtrl.text ? 'No coinciden' : null;
+  }
+
   String? _validateCurp(String? v) {
     final curpRegExp = RegExp(
         r'^[A-Z]{4}\d{6}[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d$',
@@ -132,9 +141,31 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
   bool get _isFormValid => _formKey.currentState?.validate() == true;
 
   void _goNext() {
-    setState(() => _submitted = true);
     if (_isFormValid) {
-      Navigator.pushNamed(context, '/direccion-moral');
+      //* Creamos un arreglo con los datos a enviar
+      List<String> datosPersonales = [
+        _rfcCtrl.text,
+        _razonSocialCtrl.text,
+        _curpCtrl.text,
+        _curpVerifyCtrl.text,
+        _nombreCtrl.text,
+        _apellidoPCtrl.text,
+        _apellidoMCtrl.text,
+        _fechaNacCtrl.text,
+        _generoCtrl.text,
+        _estadoNacCtrl.text,
+        _passCtrl.text,
+        _confirmPassCtrl.text,
+      ];
+
+      //* Navegamos a la siguiente pantalla con el arreglo
+      Navigator.pushNamed(
+        context,
+        '/direccion-moral',
+        arguments: datosPersonales,
+      );
+    } else {
+      setState(() {});
     }
   }
 
@@ -226,18 +257,20 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
                         decoration: _inputDecoration('RFC', Icons.description),
                         validator: (v) => v!.isEmpty ? 'Requerido' : null,
                         textInputAction: TextInputAction.next,
-                        //* Cuando se escribe el carácter 13, pasa al siguiente campo (_focusCurp)
+                        //* Cuando se escribe el carácter 13, pasa al siguiente campo (_focusRazonSocial)
                         onChanged: (v) {
                           if (v.length == 13) {
-                            FocusScope.of(context).requestFocus(_focusCurp);
+                            FocusScope.of(context)
+                                .requestFocus(_focusRazonSocial);
                           }
                         },
-                        onFieldSubmitted: (_) =>
-                            FocusScope.of(context).requestFocus(_focusCurp),
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusRazonSocial),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _razonSocialCtrl,
+                        focusNode: _focusRazonSocial, //* Asociar el FocusNode
                         inputFormatters: [UpperCaseTextFormatter()],
                         validator: (v) => v!.isEmpty ? 'Requerido' : null,
                         decoration: _inputDecoration(
@@ -311,8 +344,10 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
                         controller: _apellidoMCtrl,
                         focusNode: _focusApellidoM,
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusPass),
-                        decoration: _inputDecoration('Apellido materno (opcional)', Icons.person),
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).requestFocus(_focusPass),
+                        decoration: _inputDecoration(
+                            'Apellido materno (opcional)', Icons.person),
                         inputFormatters: [UpperCaseTextFormatter()],
                       ),
                     ]),
@@ -349,40 +384,40 @@ class _MoralDataScreenState extends State<MoralDataScreen> {
                         ],
                       ),
                     ]),
-                    _sectionHeader(Icons.password, 'Contraseña'),
+                    _sectionHeader(Icons.lock, 'Contraseña'),
                     _sectionCard(children: [
                       TextFormField(
                         controller: _passCtrl,
                         focusNode: _focusPass,
                         obscureText: !_showPass,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusConfirmPass),
                         decoration:
                             _inputDecoration('Contraseña', Icons.lock).copyWith(
                           suffixIcon: IconButton(
                             icon: Icon(
-                                _showPass
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                                color: govBlue),
+                              _showPass
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: govBlue,
+                            ),
                             onPressed: () =>
                                 setState(() => _showPass = !_showPass),
                           ),
                         ),
-                        validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context)
-                            .requestFocus(_focusConfirmPass),
+                        validator: _validatePassword,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _confirmPassCtrl,
                         focusNode: _focusConfirmPass,
                         obscureText: !_showPass,
-                        decoration: _inputDecoration(
-                            'Confirmar contraseña', Icons.check_circle),
-                        validator: (v) =>
-                            v != _passCtrl.text ? 'No coinciden' : null,
                         textInputAction: TextInputAction.done,
                         onFieldSubmitted: (_) => _goNext(),
+                        decoration: _inputDecoration(
+                            'Confirmar contraseña', Icons.check_circle_outline),
+                        validator: _validateConfirm,
                       ),
                     ]),
                   ],

@@ -6,6 +6,8 @@ import 'moral_screens/moral_data_screen.dart';
 import 'person_screens/fisica_data_screen.dart';
 import 'widgets/steap_header.dart';
 
+const Color govBlue = Color(0xFF0B3B60);
+
 class PersonTypeScreen extends StatefulWidget {
   const PersonTypeScreen({super.key});
 
@@ -15,7 +17,6 @@ class PersonTypeScreen extends StatefulWidget {
 
 class _PersonTypeScreenState extends State<PersonTypeScreen> {
   String? selectedType;
-  static const Color govBlue = Color(0xFF0B3B60);
 
   void _navigate() {
     final nextPage = selectedType == 'fisica'
@@ -38,7 +39,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
         onTap: () => setState(() => selectedType = type),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          margin: const EdgeInsets.symmetric(horizontal: 12),
+          margin: const EdgeInsets.symmetric(horizontal: 8),
           padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 12),
           decoration: BoxDecoration(
             color: isSelected ? govBlue : Colors.white,
@@ -46,7 +47,9 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: isSelected ? govBlue.withOpacity(0.4) : Colors.black12,
+                color: isSelected
+                    ? govBlue.withOpacity(0.4)
+                    : Colors.black12,
                 blurRadius: 10,
                 offset: const Offset(0, 6),
               ),
@@ -83,7 +86,6 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
             tituloPaso: 'Tipo de persona',
             tituloSiguiente: 'Datos personales',
           ),
-
           const SizedBox(height: 32),
           Expanded(
             child: SingleChildScrollView(
@@ -114,7 +116,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
                   Text(
                     'Selecciona una opción para habilitar el botón “Continuar”.',
                     style: TextStyle(
@@ -122,7 +124,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                       color: Colors.grey.shade700,
                     ),
                   ),
-                  const SizedBox(height: 150),
+                  const SizedBox(height: 120),
                   SizedBox(
                     width: double.infinity,
                     height: 52,

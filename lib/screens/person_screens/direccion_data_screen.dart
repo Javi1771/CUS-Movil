@@ -1,4 +1,3 @@
-// lib/screens/direccion_data_screen.dart
 // ignore_for_file: unused_local_variable, use_build_context_synchronously, deprecated_member_use
 
 import 'package:flutter/material.dart';
@@ -52,13 +51,11 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
 
   bool get _isManualColonia =>
       _colonias.isEmpty || _selectedColonia == '__OTRA__';
-  bool get _isManualCalle =>
-      _calles.isEmpty || _selectedCalle == '__OTRA__';
+  bool get _isManualCalle => _calles.isEmpty || _selectedCalle == '__OTRA__';
 
   @override
   void initState() {
     super.initState();
-    //* Pre-carga de XML sin bloquear UI
     _loader.cargarDesdeXML().catchError((e) {
       debugPrint('Error cargando CP XML: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -66,7 +63,7 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
       );
     });
 
-    //* Escuchar cambios en los controladores para revalidar el formulario
+    //* Listener para actualizar el estado y revalidar el formulario
     for (final ctrl in [
       _cpCtrl,
       _manualComunidadCtrl,
@@ -74,7 +71,9 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
       _numExtCtrl,
       _numIntCtrl,
     ]) {
-      ctrl.addListener(() => setState(() {}));
+      ctrl.addListener(() {
+        setState(() {});
+      });
     }
   }
 
@@ -87,32 +86,6 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
       _manualComunidadCtrl.clear();
       _manualCalleCtrl.clear();
       setState(() {});
-      _tryUpdateLocationFromForm();
-    }
-  }
-
-  Future<void> _tryUpdateLocationFromForm() async {
-    final cp = _cpCtrl.text;
-    final comunidad =
-        _isManualColonia ? _manualComunidadCtrl.text : _selectedColonia;
-    final calle = _isManualCalle ? _manualCalleCtrl.text : _selectedCalle;
-
-    if (cp.length == 5 &&
-        comunidad != null &&
-        comunidad.isNotEmpty &&
-        calle != null &&
-        calle.isNotEmpty) {
-      try {
-        final locs = await locationFromAddress(
-            '$calle, $comunidad, $cp, Querétaro, México');
-        if (locs.isNotEmpty) {
-          _pickedLocation =
-              LatLng(locs.first.latitude, locs.first.longitude);
-          setState(() {});
-        }
-      } catch (e) {
-        debugPrint('Geocoding failed: $e');
-      }
     }
   }
 
@@ -120,51 +93,45 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
     try {
       final places =
           await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
+
       if (places.isEmpty) return;
+
       final pl = places.first;
 
-      //? 1) Código postal y repoblado
-      final cp = pl.postalCode ?? '';
-      _cpCtrl.text = cp;
-      _onCpChanged(cp);
+      //* Código Postal
+      _cpCtrl.text = pl.postalCode ?? '';
+      _onCpChanged(pl.postalCode ?? '');
 
-      //? 2) Colonia / comunidad
-      final subRaw = pl.subLocality ?? pl.locality ?? '';
-      final subUpper = subRaw.toUpperCase();
-      final coloniasUpper =
-          _colonias.map((c) => c.toUpperCase()).toList();
-      if (coloniasUpper.contains(subUpper)) {
-        final match = _colonias[coloniasUpper.indexOf(subUpper)];
-        _selectedColonia = match;
+      //* Colonia / Comunidad
+      final subLocality = pl.subLocality ?? pl.locality ?? '';
+      if (_colonias.contains(subLocality)) {
+        _selectedColonia = subLocality;
         _manualComunidadCtrl.clear();
       } else {
         _selectedColonia = '__OTRA__';
-        _manualComunidadCtrl.text = subRaw;
+        _manualComunidadCtrl.text = subLocality;
       }
 
-      //? 3) Calle
-      final streetRaw = pl.thoroughfare ?? '';
-      final streetUpper = streetRaw.toUpperCase();
-      final callesUpper =
-          _calles.map((c) => c.toUpperCase()).toList();
-      if (callesUpper.contains(streetUpper)) {
-        final match = _calles[callesUpper.indexOf(streetUpper)];
-        _selectedCalle = match;
+      //* Calle
+      final streetName = pl.thoroughfare ?? '';
+      if (_calles.contains(streetName)) {
+        _selectedCalle = streetName;
         _manualCalleCtrl.clear();
       } else {
         _selectedCalle = '__OTRA__';
-        _manualCalleCtrl.text = streetRaw;
+        _manualCalleCtrl.text = streetName;
       }
 
-      //? 4) Número exterior
+      //* Número exterior
       _numExtCtrl.text = pl.subThoroughfare ?? '';
 
-      //? 5) Guardar latLng
+      //* Guardar LatLng
       _pickedLocation = latLng;
 
+      //* 🔥 Aquí se fuerza la validación para habilitar el botón
       setState(() {});
     } catch (e) {
-      debugPrint('Reverse geocoding failed: $e');
+      debugPrint('Geocoding failed: $e');
     }
   }
 
@@ -175,6 +142,7 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
       );
       return;
     }
+
     var perm = await Geolocator.checkPermission();
     if (perm == LocationPermission.denied ||
         perm == LocationPermission.deniedForever) {
@@ -201,15 +169,37 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
     final okCalle = _isManualCalle
         ? _manualCalleCtrl.text.trim().isNotEmpty
         : (_selectedCalle?.isNotEmpty ?? false);
+
     return _formKey.currentState?.validate() == true &&
         okColonia &&
         okCalle &&
-        _pickedLocation != null;
+        _numExtCtrl.text.isNotEmpty;
   }
 
   void _goNext() {
     setState(() => _submitted = true);
-    if (_isFormValid) Navigator.pushNamed(context, '/contact-data');
+    if (_isFormValid) {
+      final datosDireccion = [
+        _cpCtrl.text,
+        _selectedColonia == '__OTRA__'
+            ? _manualComunidadCtrl.text
+            : _selectedColonia ?? '',
+        _selectedCalle == '__OTRA__'
+            ? _manualCalleCtrl.text
+            : _selectedCalle ?? '',
+        _numExtCtrl.text,
+        _numIntCtrl.text,
+        _pickedLocation?.latitude.toString() ?? '',
+        _pickedLocation?.longitude.toString() ?? '',
+      ];
+
+      final datosPersonales =
+          ModalRoute.of(context)!.settings.arguments as List<String>;
+
+      final datosCompletos = [...datosPersonales, ...datosDireccion];
+
+      Navigator.pushNamed(context, '/contact-data', arguments: datosCompletos);
+    }
   }
 
   InputDecoration _inputDecoration(String label, [IconData? icon]) {
@@ -218,8 +208,7 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
       prefixIcon: icon != null ? Icon(icon, color: govBlue) : null,
       filled: true,
       fillColor: Colors.grey[50],
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -255,8 +244,7 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
-          BoxShadow(
-              color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
         ],
       ),
       child: Column(children: children),
@@ -271,7 +259,7 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
         children: [
           const PasoHeader(
             pasoActual: 3,
-            tituloPaso: 'Dirección de Residencia',
+            tituloPaso: 'Dirección Personal',
             tituloSiguiente: 'Contacto',
           ),
           Expanded(
@@ -333,7 +321,7 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
                       TextFormField(
                         controller: _cpCtrl,
                         decoration: _inputDecoration(
-                            'Código Postal', Icons.location_on),
+                            'Código Postal', Icons.markunread_mailbox),
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
@@ -354,11 +342,10 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
                             DropdownButtonFormField<String>(
                               decoration: _inputDecoration('Comunidad'),
                               items: [
-                                ..._colonias
-                                    .map((col) => DropdownMenuItem(
-                                          value: col,
-                                          child: Text(col),
-                                        )),
+                                ..._colonias.map((col) => DropdownMenuItem(
+                                      value: col,
+                                      child: Text(col),
+                                    )),
                                 const DropdownMenuItem(
                                   value: '__OTRA__',
                                   child: Text('Otra...'),
@@ -412,11 +399,10 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
                             DropdownButtonFormField<String>(
                               decoration: _inputDecoration('Calle'),
                               items: [
-                                ..._calles
-                                    .map((cal) => DropdownMenuItem(
-                                          value: cal,
-                                          child: Text(cal),
-                                        )),
+                                ..._calles.map((cal) => DropdownMenuItem(
+                                      value: cal,
+                                      child: Text(cal),
+                                    )),
                                 const DropdownMenuItem(
                                   value: '__OTRA__',
                                   child: Text('Otra...'),
@@ -442,10 +428,9 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
                                 decoration: _inputDecoration(
                                     'Escribe tu calle', Icons.edit_location),
                                 inputFormatters: [UpperCaseTextFormatter()],
-                                validator: (v) =>
-                                    v == null || v.trim().isEmpty
-                                        ? 'Requerido'
-                                        : null,
+                                validator: (v) => v == null || v.trim().isEmpty
+                                    ? 'Requerido'
+                                    : null,
                               ),
                             ],
                           ],
@@ -456,10 +441,9 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
                           decoration: _inputDecoration(
                               'Calle (escríbela)', Icons.streetview),
                           inputFormatters: [UpperCaseTextFormatter()],
-                          validator: (v) =>
-                              v == null || v.trim().isEmpty
-                                  ? 'Requerido'
-                                  : null,
+                          validator: (v) => v == null || v.trim().isEmpty
+                              ? 'Requerido'
+                              : null,
                         ),
 
                       const SizedBox(height: 12),

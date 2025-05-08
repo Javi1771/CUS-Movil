@@ -67,7 +67,16 @@ class _TermsAndConditionsMoralScreenState extends State<TermsAndConditionsMoralS
 
   void _goNext() {
     if (_accepted) {
-      Navigator.pushNamed(context, '/preview-moral');
+      //* Obtenemos los datos que vinieron de la pantalla anterior
+      final List<String> datosFinales =
+          ModalRoute.of(context)!.settings.arguments as List<String>;
+
+      //* Navegamos a la pantalla de "Vista Previa"
+      Navigator.pushNamed(
+        context,
+        '/preview-moral',
+        arguments: datosFinales,
+      );
     }
   }
 
@@ -245,13 +254,10 @@ class _TermsAndConditionsMoralScreenState extends State<TermsAndConditionsMoralS
       ),
 
       // Botones de navegación con padding extra
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        child: NavigationButtons(
-          enabled: _accepted,
-          onBack: () => Navigator.pop(context),
-          onNext: _goNext,
-        ),
+      bottomNavigationBar: NavigationButtons(
+        enabled: _accepted,
+        onBack: () => Navigator.pop(context),
+        onNext: _goNext,
       ),
     );
   }

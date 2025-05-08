@@ -6,7 +6,8 @@ import '../widgets/navigation_buttons.dart';
 
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     return newValue.copyWith(
       text: newValue.text.toUpperCase(),
       selection: newValue.selection,
@@ -94,7 +95,8 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
   void _onCurpChanged(String v) {
     final curp = v.toUpperCase();
     if (curp.length == 18 && _validateCurp(curp) == null) {
-      _fechaNacCtrl.text = (obtenerFechaNacimientoDeCurp(curp) ?? '').toUpperCase();
+      _fechaNacCtrl.text =
+          (obtenerFechaNacimientoDeCurp(curp) ?? '').toUpperCase();
       _generoCtrl.text = (obtenerGeneroDeCurp(curp) ?? '').toUpperCase();
       _estadoNacCtrl.text = (obtenerEstadoDeCurp(curp) ?? '').toUpperCase();
       FocusScope.of(context).requestFocus(_focusCurpVerify);
@@ -102,7 +104,9 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
   }
 
   String? _validateCurp(String? v) {
-    final curpRegExp = RegExp(r'^[A-Z]{4}\d{6}[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d$', caseSensitive: false);
+    final curpRegExp = RegExp(
+        r'^[A-Z]{4}\d{6}[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d$',
+        caseSensitive: false);
     if (v == null || v.length != 18) return 'Deben ser 18 caracteres';
     if (!curpRegExp.hasMatch(v)) return 'CURP no válida';
     return null;
@@ -110,24 +114,30 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
 
   String? _validateVerify(String? v) {
     if (v == null || v.length < 18) return null;
-    return v.toUpperCase() != _curpCtrl.text.toUpperCase() ? 'No coincide con CURP' : null;
+    return v.toUpperCase() != _curpCtrl.text.toUpperCase()
+        ? 'No coincide con CURP'
+        : null;
   }
 
-  String? _validateRequired(String? v) => v != null && v.isNotEmpty ? null : 'Deben llenar este campo';
+  String? _validateRequired(String? v) =>
+      v != null && v.isNotEmpty ? null : 'Deben llenar este campo';
 
-  String? _validatePassword(String? v) => v != null && v.length >= 6 ? null : 'Mínimo 6 caracteres';
+  String? _validatePassword(String? v) =>
+      v != null && v.length >= 6 ? null : 'Mínimo 6 caracteres';
 
   String? _validateConfirm(String? v) {
     if (v == null || v.isEmpty || _passCtrl.text.isEmpty) return null;
     return v != _passCtrl.text ? 'No coinciden' : null;
   }
 
-  InputDecoration _inputDecoration(String label, [IconData? icon]) => InputDecoration(
+  InputDecoration _inputDecoration(String label, [IconData? icon]) =>
+      InputDecoration(
         labelText: label,
         prefixIcon: icon != null ? Icon(icon, color: govBlue) : null,
         filled: true,
         fillColor: Colors.grey[50],
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -142,7 +152,26 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
 
   void _goNext() {
     if (_isFormValid) {
-      Navigator.pushNamed(context, '/direccion-data');
+      //* Creamos un arreglo con los datos a enviar
+      List<String> datosPersonales = [
+        _curpCtrl.text,
+        _curpVerifyCtrl.text,
+        _nombreCtrl.text,
+        _apellidoPCtrl.text,
+        _apellidoMCtrl.text,
+        _fechaNacCtrl.text,
+        _generoCtrl.text,
+        _estadoNacCtrl.text,
+        _passCtrl.text,
+        _confirmPassCtrl.text,
+      ];
+
+      //* Navegamos a la siguiente pantalla con el arreglo
+      Navigator.pushNamed(
+        context,
+        '/direccion-data',
+        arguments: datosPersonales,
+      );
     } else {
       setState(() {});
     }
@@ -174,7 +203,8 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: const [
-            BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
+            BoxShadow(
+                color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
           ],
         ),
         child: Column(children: children),
@@ -210,7 +240,8 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                           setState(() {});
                         },
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusCurpVerify),
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusCurpVerify),
                         decoration: _inputDecoration('CURP', Icons.badge),
                         validator: _validateCurp,
                         inputFormatters: [
@@ -223,8 +254,10 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                         controller: _curpVerifyCtrl,
                         focusNode: _focusCurpVerify,
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusNombre),
-                        decoration: _inputDecoration('Verificar CURP', Icons.check_circle_outline),
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).requestFocus(_focusNombre),
+                        decoration: _inputDecoration(
+                            'Verificar CURP', Icons.check_circle_outline),
                         validator: _validateVerify,
                         inputFormatters: [
                           LengthLimitingTextInputFormatter(18),
@@ -238,8 +271,10 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                         controller: _nombreCtrl,
                         focusNode: _focusNombre,
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusApellidoP),
-                        decoration: _inputDecoration('Nombre(s)', Icons.account_circle),
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusApellidoP),
+                        decoration:
+                            _inputDecoration('Nombre(s)', Icons.account_circle),
                         validator: _validateRequired,
                         inputFormatters: [UpperCaseTextFormatter()],
                       ),
@@ -248,8 +283,10 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                         controller: _apellidoPCtrl,
                         focusNode: _focusApellidoP,
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusApellidoM),
-                        decoration: _inputDecoration('Apellido paterno', Icons.person),
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusApellidoM),
+                        decoration:
+                            _inputDecoration('Apellido paterno', Icons.person),
                         validator: _validateRequired,
                         inputFormatters: [UpperCaseTextFormatter()],
                       ),
@@ -258,8 +295,10 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                         controller: _apellidoMCtrl,
                         focusNode: _focusApellidoM,
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusPass),
-                        decoration: _inputDecoration('Apellido materno (opcional)', Icons.person),
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).requestFocus(_focusPass),
+                        decoration: _inputDecoration(
+                            'Apellido materno (opcional)', Icons.person),
                         inputFormatters: [UpperCaseTextFormatter()],
                       ),
                     ]),
@@ -269,8 +308,10 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                         controller: _fechaNacCtrl,
                         readOnly: true,
                         enabled: false,
-                        style: const TextStyle(color: Colors.black87, fontSize: 16),
-                        decoration: _inputDecoration('Fecha de nacimiento', Icons.calendar_month),
+                        style: const TextStyle(
+                            color: Colors.black87, fontSize: 16),
+                        decoration: _inputDecoration(
+                            'Fecha de nacimiento', Icons.calendar_month),
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -289,7 +330,8 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                               controller: _estadoNacCtrl,
                               readOnly: true,
                               enabled: false,
-                              decoration: _inputDecoration('Estado nacimiento', Icons.public),
+                              decoration: _inputDecoration(
+                                  'Estado nacimiento', Icons.public),
                             ),
                           ),
                         ],
@@ -302,14 +344,19 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                         focusNode: _focusPass,
                         obscureText: !_showPass,
                         textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusConfirmPass),
-                        decoration: _inputDecoration('Contraseña', Icons.lock).copyWith(
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusConfirmPass),
+                        decoration:
+                            _inputDecoration('Contraseña', Icons.lock).copyWith(
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _showPass ? Icons.visibility_off : Icons.visibility,
+                              _showPass
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                               color: govBlue,
                             ),
-                            onPressed: () => setState(() => _showPass = !_showPass),
+                            onPressed: () =>
+                                setState(() => _showPass = !_showPass),
                           ),
                         ),
                         validator: _validatePassword,
@@ -321,7 +368,8 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                         obscureText: !_showPass,
                         textInputAction: TextInputAction.done,
                         onFieldSubmitted: (_) => _goNext(),
-                        decoration: _inputDecoration('Confirmar contraseña', Icons.check_circle_outline),
+                        decoration: _inputDecoration(
+                            'Confirmar contraseña', Icons.check_circle_outline),
                         validator: _validateConfirm,
                       ),
                     ]),

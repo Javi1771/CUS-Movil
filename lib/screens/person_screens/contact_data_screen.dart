@@ -118,8 +118,26 @@ class _ContactDataScreenState extends State<ContactDataScreen> {
 
   void _goNext() {
     setState(() => _submitted = true);
+
     if (_isFormValid) {
-      Navigator.pushNamed(context, '/terms-data');
+      //* Datos capturados en esta pantalla:
+      List<String> datosContacto = [
+        _emailCtrl.text,
+        _emailVerifyCtrl.text,
+        _phoneCtrl.text,
+        _phoneVerifyCtrl.text,
+        _smsCodeCtrl.text,
+      ];
+
+      //* Obtenemos los datos que vienen de la pantalla anterior:
+      final List<String> datosCompletos =
+          ModalRoute.of(context)!.settings.arguments as List<String>;
+
+      //* Combinamos los datos personales + dirección + contacto
+      final List<String> datosFinales = [...datosCompletos, ...datosContacto];
+
+      //* Navegamos a la siguiente pantalla con todos los datos combinados
+      Navigator.pushNamed(context, '/terms-data', arguments: datosFinales);
     }
   }
 

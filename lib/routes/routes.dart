@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import '../screens/auth_screen.dart';
 import '../screens/moral_screens/moral_contact_screen.dart';
 import '../screens/moral_screens/moral_direccion_screen.dart';
+import '../screens/moral_screens/moral_preview_screen.dart';
 import '../screens/moral_screens/moral_terms_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/components/privacy_policy_screen.dart';
 import '../screens/person_screens/contact_data_screen.dart';
 import '../screens/person_screens/direccion_data_screen.dart';
+import '../screens/person_screens/preview_data_screen.dart';
 import '../screens/person_screens/terms_data_screen.dart';
 import '../screens/splash_screen.dart';
 import '../screens/person_type_screen.dart';
@@ -28,4 +30,6 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/contact-moral': (_) => const ContactMoralScreen(),
   '/terms-data': (_) => const TermsAndConditionsScreen(),
   '/terms-moral': (_) => const TermsAndConditionsMoralScreen(),
+  '/preview-data': (_) => const PreviewScreen(),
+  '/preview-moral': (_) => const PreviewMoralScreen(),
 };
