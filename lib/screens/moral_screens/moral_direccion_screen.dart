@@ -56,6 +56,8 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
   @override
   void initState() {
     super.initState();
+
+    //* Carga inicial del XML de colonias/calles
     _loader.cargarDesdeXML().catchError((e) {
       debugPrint('Error cargando CP XML: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -63,7 +65,7 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
       );
     });
 
-    //* Escuchar cambios en los controladores
+    //* Listeners de validación y UI
     for (final ctrl in [
       _cpCtrl,
       _manualComunidadCtrl,
@@ -72,9 +74,36 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
       _numIntCtrl,
     ]) {
       ctrl.addListener(() {
-        setState(() {});
+        setState(() {}); //! revalida formulario, refresca UI
       });
     }
+
+    //* Listener especial para CP: limpia todo y recarga colonias/calles
+    _cpCtrl.addListener(() {
+      _onCpChanged(_cpCtrl.text);
+    });
+
+    //* Listener para comunidad manual: actualiza mapa
+    _manualComunidadCtrl.addListener(() {
+      _pickedLocation = null;
+      setState(() {});
+      _updateMapFromForm();
+    });
+
+    //* Listener para calle manual: limpia numExt y actualiza mapa
+    _manualCalleCtrl.addListener(() {
+      _numExtCtrl.clear();
+      _pickedLocation = null;
+      setState(() {});
+      _updateMapFromForm();
+    });
+
+    //* Listener para número exterior: actualiza mapa
+    _numExtCtrl.addListener(() {
+      _pickedLocation = null;
+      setState(() {});
+      _updateMapFromForm();
+    });
   }
 
   void _onCpChanged(String cp) {
@@ -85,22 +114,66 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
       _selectedCalle = null;
       _manualComunidadCtrl.clear();
       _manualCalleCtrl.clear();
+      _numExtCtrl.clear();
+      _numIntCtrl.clear();
+      _pickedLocation = null;
       setState(() {});
+    } else {
+      //! Si CP no es válido, limpiamos todo
+      _colonias = [];
+      _calles = [];
+      _selectedColonia = null;
+      _selectedCalle = null;
+      _manualComunidadCtrl.clear();
+      _manualCalleCtrl.clear();
+      _numExtCtrl.clear();
+      _numIntCtrl.clear();
+      _pickedLocation = null;
+      setState(() {});
+    }
+  }
+
+  //* Construye la dirección desde los campos y hace forward‐geocoding
+  Future<void> _updateMapFromForm() async {
+    if (_cpCtrl.text.length != 5) return;
+    final colonia = _isManualColonia
+        ? _manualComunidadCtrl.text.trim()
+        : (_selectedColonia ?? '');
+    final calle = _isManualCalle
+        ? _manualCalleCtrl.text.trim()
+        : (_selectedCalle ?? '');
+    final numExt = _numExtCtrl.text.trim();
+    if (colonia.isEmpty || calle.isEmpty || numExt.isEmpty) return;
+
+    final address =
+        '$numExt $calle, $colonia, CP ${_cpCtrl.text}, México';
+    try {
+      final results = await locationFromAddress(address);
+      if (results.isNotEmpty) {
+        final loc = results.first;
+        _pickedLocation = LatLng(loc.latitude, loc.longitude);
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint('Forward geocoding failed: $e');
     }
   }
 
   Future<void> _populateFromCoordinates(LatLng latLng) async {
     try {
+      //? Aseguramos XML cargado
+      await _loader.cargarDesdeXML().catchError((e) {
+        debugPrint('Reintento de carga XML falló: $e');
+      });
+
       final places =
           await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
-
       if (places.isEmpty) return;
-
       final pl = places.first;
 
       //* Código Postal
       _cpCtrl.text = pl.postalCode ?? '';
-      _onCpChanged(pl.postalCode ?? '');
+      _onCpChanged(_cpCtrl.text);
 
       //* Colonia / Comunidad
       final subLocality = pl.subLocality ?? pl.locality ?? '';
@@ -125,10 +198,8 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
       //* Número exterior
       _numExtCtrl.text = pl.subThoroughfare ?? '';
 
-      //* Guardar LatLng
+      //* Guardar LatLng y refrescar
       _pickedLocation = latLng;
-
-      //* 🔥 Aquí se fuerza la validación para habilitar el botón
       setState(() {});
     } catch (e) {
       debugPrint('Geocoding failed: $e');
@@ -198,7 +269,7 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
 
       final datosCompletos = [...datosPersonales, ...datosDireccion];
 
-      Navigator.pushNamed(context, '/contact-moral', arguments: datosCompletos);
+      Navigator.pushNamed(context, '/contact-data', arguments: datosCompletos);
     }
   }
 
@@ -273,8 +344,7 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _sectionHeader(
-                        Icons.corporate_fare, 'Dirección de la Empresa'),
+                    _sectionHeader(Icons.corporate_fare, 'Dirección de la Empresa'),
                     _sectionCard(children: [
                       //? Botón “Usar mi ubicación”
                       Padding(
@@ -331,7 +401,7 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
                         validator: (v) =>
                             v != null && v.length == 5 ? null : '5 dígitos',
                         textInputAction: TextInputAction.next,
-                        onChanged: _onCpChanged,
+                        onChanged: (val) => _onCpChanged(val),
                       ),
                       const SizedBox(height: 12),
 
@@ -360,6 +430,8 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
                                     _manualComunidadCtrl.clear();
                                   }
                                 });
+                                _pickedLocation = null;
+                                _updateMapFromForm();
                               },
                               validator: (v) => v == null || v.isEmpty
                                   ? 'Selecciona una'
@@ -417,6 +489,9 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
                                     _manualCalleCtrl.clear();
                                   }
                                 });
+                                _numExtCtrl.clear();
+                                _pickedLocation = null;
+                                _updateMapFromForm();
                               },
                               validator: (v) => v == null || v.isEmpty
                                   ? 'Selecciona una'
