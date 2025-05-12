@@ -1,99 +1,129 @@
 // lib/components/help_button.dart
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Necesario para Clipboard
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
-class HelpButton extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+class HelpButton extends StatefulWidget {
+  //? Color del ícono
   final Color? iconColor;
+
+  //? Color de fondo del botón
+  final Color? backgroundColor;
+
+  //? Email de soporte
+  final String supportEmail;
+
+  //? URL de FAQs o documentación
+  final String? faqUrl;
+
+  //? Asunto predeterminado para el correo
+  final String emailSubject;
 
   const HelpButton({
     super.key,
     this.iconColor,
+    this.backgroundColor,
+    this.faqUrl,
+    this.emailSubject = 'Soporte y ayuda',
+    this.supportEmail = 'sistemas@sanjuandelrio.gob.mx',
   });
 
-  void _showHelpDialog(BuildContext context) {
-    const String email = 'sistemas@sanjuandelrio.gob.mx';
+  @override
+  State<HelpButton> createState() => _HelpButtonState();
+}
 
-    // Definimos los estilos de texto que queremos usar en el diálogo
-    // Inspirados en los estilos de onboarding_screen.dart
-    const TextStyle titleStyle = TextStyle(
-      fontSize: 20, // Similar a los títulos de página del onboarding
-      fontWeight: FontWeight.bold,
-      color: Color(0xFF0B3B60), // Color principal de la app
+class _HelpButtonState extends State<HelpButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+      lowerBound: 0.9,
+      upperBound: 1.0,
+      value: 1.0,
     );
+    _scaleAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+  }
 
-    const TextStyle contentStyle = TextStyle(
-      fontSize: 15, // Similar a los subtítulos/texto de cuerpo
-      color: Color(0xFF0B3B60), // Buena legibilidad para el contenido
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _launchEmail() async {
+    final uri = Uri(
+      scheme: 'mailto',
+      path: widget.supportEmail,
+      queryParameters: {
+        'subject': widget.emailSubject,
+      },
     );
+    if (await canLaunchUrl(uri)) {
+      // Usamos externalApplication para forzar app nativa de correo
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo abrir la aplicación de correo')),
+      );
+    }
+  }
 
-    final TextStyle emailStyle = contentStyle.copyWith(
-      // Basado en contentStyle pero en negrita
-      fontWeight: FontWeight.bold,
-      // Podrías añadir un color específico si quieres que el email resalte más
-      // color: Color(0xFF0377C6), // Ejemplo de color azul para el email
+  void _copyEmail() {
+    Clipboard.setData(ClipboardData(text: widget.supportEmail));
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Email copiado al portapapeles')),
     );
+  }
 
-    showDialog(
+  void _showHelpOptions() {
+    showModalBottomSheet(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text(
-            'Información de Ayuda',
-            style: titleStyle, // Aplicamos el estilo al título del diálogo
-          ),
-          content: Column(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const Text(
-                'Si necesitas ayuda, contáctanos:',
-                style:
-                    contentStyle, // Aplicamos el estilo al texto introductorio
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-              const SizedBox(
-                  height: 12), // Un poco más de espacio antes del email
-              SelectableText(
-                email,
-                style: emailStyle, // Aplicamos el estilo al email
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.copy_outlined),
+                title: const Text('Copiar email'),
                 onTap: () {
-                  Clipboard.setData(const ClipboardData(text: email));
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    // Usar dialogContext para el SnackBar aquí
-                    const SnackBar(
-                        content: Text('Email copiado al portapapeles')),
-                  );
+                  _copyEmail();
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.email_outlined),
+                title: const Text('Enviar email'),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  _launchEmail();
+                },
+              ),
+              const SizedBox(height: 8),
             ],
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                'Copiar Email',
-                // Opcional: Aplicar un estilo a los botones del diálogo si es necesario
-                // style: TextStyle(color: Color(0xFF0B3B60), fontWeight: FontWeight.w500),
-              ),
-              onPressed: () {
-                Clipboard.setData(const ClipboardData(text: email));
-                Navigator.of(dialogContext).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Email copiado al portapapeles')),
-                );
-              },
-            ),
-            TextButton(
-              child: const Text(
-                'Cerrar',
-                // Opcional: Aplicar un estilo
-                // style: TextStyle(color: Color(0xFF0B3B60), fontWeight: FontWeight.w500),
-              ),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-          ],
         );
       },
     );
@@ -101,18 +131,43 @@ class HelpButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color effectiveIconColor =
-        iconColor ?? Theme.of(context).iconTheme.color ?? Colors.black;
+    final iconC = widget.iconColor ?? Colors.white;
+    final bgC = widget.backgroundColor ??
+        Theme.of(context).colorScheme.primaryContainer.withOpacity(0.9);
 
-    return IconButton(
-      icon: Icon(
-        Icons.help_outline,
-        color: effectiveIconColor,
-      ),
-      tooltip: 'Ayuda y Soporte',
-      onPressed: () {
-        _showHelpDialog(context);
+    return GestureDetector(
+      onTapDown: (_) => _ctrl.reverse(),
+      onTapUp: (_) {
+        _ctrl.forward();
+        _showHelpOptions();
       },
+      onTapCancel: () => _ctrl.forward(),
+      child: ScaleTransition(
+        scale: _scaleAnim,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [bgC, bgC.withOpacity(0.8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 5,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Icon(
+            Icons.help_outline,
+            color: iconC,
+            size: 22,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -531,7 +531,7 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
                             child: TextFormField(
                               controller: _numExtCtrl,
                               decoration: _inputDecoration(
-                                  'Núm. exterior', Icons.confirmation_number),
+                                  'Núm. ext.', Icons.confirmation_number),
                               keyboardType: TextInputType.number,
                               validator: (v) => v != null && v.isNotEmpty
                                   ? null
@@ -543,7 +543,7 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
                             child: TextFormField(
                               controller: _numIntCtrl,
                               decoration: _inputDecoration(
-                                  'Núm. interior (opcional)',
+                                  'Núm. int. (opcional)',
                                   Icons.confirmation_number_outlined),
                             ),
                           ),

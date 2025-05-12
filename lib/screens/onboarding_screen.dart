@@ -2,6 +2,7 @@
 
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'components/help_button.dart';
 import 'components/privacy_policy_screen.dart';
 import 'components/bubble.dart';
 
@@ -100,6 +101,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           child: Stack(
             children: [
+              //? 1) Nuestro HelpButton en la esquina superior izquierda
+              const Positioned(
+                top: 5,
+                left: 5,
+                child: HelpButton(
+                  iconColor: Colors.white,
+                  backgroundColor: Color(0xFF0B3B60),
+                  supportEmail: 'sistemas@sanjuandelrio.gob.mx',
+                  faqUrl: 'https://sanjuandelrio.gob.mx/faqs',
+                  emailSubject: 'Soporte CUS',
+                ),
+              ),
               //* Burbujas parcialmente visibles con animación de tamaño
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
