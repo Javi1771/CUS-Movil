@@ -6,6 +6,14 @@
     <!--* Permisos de ubicación, si vas a centrar el mapa en la posición del usuario -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!--* Esto permite que canLaunchUrl y launchUrl detecten apps de correo -->
+    <queries>
+        <intent>
+        <action android:name="android.intent.action.SENDTO" />
+        <data android:scheme="mailto" />
+        </intent>
+    </queries>
     
     <application
         android:label="CUS Mobile"
