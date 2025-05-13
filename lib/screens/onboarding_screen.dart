@@ -103,8 +103,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             children: [
               //? 1) Nuestro HelpButton en la esquina superior izquierda
               const Positioned(
-                top: 5,
-                left: 5,
+                top: 10,
+                left: 10,
                 child: HelpButton(
                   iconColor: Colors.white,
                   backgroundColor: Color(0xFF0B3B60),

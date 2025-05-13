@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 
+import '../components/help_button.dart';
+
 class PasoHeader extends StatelessWidget {
   final int pasoActual;
   final String tituloPaso;
@@ -30,7 +32,19 @@ class PasoHeader extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // círculos decorativos
+          //? 1) El HelpButton en la esquina superior derecha
+          const Positioned(
+            top: 35,
+            right: 5,
+            child: HelpButton(
+              iconColor: Colors.white,
+              backgroundColor: Color.fromARGB(255, 35, 102, 153),
+              supportEmail: 'sistemas@sanjuandelrio.gob.mx',
+              faqUrl: 'https://sanjuandelrio.gob.mx/faqs',
+              emailSubject: 'Soporte CUS',
+            ),
+          ),
+          //? círculos decorativos
           Positioned(
             top: -20,
             left: -60,
@@ -59,7 +73,7 @@ class PasoHeader extends StatelessWidget {
             ),
           ),
 
-          // contenido real del header
+          //? contenido real del header
           SafeArea(
             bottom: false,
             child: Padding(
