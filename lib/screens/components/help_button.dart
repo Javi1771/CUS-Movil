@@ -1,5 +1,3 @@
-// lib/components/help_button.dart
-
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
@@ -68,7 +66,7 @@ class _HelpButtonState extends State<HelpButton>
       },
     );
     if (await canLaunchUrl(uri)) {
-      // Usamos externalApplication para forzar app nativa de correo
+      //* Usamos externalApplication para forzar app nativa de correo
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

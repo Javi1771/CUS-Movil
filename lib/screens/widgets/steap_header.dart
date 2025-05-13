@@ -40,7 +40,7 @@ class PasoHeader extends StatelessWidget {
               iconColor: Colors.white,
               backgroundColor: Color.fromARGB(255, 35, 102, 153),
               supportEmail: 'sistemas@sanjuandelrio.gob.mx',
-              faqUrl: 'https://sanjuandelrio.gob.mx/faqs',
+              //faqUrl: 'https://sanjuandelrio.gob.mx/faqs',
               emailSubject: 'Soporte CUS',
             ),
           ),
