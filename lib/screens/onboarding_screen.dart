@@ -29,12 +29,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Único para ti',
       subtitle:
           'Este proceso es por única ocasión y servirá para trámites futuros.',
-      imageAsset: 'assets/mejor_sanjuan.png',
+      imageAsset: 'assets/logo_claveunica.png',
     ),
     const _PageData(
       title: 'Seguro y confiable',
       subtitle: 'Tu información se guarda de forma segura.',
-      imageAsset: 'assets/mejor_sanjuan.png',
+      imageAsset: 'assets/logo_sjr.png',
     ),
     const _PageData(
       title: 'Aviso de Privacidad',
