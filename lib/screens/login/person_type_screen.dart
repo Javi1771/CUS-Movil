@@ -1,10 +1,10 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import '../routes/slide_up_route.dart';
-import 'moral_screens/moral_data_screen.dart';
-import 'person_screens/fisica_data_screen.dart';
-import 'widgets/steap_header.dart';
+import '../../routes/slide_up_route.dart';
+import '../moral_screens/moral_data_screen.dart';
+import '../person_screens/fisica_data_screen.dart';
+import '../widgets/steap_header.dart';
 
 const Color govBlue = Color(0xFF0B3B60);
 
