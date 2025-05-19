@@ -46,6 +46,8 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
   final _focusConfirmPass = FocusNode();
 
   bool _showPass = false;
+  final _passwordRegex =
+      RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[$&!¡¿?@]).{8,}$');
 
   @override
   void initState() {
@@ -122,12 +124,25 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
   String? _validateRequired(String? v) =>
       v != null && v.isNotEmpty ? null : 'Deben llenar este campo';
 
-  String? _validatePassword(String? v) =>
-      v != null && v.length >= 6 ? null : 'Mínimo 6 caracteres';
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'La contraseña es obligatoria';
+    }
+    if (!_passwordRegex.hasMatch(value)) {
+      return 'Debe tener ≥8 caracteres, 1 mayúscula, 1 minúscula,\n'
+          '1 número y 1 símbolo de \$&!¡¿?@';
+    }
+    return null;
+  }
 
-  String? _validateConfirm(String? v) {
-    if (v == null || v.isEmpty || _passCtrl.text.isEmpty) return null;
-    return v != _passCtrl.text ? 'No coinciden' : null;
+  String? _validateConfirm(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Confirma la contraseña';
+    }
+    if (value != _passCtrl.text) {
+      return 'Las contraseñas no coinciden';
+    }
+    return null;
   }
 
   InputDecoration _inputDecoration(String label, [IconData? icon]) =>
@@ -337,7 +352,7 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                         ],
                       ),
                     ]),
-                    _sectionHeader(Icons.lock, 'Contraseña'),
+                    _sectionHeader(Icons.password, 'Contraseña'),
                     _sectionCard(children: [
                       TextFormField(
                         controller: _passCtrl,
@@ -350,11 +365,10 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
                             _inputDecoration('Contraseña', Icons.lock).copyWith(
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _showPass
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                              color: govBlue,
-                            ),
+                                _showPass
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                color: govBlue),
                             onPressed: () =>
                                 setState(() => _showPass = !_showPass),
                           ),
