@@ -16,7 +16,7 @@
     </queries>
     
     <application
-        android:label="CUS Mobile"
+        android:label="MiClave SanJuan"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 

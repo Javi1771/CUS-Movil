@@ -76,6 +76,7 @@ flutter:
     - assets/logo_blanco.png
     - assets/codigos_postales_queretaro.xml
     - assets/logo_claveunica.png
+    - assets/logo_claveunica_sinfondo.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

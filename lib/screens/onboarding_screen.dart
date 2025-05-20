@@ -21,7 +21,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<_PageData> _pages = [
     const _PageData(
-      title: 'Bienvenido a CUS',
+      title: 'Bienvenido a la Clave Única San Juan del Río',
       subtitle: 'Genera tu expediente digital en tan solo 6 pasos.',
       imageAsset: 'assets/mejor_sanjuan.png',
     ),
@@ -29,12 +29,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Único para ti',
       subtitle:
           'Este proceso es por única ocasión y servirá para trámites futuros.',
-      imageAsset: 'assets/logo_claveunica.png',
+      imageAsset: 'assets/logo_claveunica_sinfondo.png',
     ),
     const _PageData(
       title: 'Seguro y confiable',
       subtitle: 'Tu información se guarda de forma segura.',
-      imageAsset: 'assets/logo_sjr.png',
+      imageAsset: 'assets/mejor_sanjuan.png',
     ),
     const _PageData(
       title: 'Aviso de Privacidad',
