@@ -6,7 +6,14 @@ import '../widgets/steap_header.dart';
 import '../widgets/navigation_buttons.dart';
 
 class ContactDataScreen extends StatefulWidget {
-  const ContactDataScreen({super.key});
+  final Map<String, dynamic> userData;
+  final bool modoPerfil;
+
+  const ContactDataScreen({
+    super.key,
+    this.userData = const {}, // 👈 valor por defecto
+    this.modoPerfil = false, // 👈 valor por defecto
+  });
 
   @override
   State<ContactDataScreen> createState() => _ContactDataScreenState();

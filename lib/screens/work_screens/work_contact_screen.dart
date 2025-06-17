@@ -1,35 +1,34 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:cus_movil/screens/widgets/navigation_buttons.dart';
+import 'package:cus_movil/screens/widgets/steap_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../widgets/steap_header.dart';
-import '../widgets/navigation_buttons.dart';
 
-class ContactMoralScreen extends StatefulWidget {
+class ContactWorkScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
   final bool modoPerfil;
 
-  const ContactMoralScreen({
+  const ContactWorkScreen({
     super.key,
     this.userData = const {}, // 👈 valor por defecto
     this.modoPerfil = false, // 👈 valor por defecto
   });
 
   @override
-  State<ContactMoralScreen> createState() => _ContactMoralScreenState();
+  State<ContactWorkScreen> createState() => _ContactWorkScreenState();
 }
 
-class _ContactMoralScreenState extends State<ContactMoralScreen> {
+class _ContactWorkScreenState extends State<ContactWorkScreen> {
   final _formKey = GlobalKey<FormState>();
   static const govBlue = Color(0xFF0B3B60);
-  //* controllers
+
   final _emailCtrl = TextEditingController();
   final _emailVerifyCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _phoneVerifyCtrl = TextEditingController();
   final _smsCodeCtrl = TextEditingController();
 
-  //* focus nodes
   final _focusEmail = FocusNode();
   final _focusEmailVerify = FocusNode();
   final _focusPhone = FocusNode();
@@ -43,7 +42,6 @@ class _ContactMoralScreenState extends State<ContactMoralScreen> {
   @override
   void initState() {
     super.initState();
-    //* rebuild when inputs change
     for (var c in [
       _emailCtrl,
       _emailVerifyCtrl,
@@ -53,7 +51,6 @@ class _ContactMoralScreenState extends State<ContactMoralScreen> {
     ]) {
       c.addListener(() {
         setState(() {
-          //* check if phone and its verification match
           _isPhoneVerified = _phoneCtrl.text.length == 10 &&
               _phoneVerifyCtrl.text == _phoneCtrl.text;
           if (!_isPhoneVerified) _codeSent = false;
@@ -86,7 +83,7 @@ class _ContactMoralScreenState extends State<ContactMoralScreen> {
   }
 
   String? _validateEmail(String? v) {
-    if (v == null || v.isEmpty) return null; //* optional
+    if (v == null || v.isEmpty) return null;
     final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     if (!emailRegex.hasMatch(v)) return 'Email inválido';
     return null;
@@ -117,16 +114,13 @@ class _ContactMoralScreenState extends State<ContactMoralScreen> {
   bool get _isFormValid {
     final baseValid = _formKey.currentState?.validate() == true;
     if (!_isPhoneVerified) return baseValid;
-    //* if code sent, require SMS code
     if (_codeSent) return baseValid && _smsCodeCtrl.text.isNotEmpty;
     return baseValid;
   }
 
   void _goNext() {
     setState(() => _submitted = true);
-
     if (_isFormValid) {
-      //* Datos capturados en esta pantalla:
       List<String> datosContacto = [
         _emailCtrl.text,
         _emailVerifyCtrl.text,
@@ -134,16 +128,10 @@ class _ContactMoralScreenState extends State<ContactMoralScreen> {
         _phoneVerifyCtrl.text,
         _smsCodeCtrl.text,
       ];
-
-      //* Obtenemos los datos que vienen de la pantalla anterior:
       final List<String> datosCompletos =
           ModalRoute.of(context)!.settings.arguments as List<String>;
-
-      //* Combinamos los datos personales + dirección + contacto
       final List<String> datosFinales = [...datosCompletos, ...datosContacto];
-
-      //* Navegamos a la siguiente pantalla con todos los datos combinados
-      Navigator.pushNamed(context, '/terms-moral', arguments: datosFinales);
+      Navigator.pushNamed(context, '/work-terms', arguments: datosFinales);
     }
   }
 
@@ -223,7 +211,6 @@ class _ContactMoralScreenState extends State<ContactMoralScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    //? Email Section
                     _sectionHeader(Icons.contact_mail, 'Correo electrónico'),
                     _sectionCard(children: [
                       TextFormField(
@@ -250,8 +237,6 @@ class _ContactMoralScreenState extends State<ContactMoralScreen> {
                             FocusScope.of(context).requestFocus(_focusPhone),
                       ),
                     ]),
-
-                    //? Phone Section
                     _sectionHeader(Icons.phone_android, 'Contacto Telefónico'),
                     _sectionCard(children: [
                       TextFormField(
@@ -288,17 +273,13 @@ class _ContactMoralScreenState extends State<ContactMoralScreen> {
                         textInputAction: TextInputAction.done,
                         onFieldSubmitted: (_) => _goNext(),
                       ),
-
-                      //Todo: Send code button & SMS code input
                       if (_isPhoneVerified) ...[
                         const SizedBox(height: 16),
                         ElevatedButton.icon(
                           onPressed: () => setState(() => _codeSent = true),
                           icon: const Icon(Icons.send, color: Colors.white),
-                          label: const Text(
-                            'Enviar código de verificación',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                          label: const Text('Enviar código de verificación',
+                              style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: govBlue,
                             shape: RoundedRectangleBorder(

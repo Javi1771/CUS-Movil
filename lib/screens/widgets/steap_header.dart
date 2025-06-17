@@ -1,7 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-
 import '../components/help_button.dart';
 
 class PasoHeader extends StatelessWidget {
@@ -11,7 +10,7 @@ class PasoHeader extends StatelessWidget {
   final Color colorPrimario;
 
   const PasoHeader({
-    super.key,
+    super.key, // ✅ super.key utilizado correctamente
     required this.pasoActual,
     required this.tituloPaso,
     required this.tituloSiguiente,
@@ -32,7 +31,6 @@ class PasoHeader extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          //? 1) El HelpButton en la esquina superior derecha
           const Positioned(
             top: 35,
             right: 5,
@@ -40,11 +38,11 @@ class PasoHeader extends StatelessWidget {
               iconColor: Colors.white,
               backgroundColor: Color.fromARGB(255, 35, 102, 153),
               supportEmail: 'sistemas@sanjuandelrio.gob.mx',
-              //faqUrl: 'https://sanjuandelrio.gob.mx/faqs',
               emailSubject: 'Soporte CUS',
             ),
           ),
-          //? círculos decorativos
+
+          // Círculos decorativos
           Positioned(
             top: -20,
             left: -60,
@@ -54,7 +52,8 @@ class PasoHeader extends StatelessWidget {
                 width: 180,
                 height: 180,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withAlpha(
+                      (0.05 * 255).toInt()), // ✅ reemplazo de withOpacity
                   shape: BoxShape.circle,
                 ),
               ),
@@ -67,13 +66,13 @@ class PasoHeader extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.06),
+                color: Colors.white.withAlpha(
+                    (0.06 * 255).toInt()), // ✅ reemplazo de withOpacity
                 borderRadius: BorderRadius.circular(60),
               ),
             ),
           ),
 
-          //? contenido real del header
           SafeArea(
             bottom: false,
             child: Padding(
