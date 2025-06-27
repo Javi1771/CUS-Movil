@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:liquid_progress_indicator_v2/liquid_progress_indicator.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:confetti/confetti.dart';
+import 'package:cus_movil/services/user_data_service.dart';
 
 class MisDocumentosScreen extends StatefulWidget {
   const MisDocumentosScreen({super.key});
@@ -131,6 +132,160 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     _bubbleAnimation = Tween<double>(begin: 0, end: 100).animate(
       CurvedAnimation(parent: _bubbleController, curve: Curves.linear),
     );
+
+    _cargarDocumentosDesdeAPI();
+  }
+
+  Future<void> _cargarDocumentosDesdeAPI() async {
+    setState(() => _isLoading = true);
+    try {
+      // Intentar cargar documentos usando el nuevo método específico
+      final documentos = await UserDataService.getUserDocuments();
+      
+      if (documentos.isNotEmpty) {
+        for (final doc in documentos) {
+          final nombre = doc.nombreDocumento.toLowerCase();
+          if (nombre.contains('ine')) {
+            _documentos['INE'] = DocumentoItem(
+              nombre: doc.nombreDocumento,
+              ruta: doc.urlDocumento,
+              fechaSubida: DateTime.now(),
+              tamano: 0,
+              extension: 'PDF',
+            );
+          } else if (nombre.contains('acta') || nombre.contains('nacimiento')) {
+            _documentos['Acta de Nacimiento'] = DocumentoItem(
+              nombre: doc.nombreDocumento,
+              ruta: doc.urlDocumento,
+              fechaSubida: DateTime.now(),
+              tamano: 0,
+              extension: 'PDF',
+            );
+          } else if (nombre.contains('curp')) {
+            _documentos['CURP'] = DocumentoItem(
+              nombre: doc.nombreDocumento,
+              ruta: doc.urlDocumento,
+              fechaSubida: DateTime.now(),
+              tamano: 0,
+              extension: 'PDF',
+            );
+          } else if (nombre.contains('comprobante')) {
+            _documentos['Comprobante Domicilio'] = DocumentoItem(
+              nombre: doc.nombreDocumento,
+              ruta: doc.urlDocumento,
+              fechaSubida: DateTime.now(),
+              tamano: 0,
+              extension: 'PDF',
+            );
+          } else if (nombre.contains('matrimonio')) {
+            _documentos['Acta de Matrimonio'] = DocumentoItem(
+              nombre: doc.nombreDocumento,
+              ruta: doc.urlDocumento,
+              fechaSubida: DateTime.now(),
+              tamano: 0,
+              extension: 'PDF',
+            );
+          } else if (nombre.contains('concubinato')) {
+            _documentos['Acta de Concubinato'] = DocumentoItem(
+              nombre: doc.nombreDocumento,
+              ruta: doc.urlDocumento,
+              fechaSubida: DateTime.now(),
+              tamano: 0,
+              extension: 'PDF',
+            );
+          }
+        }
+      }
+    } catch (e) {
+      // Si falla la carga de documentos específicos, intentar con getUserData como fallback
+      try {
+        final user = await UserDataService.getUserData();
+        if (user != null && user.documentos != null && user.documentos!.isNotEmpty) {
+          for (final doc in user.documentos!) {
+            final nombre = doc.nombreDocumento.toLowerCase();
+            if (nombre.contains('ine')) {
+              _documentos['INE'] = DocumentoItem(
+                nombre: doc.nombreDocumento,
+                ruta: doc.urlDocumento,
+                fechaSubida: DateTime.now(),
+                tamano: 0,
+                extension: 'PDF',
+              );
+            } else if (nombre.contains('acta') || nombre.contains('nacimiento')) {
+              _documentos['Acta de Nacimiento'] = DocumentoItem(
+                nombre: doc.nombreDocumento,
+                ruta: doc.urlDocumento,
+                fechaSubida: DateTime.now(),
+                tamano: 0,
+                extension: 'PDF',
+              );
+            } else if (nombre.contains('curp')) {
+              _documentos['CURP'] = DocumentoItem(
+                nombre: doc.nombreDocumento,
+                ruta: doc.urlDocumento,
+                fechaSubida: DateTime.now(),
+                tamano: 0,
+                extension: 'PDF',
+              );
+            } else if (nombre.contains('comprobante')) {
+              _documentos['Comprobante Domicilio'] = DocumentoItem(
+                nombre: doc.nombreDocumento,
+                ruta: doc.urlDocumento,
+                fechaSubida: DateTime.now(),
+                tamano: 0,
+                extension: 'PDF',
+              );
+            } else if (nombre.contains('matrimonio')) {
+              _documentos['Acta de Matrimonio'] = DocumentoItem(
+                nombre: doc.nombreDocumento,
+                ruta: doc.urlDocumento,
+                fechaSubida: DateTime.now(),
+                tamano: 0,
+                extension: 'PDF',
+              );
+            } else if (nombre.contains('concubinato')) {
+              _documentos['Acta de Concubinato'] = DocumentoItem(
+                nombre: doc.nombreDocumento,
+                ruta: doc.urlDocumento,
+                fechaSubida: DateTime.now(),
+                tamano: 0,
+                extension: 'PDF',
+              );
+            }
+          }
+        }
+      } catch (e2) {
+        debugPrint('[MisDocumentosScreen] Error al cargar documentos: $e2');
+        // Mostrar error si es necesario
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al cargar documentos: ${_getErrorMessage(e2.toString())}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  String _getErrorMessage(String error) {
+    if (error.contains('Usuario no autenticado')) {
+      return 'Sesión expirada';
+    } else if (error.contains('Sesión expirada')) {
+      return 'Tu sesión ha expirado';
+    } else if (error.contains('Tiempo de espera agotado')) {
+      return 'Conexión lenta';
+    } else if (error.contains('Error de conexión')) {
+      return 'Sin conexión a internet';
+    } else {
+      return 'Error del servidor';
+    }
   }
 
   @override
@@ -178,18 +333,25 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           throw Exception('Archivo demasiado grande (>10MB)');
         }
 
-        final documento = DocumentoItem(
-          nombre: file.name,
-          ruta: file.path!,
-          fechaSubida: DateTime.now(),
-          tamano: file.size,
-          extension: file.extension?.toUpperCase() ?? "PDF",
-        );
+        // Subir el documento a la API
+        final uploadSuccess = await UserDataService.uploadDocument(tipo, file.path!);
+        
+        if (uploadSuccess) {
+          final documento = DocumentoItem(
+            nombre: file.name,
+            ruta: file.path!,
+            fechaSubida: DateTime.now(),
+            tamano: file.size,
+            extension: file.extension?.toUpperCase() ?? "PDF",
+          );
 
-        setState(() => _documentos[tipo] = documento);
-        if (progreso == 1.0) _confettiController.play();
+          setState(() => _documentos[tipo] = documento);
+          if (progreso == 1.0) _confettiController.play();
 
-        _mostrarAlertaExito(tipo, documento);
+          _mostrarAlertaExito(tipo, documento);
+        } else {
+          throw Exception('No se pudo subir el documento al servidor');
+        }
       }
     } catch (e) {
       if (!mounted) return;

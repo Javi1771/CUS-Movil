@@ -34,6 +34,8 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
   final _fechaNacCtrl = TextEditingController();
   final _generoCtrl = TextEditingController();
   final _estadoNacCtrl = TextEditingController();
+  final _estadoCivilCtrl = TextEditingController();
+  final _ocupacionCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _confirmPassCtrl = TextEditingController();
 
@@ -42,6 +44,8 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
   final _focusNombre = FocusNode();
   final _focusApellidoP = FocusNode();
   final _focusApellidoM = FocusNode();
+  final _focusEstadoCivil = FocusNode();
+  final _focusOcupacion = FocusNode();
   final _focusPass = FocusNode();
   final _focusConfirmPass = FocusNode();
 
@@ -57,6 +61,8 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
       _curpVerifyCtrl,
       _nombreCtrl,
       _apellidoPCtrl,
+      _estadoCivilCtrl,
+      _ocupacionCtrl,
       _passCtrl,
       _confirmPassCtrl,
     ]) {
@@ -75,6 +81,8 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
       _fechaNacCtrl,
       _generoCtrl,
       _estadoNacCtrl,
+      _estadoCivilCtrl,
+      _ocupacionCtrl,
       _passCtrl,
       _confirmPassCtrl,
     ]) {
@@ -86,6 +94,8 @@ class _FisicaDataScreenState extends State<FisicaDataScreen> {
       _focusNombre,
       _focusApellidoP,
       _focusApellidoM,
+      _focusEstadoCivil,
+      _focusOcupacion,
       _focusPass,
       _focusConfirmPass,
     ]) {

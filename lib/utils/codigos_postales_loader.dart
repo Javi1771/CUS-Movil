@@ -6,7 +6,8 @@ class CodigoPostalLoader {
   final Map<String, List<String>> _coloniasPorCP = {};
 
   Future<void> cargarDesdeXML() async {
-    final xmlStr = await rootBundle.loadString('assets/codigos_postales_queretaro.xml');
+    final xmlStr =
+        await rootBundle.loadString('assets/codigos_postales_queretaro.xml');
     final document = XmlDocument.parse(xmlStr);
 
     for (final registro in document.findAllElements('table')) {

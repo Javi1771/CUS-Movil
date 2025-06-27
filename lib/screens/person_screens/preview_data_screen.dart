@@ -80,7 +80,6 @@ class PreviewScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   //* 🔹 Representante Legal
                   _sectionHeader(Icons.folder_shared, 'Persona Física'),
                   Card(
@@ -93,13 +92,20 @@ class PreviewScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         children: [
-                          _buildItem(Icons.credit_card, 'CURP', datosFinales[0]),
-                          _buildItem(Icons.account_circle, 'Nombre', datosFinales[2]),
-                          _buildItem(Icons.badge, 'Apellido Paterno', datosFinales[3]),
-                          _buildItem(Icons.badge, 'Apellido Materno', datosFinales[4]),
-                          _buildItem(Icons.cake, 'Fecha de Nacimiento', datosFinales[5]),
-                          _buildItem(Icons.transgender, 'Género', datosFinales[6]),
-                          _buildItem(Icons.map, 'Estado Nacimiento', datosFinales[7]),
+                          _buildItem(
+                              Icons.credit_card, 'CURP', datosFinales[0]),
+                          _buildItem(
+                              Icons.account_circle, 'Nombre', datosFinales[2]),
+                          _buildItem(
+                              Icons.badge, 'Apellido Paterno', datosFinales[3]),
+                          _buildItem(
+                              Icons.badge, 'Apellido Materno', datosFinales[4]),
+                          _buildItem(Icons.cake, 'Fecha de Nacimiento',
+                              datosFinales[5]),
+                          _buildItem(
+                              Icons.transgender, 'Género', datosFinales[6]),
+                          _buildItem(
+                              Icons.map, 'Estado Nacimiento', datosFinales[7]),
                         ],
                       ),
                     ),
@@ -117,11 +123,16 @@ class PreviewScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         children: [
-                          _buildItem(Icons.markunread_mailbox, 'Código Postal', datosFinales[10]),
-                          _buildItem(Icons.location_city, 'Colonia', datosFinales[11]),
-                          _buildItem(Icons.streetview, 'Calle', datosFinales[12]),
-                          _buildItem(Icons.location_on, 'Número Ext.', datosFinales[13]),
-                          _buildItem(Icons.pin_drop, 'Número Int.', datosFinales[14]),
+                          _buildItem(Icons.markunread_mailbox, 'Código Postal',
+                              datosFinales[10]),
+                          _buildItem(
+                              Icons.location_city, 'Colonia', datosFinales[11]),
+                          _buildItem(
+                              Icons.streetview, 'Calle', datosFinales[12]),
+                          _buildItem(Icons.location_on, 'Número Ext.',
+                              datosFinales[13]),
+                          _buildItem(
+                              Icons.pin_drop, 'Número Int.', datosFinales[14]),
                           // _buildItem(Icons.location_on, 'Latitud', datosFinales[15]),
                           // _buildItem(Icons.location_on, 'Longitud', datosFinales[16]),
                         ],
@@ -156,7 +167,8 @@ class PreviewScreen extends StatelessWidget {
       bottomNavigationBar: NavigationButtons(
         enabled: true,
         onBack: () => Navigator.pop(context),
-        onNext: () => Navigator.pushNamed(context, '/confirm-data', arguments: datosFinales),
+        onNext: () => Navigator.pushNamed(context, '/confirm-data',
+            arguments: datosFinales),
       ),
     );
   }
