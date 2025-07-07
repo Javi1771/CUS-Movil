@@ -65,10 +65,9 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: govBlue,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
               ),
               child: Icon(icon, size: 40, color: Colors.white),
             ),
@@ -106,7 +105,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: govBlue,
-                      side: BorderSide(color: govBlue),
+                      side: const BorderSide(color: govBlue),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

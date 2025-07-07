@@ -19,14 +19,14 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
   String? _error;
 
   final Map<String, String> imagenesIconos = {
-    'person': 'assets/informacion_personal.png',
-    'badge': 'assets/curp_icon.png',
-    'cake': 'assets/fecha_nacimiento.png',
-    'flag': 'assets/nacionalidad.png',
-    'contact': 'assets/informacion_contacto.png',
-    'email': 'assets/correo_electronico.png',
+    'person': 'assets/informacion personal.png',
+    'badge': 'assets/Curp.png',
+    'cake': 'assets/Fecha de Nacimiento.png',
+    'flag': 'assets/Nacionalidad.png',
+    'contact': 'assets/Informacion de contacto.png',
+    'email': 'assets/Correo Electronico.png',
     'phone': 'assets/telefono.png',
-    'home': 'assets/direccion.png',
+    'home': 'assets/Direccion.png',
   };
 
   @override
@@ -91,10 +91,12 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
     final partes = <String>[];
     if (usuario!.calle?.isNotEmpty == true) partes.add(usuario!.calle!);
-    if (usuario!.asentamiento?.isNotEmpty == true)
+    if (usuario!.asentamiento?.isNotEmpty == true) {
       partes.add(usuario!.asentamiento!);
-    if (usuario!.codigoPostal?.isNotEmpty == true)
+    }
+    if (usuario!.codigoPostal?.isNotEmpty == true) {
       partes.add('CP ${usuario!.codigoPostal!}');
+    }
 
     return partes.isNotEmpty ? partes.join(', ') : 'Sin dirección';
   }
@@ -102,26 +104,47 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
   Widget _buildProfileIdentifier() {
     if (usuario == null) return const SizedBox();
 
+    List<Widget> identifiers = [];
+
     switch (usuario!.tipoPerfil) {
       case TipoPerfilCUS.ciudadano:
-        return _buildInfoCard(
-          'Folio',
-          _getDisplayValue(usuario!.folio, 'Sin folio'),
-          imagenesIconos['badge']!,
-          Icons.confirmation_number,
-        );
+        // Mostrar folio si existe
+        if (usuario!.folio != null && usuario!.folio!.isNotEmpty) {
+          identifiers.add(_buildInfoCard(
+            'Folio',
+            _getDisplayValue(usuario!.folio, 'Sin folio'),
+            imagenesIconos['badge']!,
+            Icons.confirmation_number,
+          ));
+        }
+
+        // Mostrar ID Ciudadano si existe
+        if (usuario!.idCiudadano != null && usuario!.idCiudadano!.isNotEmpty) {
+          identifiers.add(_buildInfoCard(
+            'ID Ciudadano',
+            _getDisplayValue(usuario!.idCiudadano, 'Sin ID'),
+            imagenesIconos['badge']!,
+            Icons.person_pin,
+          ));
+        }
+        break;
+
       case TipoPerfilCUS.trabajador:
-        return _buildInfoCard(
+        identifiers.add(_buildInfoCard(
           'Nómina',
           _getDisplayValue(usuario!.nomina, 'Sin nómina'),
           imagenesIconos['badge']!,
           Icons.badge,
-        );
+        ));
+        break;
+
       case TipoPerfilCUS.personaMoral:
       case TipoPerfilCUS.usuario:
       default:
-        return const SizedBox();
+        break;
     }
+
+    return Column(children: identifiers);
   }
 
   @override
@@ -130,15 +153,6 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
     return Scaffold(
       backgroundColor: bgGray,
-      appBar: AppBar(
-        title: const Text('Perfil de Usuario'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _fetchUserData,
-          ),
-        ],
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -167,7 +181,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Column(
                               children: [
-                                const SizedBox(height: 20),
+                                const SizedBox(height: 60),
                                 _buildSection(
                                   title: 'Información Personal',
                                   iconPath: imagenesIconos['person']!,
@@ -200,7 +214,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 30),
+                                const SizedBox(height: 10),
                                 _buildSection(
                                   title: 'Información de Contacto',
                                   iconPath: imagenesIconos['contact']!,
@@ -244,104 +258,166 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
     String? identificador;
 
-    // Lógica específica para folio/nómina
+    // Lógica específica para folio/nómina/id_ciudadano
+    print('DEBUG - Tipo perfil: ${userData.tipoPerfil}');
+    print('DEBUG - Folio: ${userData.folio}');
+    print('DEBUG - ID Ciudadano: ${userData.idCiudadano}');
+    print('DEBUG - Nómina: ${userData.nomina}');
+
     if (userData.tipoPerfil == TipoPerfilCUS.ciudadano) {
-      identificador =
-          userData.folio != null ? 'Folio: ${userData.folio}' : null;
+      // Mostrar ID Ciudadano en el header si existe
+      if (userData.idCiudadano != null && userData.idCiudadano!.isNotEmpty) {
+        identificador = 'ID Ciudadano: ${userData.idCiudadano}';
+      }
+      // Si no hay ID ciudadano, mostrar folio
+      else if (userData.folio != null && userData.folio!.isNotEmpty) {
+        identificador = 'Folio: ${userData.folio}';
+      }
     } else if (userData.tipoPerfil == TipoPerfilCUS.trabajador) {
       identificador =
           userData.nomina != null ? 'Nómina: ${userData.nomina}' : null;
     }
 
+    print('DEBUG - Identificador final: $identificador');
+
     final nombre = userData.nombreCompleto ?? 'Usuario';
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(bottom: 32, top: 32),
       decoration: const BoxDecoration(
-        color: govBlue,
+        color: Color(0xFF0B3B60),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+          bottomLeft: Radius.circular(50),
+          bottomRight: Radius.circular(50),
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          GestureDetector(
-            onTap: _pickImage,
-            child: Stack(
-              alignment: Alignment.center,
+          // Main content
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(0, 50, 0, 50),
+            child: Column(
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 4),
-                  ),
-                  child: CircleAvatar(
-                    radius: 52,
-                    backgroundColor: Colors.white,
-                    child: CircleAvatar(
-                      radius: 48,
-                      backgroundImage:
-                          _imageFile != null ? FileImage(_imageFile!) : null,
-                      backgroundColor: Colors.grey[300],
-                      child: _imageFile == null
-                          ? const Icon(Icons.person, size: 50, color: govBlue)
-                          : null,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
+                const SizedBox(height: 0),
+                // Title
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    nombre,
+                    style: const TextStyle(
                       color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.10,
                     ),
-                    padding: const EdgeInsets.all(4),
-                    child:
-                        const Icon(Icons.camera_alt, size: 20, color: govBlue),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(height: 10),
+                // Identifier (Folio/Nómina)
+                if (identificador != null)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white38,
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      identificador,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        letterSpacing: 0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                // Subtitle
+                const Text(
+                  "Información personal y de contacto",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 40),
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            nombre,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 8),
-          if (identificador != null)
-            Text(
-              identificador,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFFD1D5DB),
-              ),
-            ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              userData.tipoPerfilDisplay,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+          // Profile picture positioned at bottom (like progress circle)
+          Positioned(
+            bottom: -50,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  child: Container(
+                    margin: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        width: 3,
+                        color: govBlue,
+                      ),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 38,
+                          backgroundColor: Colors.white,
+                          child: CircleAvatar(
+                            radius: 35,
+                            backgroundImage: _imageFile != null
+                                ? FileImage(_imageFile!)
+                                : null,
+                            backgroundColor: Colors.grey[300],
+                            child: _imageFile == null
+                                ? const Icon(Icons.person,
+                                    size: 36, color: govBlue)
+                                : null,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                            ),
+                            padding: const EdgeInsets.all(4),
+                            child: const Icon(Icons.camera_alt,
+                                size: 14, color: govBlue),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -387,7 +463,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     const govBlue = Color(0xFF0B3B60);
     const textGray = Color(0xFF475569);
 
-    return Container(
+    var container = Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -434,6 +510,8 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1E293B),
                   ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -441,6 +519,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
         ],
       ),
     );
+    return container;
   }
 
   Widget _buildLogoutButton(BuildContext context) {

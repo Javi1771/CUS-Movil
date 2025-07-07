@@ -65,6 +65,9 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAMTqevh3n5dNxKvKvqVq-1tqxxPzI_rvo" />
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableSurfaceView"
+            android:value="false" />
 
         <activity
             android:name="com.example.cus_movil.MainActivity"

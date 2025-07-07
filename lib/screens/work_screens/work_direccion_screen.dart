@@ -8,9 +8,10 @@ import 'package:cus_movil/screens/widgets/steap_header.dart';
 import 'package:cus_movil/utils/codigos_postales_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
+import '../../services/location_service.dart';
 
 class WorkDireccionScreen extends StatefulWidget {
   const WorkDireccionScreen({super.key});
@@ -179,31 +180,66 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
     }
   }
 
-  Future<void> _useCurrentLocation() async {
-    if (!await Geolocator.isLocationServiceEnabled()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Activa tu GPS para continuar')),
-      );
-      return;
-    }
+  final _locationService = LocationService();
+  bool _isLocationLoading = false;
 
-    var perm = await Geolocator.checkPermission();
-    if (perm == LocationPermission.denied ||
-        perm == LocationPermission.deniedForever) {
-      perm = await Geolocator.requestPermission();
-      if (perm != LocationPermission.always &&
-          perm != LocationPermission.whileInUse) {
+  Future<void> _useCurrentLocation() async {
+    if (_isLocationLoading) return;
+
+    setState(() {
+      _isLocationLoading = true;
+    });
+
+    try {
+      final isReady = await _locationService.isReady();
+      if (!isReady) {
+        final permission = await _locationService.requestPermission();
+        if (permission != LocationPermission.always &&
+            permission != LocationPermission.whileInUse) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Activa tu GPS y otorga permisos para continuar'),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      final latLng = await _locationService.getCurrentLocation(
+        timeout: const Duration(seconds: 8),
+      );
+
+      if (latLng != null && mounted) {
+        await _populateFromCoordinates(latLng);
+      } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Permiso de ubicación denegado')),
+          const SnackBar(
+            content:
+                Text('No se pudo obtener la ubicación. Intenta nuevamente.'),
+            duration: Duration(seconds: 3),
+          ),
         );
-        return;
+      }
+    } catch (e) {
+      debugPrint('Error obteniendo ubicación: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error obteniendo ubicación. Verifica tu conexión.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLocationLoading = false;
+        });
       }
     }
-
-    final pos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    final latLng = LatLng(pos.latitude, pos.longitude);
-    await _populateFromCoordinates(latLng);
   }
 
   bool get _isFormValid {

@@ -2,10 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import '../../utils/codigos_postales_loader.dart';
+import '../../services/location_service.dart';
 import '../widgets/steap_header.dart';
 import '../widgets/navigation_buttons.dart';
 import '../widgets/map_selector.dart';
@@ -47,7 +48,9 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
   LatLng? _pickedLocation;
 
   final _loader = CodigoPostalLoader();
+  final _locationService = LocationService();
   bool _submitted = false;
+  bool _isLocationLoading = false;
 
   bool get _isManualColonia =>
       _colonias.isEmpty || _selectedColonia == '__OTRA__';
@@ -57,12 +60,9 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
   void initState() {
     super.initState();
 
-    //* Carga inicial del XML de colonias/calles
-    _loader.cargarDesdeXML().catchError((e) {
-      debugPrint('Error cargando CP XML: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error cargando datos de CP')),
-      );
+    // Inicializar servicios después del primer frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeServices();
     });
 
     //* Listeners de validación y UI
@@ -106,6 +106,26 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
     });
   }
 
+  /// Inicializa servicios de manera optimizada
+  Future<void> _initializeServices() async {
+    try {
+      // Cargar XML de códigos postales en segundo plano
+      _loader.cargarDesdeXML().catchError((e) {
+        debugPrint('Error cargando CP XML: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error cargando datos de CP')),
+          );
+        }
+      });
+
+      // Inicializar servicio de ubicación
+      await _locationService.initialize();
+    } catch (e) {
+      debugPrint('Error inicializando servicios: $e');
+    }
+  }
+
   void _onCpChanged(String cp) {
     if (cp.length == 5) {
       _colonias = _loader.buscarColoniasPorCP(cp);
@@ -139,14 +159,12 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
     final colonia = _isManualColonia
         ? _manualComunidadCtrl.text.trim()
         : (_selectedColonia ?? '');
-    final calle = _isManualCalle
-        ? _manualCalleCtrl.text.trim()
-        : (_selectedCalle ?? '');
+    final calle =
+        _isManualCalle ? _manualCalleCtrl.text.trim() : (_selectedCalle ?? '');
     final numExt = _numExtCtrl.text.trim();
     if (colonia.isEmpty || calle.isEmpty || numExt.isEmpty) return;
 
-    final address =
-        '$numExt $calle, $colonia, CP ${_cpCtrl.text}, México';
+    final address = '$numExt $calle, $colonia, CP ${_cpCtrl.text}, México';
     try {
       final results = await locationFromAddress(address);
       if (results.isNotEmpty) {
@@ -207,30 +225,69 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
   }
 
   Future<void> _useCurrentLocation() async {
-    if (!await Geolocator.isLocationServiceEnabled()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Activa tu GPS para continuar')),
-      );
+    // Evitar múltiples llamadas simultáneas
+    if (_isLocationLoading) {
+      debugPrint('Ya se está obteniendo ubicación...');
       return;
     }
 
-    var perm = await Geolocator.checkPermission();
-    if (perm == LocationPermission.denied ||
-        perm == LocationPermission.deniedForever) {
-      perm = await Geolocator.requestPermission();
-      if (perm != LocationPermission.always &&
-          perm != LocationPermission.whileInUse) {
+    setState(() {
+      _isLocationLoading = true;
+    });
+
+    try {
+      // Verificar si el servicio está listo
+      final isReady = await _locationService.isReady();
+      if (!isReady) {
+        // Intentar solicitar permisos
+        final permission = await _locationService.requestPermission();
+        if (permission != LocationPermission.always &&
+            permission != LocationPermission.whileInUse) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Activa tu GPS y otorga permisos para continuar'),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      // Obtener ubicación con timeout optimizado
+      final latLng = await _locationService.getCurrentLocation(
+        timeout: const Duration(seconds: 8),
+      );
+
+      if (latLng != null && mounted) {
+        await _populateFromCoordinates(latLng);
+      } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Permiso de ubicación denegado')),
+          const SnackBar(
+            content:
+                Text('No se pudo obtener la ubicación. Intenta nuevamente.'),
+            duration: Duration(seconds: 3),
+          ),
         );
-        return;
+      }
+    } catch (e) {
+      debugPrint('Error obteniendo ubicación: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error obteniendo ubicación. Verifica tu conexión.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLocationLoading = false;
+        });
       }
     }
-
-    final pos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    final latLng = LatLng(pos.latitude, pos.longitude);
-    await _populateFromCoordinates(latLng);
   }
 
   bool get _isFormValid {
@@ -364,19 +421,36 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
                               ],
                             ),
                             child: ElevatedButton.icon(
-                              onPressed: _useCurrentLocation,
-                              icon: const Icon(Icons.my_location,
-                                  size: 20, color: Colors.white),
-                              label: const Text(
-                                'Usar mi ubicación',
-                                style: TextStyle(
+                              onPressed: _isLocationLoading
+                                  ? null
+                                  : _useCurrentLocation,
+                              icon: _isLocationLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white),
+                                      ),
+                                    )
+                                  : const Icon(Icons.my_location,
+                                      size: 20, color: Colors.white),
+                              label: Text(
+                                _isLocationLoading
+                                    ? 'Obteniendo ubicación...'
+                                    : 'Usar mi ubicación',
+                                style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white),
                               ),
                               style: ElevatedButton.styleFrom(
                                 elevation: 0,
-                                backgroundColor: Colors.transparent,
+                                backgroundColor: _isLocationLoading
+                                    ? govBlue.withOpacity(0.7)
+                                    : Colors.transparent,
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 24, vertical: 14),
                                 shape: RoundedRectangleBorder(

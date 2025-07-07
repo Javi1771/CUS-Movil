@@ -36,7 +36,7 @@ class UserDataService {
             }),
           )
           .timeout(
-            const Duration(seconds: 15),
+            const Duration(seconds: 8), // Reduced timeout to prevent ANR
             onTimeout: () => throw TimeoutException('Tiempo de espera agotado'),
           );
 
@@ -67,6 +67,32 @@ class UserDataService {
     Map<String, dynamic>? userData = _extractUserData(data);
     if (userData == null) {
       throw Exception('Estructura de respuesta no válida');
+    }
+
+    debugPrint('[UserDataService] User data extracted: $userData');
+    debugPrint('[UserDataService] Folio: ${userData['folio']}');
+    debugPrint('[UserDataService] ID Ciudadano: ${userData['id_ciudadano']}');
+    debugPrint('[UserDataService] ID Usuario General: ${userData['id_usuario_general']}');
+    debugPrint('[UserDataService] SubGeneral: ${userData['subGeneral']}');
+    debugPrint('[UserDataService] Sub: ${userData['sub']}');
+    debugPrint('[UserDataService] Nómina: ${userData['nomina']}');
+    
+    // Buscar ID ciudadano en todos los campos posibles
+    final possibleIdFields = [
+      'id_ciudadano', 
+      'idCiudadano', 
+      'ciudadano_id',
+      'id_usuario_general',
+      'idUsuarioGeneral',
+      'usuario_general_id',
+      'subGeneral',
+      'sub'
+    ];
+    
+    for (final field in possibleIdFields) {
+      if (userData[field] != null) {
+        debugPrint('[UserDataService] Campo $field encontrado: ${userData[field]}');
+      }
     }
 
     _validateProfileData(userData);
@@ -157,28 +183,84 @@ class UserDataService {
       tipoPerfil: tipoPerfil,
       folio: data['folio']?.toString(),
       nomina: data['nomina']?.toString(),
+      idCiudadano: _getField(data, [
+        'id_ciudadano', 
+        'idCiudadano', 
+        'ciudadano_id',
+        'id_usuario_general',
+        'idUsuarioGeneral',
+        'usuario_general_id',
+        'subGeneral',
+        'sub'
+      ]),
     );
   }
 
   static TipoPerfilCUS _determineProfileType(Map<String, dynamic> data) {
-    if (data['tipoPerfil'] != null) {
+    // Buscar tipo de perfil explícito
+    final tipoPerfilExplicito = _getField(data, [
+      'tipoPerfil', 
+      'tipo_perfil', 
+      'tipoUsuario', 
+      'tipo_usuario',
+      'userType',
+      'user_type'
+    ]);
+
+    if (tipoPerfilExplicito != null) {
       try {
-        return TipoPerfilCUS.values.firstWhere(
-          (e) =>
-              e.toString().split('.').last.toLowerCase() ==
-              data['tipoPerfil'].toString().toLowerCase(),
-          orElse: () => TipoPerfilCUS.usuario,
-        );
+        switch (tipoPerfilExplicito.toLowerCase()) {
+          case 'ciudadano':
+          case 'persona_fisica':
+          case 'fisica':
+          case 'citizen':
+            return TipoPerfilCUS.ciudadano;
+          case 'trabajador':
+          case 'employee':
+          case 'worker':
+            return TipoPerfilCUS.trabajador;
+          case 'persona_moral':
+          case 'moral':
+          case 'empresa':
+          case 'company':
+            return TipoPerfilCUS.personaMoral;
+          default:
+            return TipoPerfilCUS.usuario;
+        }
       } catch (e) {
         debugPrint('[UserDataService] Error al determinar tipoPerfil: $e');
       }
     }
 
+    // Determinar por identificadores
     if (data['folio'] != null) return TipoPerfilCUS.ciudadano;
     if (data['nomina'] != null) return TipoPerfilCUS.trabajador;
+    
+    // Verificar ID ciudadano
+    final idCiudadano = _getField(data, [
+      'id_ciudadano', 
+      'idCiudadano', 
+      'ciudadano_id',
+      'id_usuario_general',
+      'idUsuarioGeneral',
+      'usuario_general_id',
+      'subGeneral',
+      'sub'
+    ]);
+    
+    if (idCiudadano != null) return TipoPerfilCUS.ciudadano;
+    
+    // Verificar otros indicadores
     if (data['razonSocial'] != null) return TipoPerfilCUS.personaMoral;
+    
+    // Si tiene CURP, es persona física
+    final curp = _getField(data, ['curp', 'CURP']);
+    if (curp != null && curp.isNotEmpty && curp != 'Sin CURP') {
+      return TipoPerfilCUS.ciudadano;
+    }
 
-    return TipoPerfilCUS.usuario;
+    // Por defecto, asumir ciudadano
+    return TipoPerfilCUS.ciudadano;
   }
 
   static String? _getField(Map<String, dynamic> data, List<String> possibleKeys,
@@ -247,7 +329,40 @@ class UserDataService {
 
   static Future uploadDocument(String tipo, String s) async {}
 
-  static Future getUserDocuments() async {}
+  static Future<List<DocumentoCUS>> getUserDocuments() async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception('Usuario no autenticado');
+    }
+    try {
+      final response = await http.post(
+        Uri.parse(_apiUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+          'X-API-KEY': _apiKey,
+        },
+        body: jsonEncode({
+          // Ajusta el body según lo que espera tu API
+          'action': 'getUserData',
+          'token': token,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Ajusta la ruta según la estructura de tu respuesta
+        final documentos = (data['data']?['documentos'] ?? []) as List;
+        return documentos.map((doc) => DocumentoCUS.fromJson(doc)).toList();
+      } else if (response.statusCode == 401) {
+        await _clearInvalidToken();
+        throw Exception('Sesión expirada. Por favor inicia sesión nuevamente');
+      } else {
+        throw _handleErrorResponse(response);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   // ... (otros métodos como uploadDocument, getUserDocuments pueden permanecer igual)
 }

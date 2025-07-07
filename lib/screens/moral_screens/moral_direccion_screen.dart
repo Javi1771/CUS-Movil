@@ -2,9 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
+import '../../services/location_service.dart';
 import '../../utils/codigos_postales_loader.dart';
 import '../widgets/steap_header.dart';
 import '../widgets/navigation_buttons.dart';
@@ -139,14 +140,12 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
     final colonia = _isManualColonia
         ? _manualComunidadCtrl.text.trim()
         : (_selectedColonia ?? '');
-    final calle = _isManualCalle
-        ? _manualCalleCtrl.text.trim()
-        : (_selectedCalle ?? '');
+    final calle =
+        _isManualCalle ? _manualCalleCtrl.text.trim() : (_selectedCalle ?? '');
     final numExt = _numExtCtrl.text.trim();
     if (colonia.isEmpty || calle.isEmpty || numExt.isEmpty) return;
 
-    final address =
-        '$numExt $calle, $colonia, CP ${_cpCtrl.text}, México';
+    final address = '$numExt $calle, $colonia, CP ${_cpCtrl.text}, México';
     try {
       final results = await locationFromAddress(address);
       if (results.isNotEmpty) {
@@ -206,31 +205,66 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
     }
   }
 
-  Future<void> _useCurrentLocation() async {
-    if (!await Geolocator.isLocationServiceEnabled()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Activa tu GPS para continuar')),
-      );
-      return;
-    }
+  final _locationService = LocationService();
+  bool _isLocationLoading = false;
 
-    var perm = await Geolocator.checkPermission();
-    if (perm == LocationPermission.denied ||
-        perm == LocationPermission.deniedForever) {
-      perm = await Geolocator.requestPermission();
-      if (perm != LocationPermission.always &&
-          perm != LocationPermission.whileInUse) {
+  Future<void> _useCurrentLocation() async {
+    if (_isLocationLoading) return;
+
+    setState(() {
+      _isLocationLoading = true;
+    });
+
+    try {
+      final isReady = await _locationService.isReady();
+      if (!isReady) {
+        final permission = await _locationService.requestPermission();
+        if (permission != LocationPermission.always &&
+            permission != LocationPermission.whileInUse) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Activa tu GPS y otorga permisos para continuar'),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      final latLng = await _locationService.getCurrentLocation(
+        timeout: const Duration(seconds: 8),
+      );
+
+      if (latLng != null && mounted) {
+        await _populateFromCoordinates(latLng);
+      } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Permiso de ubicación denegado')),
+          const SnackBar(
+            content:
+                Text('No se pudo obtener la ubicación. Intenta nuevamente.'),
+            duration: Duration(seconds: 3),
+          ),
         );
-        return;
+      }
+    } catch (e) {
+      debugPrint('Error obteniendo ubicación: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error obteniendo ubicación. Verifica tu conexión.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLocationLoading = false;
+        });
       }
     }
-
-    final pos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    final latLng = LatLng(pos.latitude, pos.longitude);
-    await _populateFromCoordinates(latLng);
   }
 
   bool get _isFormValid {
@@ -344,7 +378,8 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _sectionHeader(Icons.corporate_fare, 'Dirección de la Empresa'),
+                    _sectionHeader(
+                        Icons.corporate_fare, 'Dirección de la Empresa'),
                     _sectionCard(children: [
                       //? Botón “Usar mi ubicación”
                       Padding(

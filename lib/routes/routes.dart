@@ -34,6 +34,7 @@ import '../screens/home_screen.dart';
 
 // Importa la pantalla de perfil del usuario
 import '../screens/perfil_usuario_screen.dart';
+import '../screens/tramites_screen.dart';
 
 final Map<String, WidgetBuilder> appRoutes = {
   '/': (_) => const SplashScreen(),
@@ -68,4 +69,5 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/home': (_) => const HomeScreen(),
   '/mis-documentos': (_) => const MisDocumentosScreen(),
   '/perfil-usuario': (_) => const PerfilUsuarioScreen(),
+  '/tramites': (_) => const TramitesScreen(),
 };
