@@ -1,2 +1,0 @@
-C:/CUS-Movil/build/.cxx/Debug/6t2n235j/x86/CMakeFiles/edit_cache.dir
-C:/CUS-Movil/build/.cxx/Debug/6t2n235j/x86/CMakeFiles/rebuild_cache.dir
