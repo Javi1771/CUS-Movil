@@ -6,15 +6,15 @@ import 'package:flutter/material.dart';
 import '../widgets/steap_header.dart';
 import '../widgets/navigation_buttons.dart';
 
-class TermsAndConditionsScreen extends StatefulWidget {
-  const TermsAndConditionsScreen({super.key});
+class TermsAndConditionsWorkScreen extends StatefulWidget {
+  const TermsAndConditionsWorkScreen({super.key});
 
   @override
-  State<TermsAndConditionsScreen> createState() =>
-      _TermsAndConditionsScreenState();
+  State<TermsAndConditionsWorkScreen> createState() =>
+      _TermsAndConditionsWorkScreenState();
 }
 
-class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen>
+class _TermsAndConditionsWorkScreenState extends State<TermsAndConditionsWorkScreen>
     with SingleTickerProviderStateMixin {
   static const govBlue = Color(0xFF0B3B60);
   bool _accepted = false;

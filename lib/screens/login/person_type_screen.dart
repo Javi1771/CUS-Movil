@@ -1,11 +1,9 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
-import 'package:cus_movil/screens/components/work_screens/work_data_screen.dart';
 import 'package:flutter/material.dart';
 import '../../routes/slide_up_route.dart';
 import '../moral_screens/moral_data_screen.dart';
 import '../person_screens/fisica_data_screen.dart';
-import '../work_screens/work_data_screen.dart'; // Importamos la pantalla inicial de work
 import '../work_screens/work_data_screen.dart';
 import '../widgets/steap_header.dart';
 
@@ -20,27 +18,9 @@ class PersonTypeScreen extends StatefulWidget {
 
 class _PersonTypeScreenState extends State<PersonTypeScreen> {
   String? selectedType;
-  bool arrowDown = false;
 
   void _navigate() {
     Widget nextPage;
-
-    switch (selectedType) {
-      case 'fisica':
-        nextPage = const FisicaDataScreen();
-        break;
-      case 'moral':
-        nextPage = const MoralDataScreen();
-        break;
-      case 'trabajador':
-        nextPage = const WorkDataScreen(); // Usamos la pantalla inicial de Work
-        break;
-      default:
-        return;
-    }
-
-    Navigator.of(context).push(SlideUpRoute(page: nextPage));
-  }
 
     switch (selectedType) {
       case 'fisica':
@@ -55,6 +35,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
       default:
         return;
     }
+
     Navigator.of(context).push(SlideUpRoute(page: nextPage));
   }
 
@@ -90,21 +71,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(16)),
               ),
-              child: Icon(
-                icon,
-                size: 48,
-                color: Colors.white,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: govBlue,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
-              ),
-              child: Icon(icon, size: 40, color: Colors.white),
+              child: Icon(icon, size: 48, color: Colors.white),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -115,7 +82,6 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 20,
-                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
@@ -126,7 +92,6 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 16,
-                      fontSize: 14,
                       color: Colors.black54,
                     ),
                   ),
@@ -161,10 +126,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                       ),
                     ),
                     onPressed: () {
-                      setState(() {
-                        selectedType = type;
-                        arrowDown = true;
-                      });
+                      setState(() => selectedType = type);
                       Navigator.of(ctx).pop();
                     },
                     child: const Text('SELECCIONAR'),
@@ -293,22 +255,6 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: cardWidth,
-                        child: _option(
-                          title: 'Trabajador',
-                          icon: Icons.engineering_outlined,
-                          type: 'trabajador',
-                          infoText:
-                              'Un trabajador es una persona física que ocupa un puesto político o gubernamental en el municipio de San Juan del Río, Querétaro.',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
                   Text(
                     'Selecciona una opción para habilitar el botón “Continuar”.',
                     style: TextStyle(
@@ -316,8 +262,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                       color: Colors.grey.shade700,
                     ),
                   ),
-                  const SizedBox(
-                      height: 20), // 🔥 Reducido el espacio antes del botón
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     height: 72,
@@ -342,19 +287,8 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          AnimatedRotation(
-                            duration: const Duration(milliseconds: 300),
-                            turns: selectedType != null ? 0.25 : 0,
-                            child: const Icon(Icons.arrow_downward_rounded,
-                                size: 28),
                           Icon(
-                            (selectedType == null)
-                                ? Icons
-                                    .arrow_forward_rounded // 🔥 Flecha derecha cuando está deshabilitado
-                                : (arrowDown
-                                    ? Icons
-                                        .arrow_downward_rounded // 🔥 Flecha abajo cuando se selecciona
-                                    : Icons.arrow_forward_rounded),
+                            Icons.arrow_forward_rounded,
                             size: 28,
                           ),
                         ],
