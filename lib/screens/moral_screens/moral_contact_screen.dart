@@ -6,7 +6,14 @@ import '../widgets/steap_header.dart';
 import '../widgets/navigation_buttons.dart';
 
 class ContactMoralScreen extends StatefulWidget {
-  const ContactMoralScreen({super.key});
+  final Map<String, dynamic> userData;
+  final bool modoPerfil;
+
+  const ContactMoralScreen({
+    super.key,
+    this.userData = const {}, // 👈 valor por defecto
+    this.modoPerfil = false, // 👈 valor por defecto
+  });
 
   @override
   State<ContactMoralScreen> createState() => _ContactMoralScreenState();
@@ -15,7 +22,6 @@ class ContactMoralScreen extends StatefulWidget {
 class _ContactMoralScreenState extends State<ContactMoralScreen> {
   final _formKey = GlobalKey<FormState>();
   static const govBlue = Color(0xFF0B3B60);
-
   //* controllers
   final _emailCtrl = TextEditingController();
   final _emailVerifyCtrl = TextEditingController();

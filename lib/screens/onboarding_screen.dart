@@ -27,7 +27,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     const _PageData(
       title: 'Único para ti',
-      subtitle: 'Este proceso es por única ocasión y servirá para trámites futuros.',
+      subtitle:
+          'Este proceso es por única ocasión y servirá para trámites futuros.',
       imageAsset: 'assets/logo_claveunica_sinfondo.png',
     ),
     const _PageData(
@@ -59,8 +60,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _bubbles = List.generate(4, (i) {
       return BubbleConfig(
         alignment: alignments[i],
-        size: 65 + _random.nextDouble() * 10, //* 45 hasta 55
-        opacity: 0.25 + _random.nextDouble() * 0.15, //* visible pero elegante
+        size: 65 + _random.nextDouble() * 10,
+        opacity: 0.25 + _random.nextDouble() * 0.15,
       );
     });
   }
@@ -82,6 +83,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF1F3F5),
       body: Center(
@@ -100,7 +103,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           child: Stack(
             children: [
-              //? 1) Nuestro HelpButton en la esquina superior izquierda
               const Positioned(
                 top: 10,
                 left: 10,
@@ -112,7 +114,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   emailSubject: 'Soporte CUS',
                 ),
               ),
-              //* Burbujas parcialmente visibles con animación de tamaño
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Stack(
@@ -141,8 +142,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   }).toList(),
                 ),
               ),
-
-              //* Contenido principal
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
                 child: Column(
@@ -192,19 +191,70 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         itemBuilder: (_, i) {
                           final page = _pages[i];
                           if (page.isPrivacy) {
-                            return Column(
+                            return SingleChildScrollView(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.privacy_tip,
+                                      size: 100, color: Color(0xFF0B3B60)),
+                                  const SizedBox(height: 24),
+                                  Text(
+                                    page.title,
+                                    style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0B3B60)),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    page.subtitle,
+                                    style: const TextStyle(
+                                        fontSize: 16, color: Colors.black54),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const PrivacyPolicyScreen()));
+                                    },
+                                    child: const Text(
+                                      'Ver Aviso de Privacidad',
+                                      style: TextStyle(
+                                          color: Color(0xFF0B3B60),
+                                          decoration: TextDecoration.underline,
+                                          fontSize: 16),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
+                          final imageHeight =
+                              screenHeight < 600 ? 120.0 : 180.0;
+
+                          return SingleChildScrollView(
+                            child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.privacy_tip,
-                                    size: 100, color: Color(0xFF0B3B60)),
-                                const SizedBox(height: 24),
+                                Image.asset(
+                                  page.imageAsset!,
+                                  width: 280,
+                                  height: imageHeight,
+                                  fit: BoxFit.contain,
+                                ),
+                                const SizedBox(height: 15),
                                 Text(
                                   page.title,
                                   style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0B3B60),
-                                  ),
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF0B3B60)),
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 12),
@@ -215,56 +265,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 24),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const PrivacyPolicyScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text(
-                                    'Ver Aviso de Privacidad',
-                                    style: TextStyle(
-                                      color: Color(0xFF0B3B60),
-                                      decoration: TextDecoration.underline,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ),
                               ],
-                            );
-                          }
-
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                page.imageAsset!,
-                                width: 280,
-                                height: 180,
-                                fit: BoxFit.contain,
-                              ),
-                              const SizedBox(height: 15),
-                              Text(
-                                page.title,
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0B3B60),
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                page.subtitle,
-                                style: const TextStyle(
-                                    fontSize: 16, color: Colors.black54),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
+                            ),
                           );
                         },
                       ),
@@ -292,24 +294,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ElevatedButton.icon(
                       onPressed: _nextOrFinish,
                       icon: Icon(
-                        _currentPage == _pages.length - 1
-                            ? Icons.check
-                            : Icons.arrow_forward,
-                        color: Colors.white,
-                      ),
+                          _currentPage == _pages.length - 1
+                              ? Icons.check
+                              : Icons.arrow_forward,
+                          color: Colors.white),
                       label: Text(
-                        _currentPage == _pages.length - 1
-                            ? 'Listo'
-                            : 'Siguiente',
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 16),
-                      ),
+                          _currentPage == _pages.length - 1
+                              ? 'Listo'
+                              : 'Siguiente',
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 16)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0B3B60),
                         minimumSize: const Size.fromHeight(52),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ],

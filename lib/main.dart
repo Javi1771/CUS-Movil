@@ -22,8 +22,8 @@ class CusApp extends StatelessWidget {
             .copyWith(secondary: const Color(0xFF28A745)),
         fontFamily: 'Roboto',
       ),
-      initialRoute: '/',
-      routes: appRoutes,
+      initialRoute: '/home', // Ahora arrancará en HomeScreen
+      routes: appRoutes, // Rutas definidas en routes.dart
     );
   }
 }

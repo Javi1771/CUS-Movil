@@ -53,8 +53,8 @@ class _MapSelectorState extends State<MapSelector> {
 
   void _toggleMapType() {
     setState(() {
-      _currentMapType = MapType.values[
-          (_currentMapType.index + 1) % MapType.values.length];
+      _currentMapType =
+          MapType.values[(_currentMapType.index + 1) % MapType.values.length];
     });
   }
 
@@ -78,8 +78,7 @@ class _MapSelectorState extends State<MapSelector> {
           clipBehavior: Clip.hardEdge,
           child: GoogleMap(
             initialCameraPosition: CameraPosition(
-              target: widget.initialLocation ??
-                  const LatLng(19.4326, -99.1332),
+              target: widget.initialLocation ?? const LatLng(19.4326, -99.1332),
               zoom: 14,
             ),
             onMapCreated: (c) => _controller = c,

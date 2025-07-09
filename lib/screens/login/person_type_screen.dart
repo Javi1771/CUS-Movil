@@ -6,6 +6,7 @@ import '../../routes/slide_up_route.dart';
 import '../moral_screens/moral_data_screen.dart';
 import '../person_screens/fisica_data_screen.dart';
 import '../work_screens/work_data_screen.dart'; // Importamos la pantalla inicial de work
+import '../work_screens/work_data_screen.dart';
 import '../widgets/steap_header.dart';
 
 const Color govBlue = Color(0xFF0B3B60);
@@ -19,6 +20,7 @@ class PersonTypeScreen extends StatefulWidget {
 
 class _PersonTypeScreenState extends State<PersonTypeScreen> {
   String? selectedType;
+  bool arrowDown = false;
 
   void _navigate() {
     Widget nextPage;
@@ -37,6 +39,22 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
         return;
     }
 
+    Navigator.of(context).push(SlideUpRoute(page: nextPage));
+  }
+
+    switch (selectedType) {
+      case 'fisica':
+        nextPage = const FisicaDataScreen();
+        break;
+      case 'moral':
+        nextPage = const MoralDataScreen();
+        break;
+      case 'trabajador':
+        nextPage = const WorkDataScreen();
+        break;
+      default:
+        return;
+    }
     Navigator.of(context).push(SlideUpRoute(page: nextPage));
   }
 
@@ -80,6 +98,16 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: govBlue,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+              child: Icon(icon, size: 40, color: Colors.white),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Column(
                 children: [
                   Text(
@@ -87,25 +115,27 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Text(
                     content,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 16,
+                      fontSize: 14,
                       color: Colors.black54,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Padding(
-              padding: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+              padding: const EdgeInsets.only(bottom: 16, left: 12, right: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -131,7 +161,10 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                       ),
                     ),
                     onPressed: () {
-                      setState(() => selectedType = type);
+                      setState(() {
+                        selectedType = type;
+                        arrowDown = true;
+                      });
                       Navigator.of(ctx).pop();
                     },
                     child: const Text('SELECCIONAR'),
@@ -227,7 +260,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                           icon: Icons.person_outline,
                           type: 'fisica',
                           infoText:
-                              'Una persona física es un individuo con derechos y obligaciones. Se refiere a cualquier ser humano con capacidad legal para contraer obligaciones y ejercer derechos.',
+                              'Una persona física es cualquier individuo con derechos y obligaciones, es decir, cualquier persona capaz de actuar y responder ante la ley.',
                         ),
                       ),
                       const SizedBox(width: 24),
@@ -259,7 +292,23 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: cardWidth,
+                        child: _option(
+                          title: 'Trabajador',
+                          icon: Icons.engineering_outlined,
+                          type: 'trabajador',
+                          infoText:
+                              'Un trabajador es una persona física que ocupa un puesto político o gubernamental en el municipio de San Juan del Río, Querétaro.',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
                   Text(
                     'Selecciona una opción para habilitar el botón “Continuar”.',
                     style: TextStyle(
@@ -267,7 +316,8 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                       color: Colors.grey.shade700,
                     ),
                   ),
-                  const SizedBox(height: 120),
+                  const SizedBox(
+                      height: 20), // 🔥 Reducido el espacio antes del botón
                   SizedBox(
                     width: double.infinity,
                     height: 72,
@@ -297,12 +347,21 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                             turns: selectedType != null ? 0.25 : 0,
                             child: const Icon(Icons.arrow_downward_rounded,
                                 size: 28),
+                          Icon(
+                            (selectedType == null)
+                                ? Icons
+                                    .arrow_forward_rounded // 🔥 Flecha derecha cuando está deshabilitado
+                                : (arrowDown
+                                    ? Icons
+                                        .arrow_downward_rounded // 🔥 Flecha abajo cuando se selecciona
+                                    : Icons.arrow_forward_rounded),
+                            size: 28,
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 30),
                 ],
               ),
             ),
