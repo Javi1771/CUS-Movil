@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class WeatherData {
   final String city;
@@ -28,6 +29,61 @@ class WeatherData {
       humidity: json['main']['humidity'] ?? 0,
       windSpeed: (json['wind']['speed'] as num?)?.toDouble() ?? 0.0,
     );
+  }
+
+  factory WeatherData.fromWeatherstackJson(Map<String, dynamic> json) {
+    try {
+      final current = json['current'];
+      final location = json['location'];
+      
+      debugPrint('[WeatherData] Procesando datos de Weatherstack...');
+      debugPrint('[WeatherData] Location: ${location.toString()}');
+      debugPrint('[WeatherData] Current: ${current.toString()}');
+      
+      final cityName = location['name'] ?? location['region'] ?? '';
+      final temp = (current['temperature'] as num?)?.toDouble();
+      final descriptions = current['weather_descriptions'] as List?;
+      final description = descriptions?.isNotEmpty == true ? descriptions![0] : '';
+      final weatherCode = current['weather_code'];
+      final humidity = current['humidity'];
+      final windSpeed = (current['wind_speed'] as num?)?.toDouble();
+
+      // Validar que tenemos datos válidos
+      if (cityName.isEmpty || temp == null || description.isEmpty || weatherCode == null || humidity == null || windSpeed == null) {
+        throw Exception('Datos incompletos de la API de clima');
+      }
+      
+      debugPrint('[WeatherData] ✅ Datos procesados: $cityName, ${temp}°C, $description');
+      
+      return WeatherData(
+        city: cityName,
+        temperature: temp,
+        description: description,
+        icon: _mapWeatherstackIcon(weatherCode),
+        humidity: humidity,
+        windSpeed: windSpeed,
+      );
+    } catch (e) {
+      debugPrint('[WeatherData] ❌ Error procesando datos: $e');
+      rethrow;
+    }
+  }
+
+  static String _mapWeatherstackIcon(int weatherCode) {
+    // Mapeo de códigos de Weatherstack a iconos similares
+    switch (weatherCode) {
+      case 113: return '01d'; // Sunny/Clear
+      case 116: return '02d'; // Partly cloudy
+      case 119: return '03d'; // Cloudy
+      case 122: return '04d'; // Overcast
+      case 143: case 248: case 260: return '50d'; // Mist/Fog
+      case 176: case 263: case 266: case 293: case 296: return '09d'; // Light rain
+      case 179: case 182: case 185: case 281: case 284: return '13d'; // Sleet/Snow
+      case 200: case 386: case 389: case 392: case 395: return '11d'; // Thunderstorm
+      case 299: case 302: case 305: case 308: case 311: case 314: case 317: case 320: case 323: case 326: case 329: case 332: case 335: case 338: return '10d'; // Rain
+      case 227: case 230: case 323: case 326: case 329: case 332: case 335: case 338: case 350: case 353: case 356: case 359: case 362: case 365: case 368: case 371: case 374: case 377: case 350: return '13d'; // Snow
+      default: return '02d'; // Default to partly cloudy
+    }
   }
 
   String get temperatureString => '${temperature.round()}°C';
@@ -70,97 +126,59 @@ class WeatherData {
 }
 
 class WeatherService {
-  static const String _apiKey = '54dca76038b89b0a89d195914b665af5'; // API key proporcionada
-  static const String _baseUrl = 'https://api.openweathermap.org/data/2.5/weather';
+  static String get _apiKey => dotenv.env['WEATHERSTACK_API_KEY'] ?? 'fa165b81a553b754e796de95390dafe6';
+  static const String _baseUrl = 'https://api.weatherstack.com/current';
 
   static Future<WeatherData> getCurrentWeather({
     String city = 'San Juan del Río',
     String country = 'MX'
   }) async {
-    debugPrint('[WeatherService] ===== SERVICIO DE CLIMA =====');
+    debugPrint('[WeatherService] ===== SERVICIO DE CLIMA WEATHERSTACK =====');
     debugPrint('[WeatherService] Solicitando clima para $city, $country');
+    debugPrint('[WeatherService] API Key: ${_apiKey.substring(0, 8)}...');
     
     try {
+      final query = country.isNotEmpty ? '$city, $country' : city;
       final url = Uri.parse(
-        '$_baseUrl?q=${Uri.encodeComponent(city)}&appid=$_apiKey&units=metric&lang=es'
+        '$_baseUrl?access_key=$_apiKey&query=${Uri.encodeComponent(query)}&units=m'
       );
 
-      debugPrint('[WeatherService] URL: $url');
+      debugPrint('[WeatherService] URL completa: $url');
 
       final response = await http.get(url).timeout(
-        const Duration(seconds: 3), // Reduced timeout to prevent blocking
+        const Duration(seconds: 8),
         onTimeout: () => throw Exception('Tiempo de espera agotado'),
       );
 
-      debugPrint('[WeatherService] Status: ${response.statusCode}');
+      debugPrint('[WeatherService] Status Code: ${response.statusCode}');
+      debugPrint('[WeatherService] Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        debugPrint('[WeatherService] ✅ Datos recibidos');
-        return WeatherData.fromJson(data);
-      } else if (response.statusCode == 401) {
-        debugPrint('[WeatherService] ❌ API key inválida');
-        throw Exception('API key inválida');
-      } else if (response.statusCode == 404) {
-        debugPrint('[WeatherService] ❌ Ciudad no encontrada');
-        throw Exception('Ciudad no encontrada');
+        
+        if (data['error'] != null) {
+          debugPrint('[WeatherService] ❌ Error de API: ${data['error']}');
+          throw Exception('Error de API: ${data['error']['info'] ?? 'Error desconocido'}');
+        }
+        
+        if (data['current'] == null || data['location'] == null) {
+          debugPrint('[WeatherService] ❌ Datos incompletos en la respuesta');
+          throw Exception('Datos incompletos en la respuesta de la API');
+        }
+        
+        debugPrint('[WeatherService] ✅ Datos válidos recibidos');
+        return WeatherData.fromWeatherstackJson(data);
       } else {
-        debugPrint('[WeatherService] ❌ Error del servicio: ${response.statusCode}');
-        throw Exception('Error del servicio de clima');
+        debugPrint('[WeatherService] ❌ Error HTTP: ${response.statusCode} - ${response.body}');
+        throw Exception('Error del servicio de clima: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('[WeatherService] ❌ Error: $e');
-      debugPrint('[WeatherService] ⚠️ Usando datos mock como respaldo');
-      return _getMockWeatherData(city);
+      debugPrint('[WeatherService] ❌ Error completo: $e');
+      rethrow; // Propagar el error en lugar de usar datos mock
     }
   }
 
-  static WeatherData _getMockWeatherData(String city) {
-    debugPrint('[WeatherService] ✅ Generando datos mock para $city');
-    
-    // Generar datos realistas basados en la hora del día
-    final now = DateTime.now();
-    final hour = now.hour;
-    
-    double temp;
-    String desc;
-    String iconCode;
-    
-    if (hour >= 6 && hour < 12) {
-      // Mañana
-      temp = 18.0 + (hour - 6) * 2; // 18°C a 30°C
-      desc = 'soleado';
-      iconCode = '01d';
-    } else if (hour >= 12 && hour < 18) {
-      // Tarde
-      temp = 28.0 + (hour - 12) * 0.5; // 28°C a 31°C
-      desc = 'parcialmente nublado';
-      iconCode = '02d';
-    } else if (hour >= 18 && hour < 22) {
-      // Noche temprana
-      temp = 25.0 - (hour - 18) * 2; // 25°C a 17°C
-      desc = 'despejado';
-      iconCode = '01n';
-    } else {
-      // Noche/Madrugada
-      temp = 15.0 + (hour < 6 ? hour : hour - 24) * 0.5; // 15°C a 18°C
-      desc = 'noche despejada';
-      iconCode = '01n';
-    }
-    
-    final weatherData = WeatherData(
-      city: city,
-      temperature: temp,
-      description: desc,
-      icon: iconCode,
-      humidity: 60 + (hour % 4) * 5, // 60-75%
-      windSpeed: 2.0 + (hour % 3) * 1.5, // 2.0-5.0 km/h
-    );
-    
-    debugPrint('[WeatherService] ✅ Mock data: ${weatherData.temperatureString}, ${weatherData.description}');
-    return weatherData;
-  }
-
+  
   static Future<WeatherData> getWeatherByCoordinates({
     required double lat,
     required double lon,
@@ -168,24 +186,36 @@ class WeatherService {
     try {
       debugPrint('[WeatherService] Obteniendo clima por coordenadas: $lat, $lon');
       
+      final query = '$lat,$lon';
       final url = Uri.parse(
-        '$_baseUrl?lat=$lat&lon=$lon&appid=$_apiKey&units=metric&lang=es'
+        '$_baseUrl?access_key=$_apiKey&query=${Uri.encodeComponent(query)}&units=m'
       );
+
+      debugPrint('[WeatherService] URL coordenadas: $url');
 
       final response = await http.get(url).timeout(
         const Duration(seconds: 10),
         onTimeout: () => throw Exception('Tiempo de espera agotado'),
       );
 
+      debugPrint('[WeatherService] Status coordenadas: ${response.statusCode}');
+      debugPrint('[WeatherService] Response coordenadas: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return WeatherData.fromJson(data);
+        
+        if (data['error'] != null) {
+          debugPrint('[WeatherService] ❌ Error API coordenadas: ${data['error']}');
+          throw Exception('Error de API: ${data['error']['info'] ?? 'Error desconocido'}');
+        }
+        
+        return WeatherData.fromWeatherstackJson(data);
       } else {
-        throw Exception('Error del servicio de clima');
+        throw Exception('Error del servicio de clima: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('[WeatherService] Error: $e');
-      return _getMockWeatherData('Tu ubicación');
+      debugPrint('[WeatherService] ❌ Error coordenadas: $e');
+      rethrow; // Propagar el error en lugar de usar datos mock
     }
   }
 }

@@ -1,4 +1,80 @@
-# Miscellaneous*.class*.log*.pyc*.swp.DS_Store.atom/.build/.buildlog/.history.svn/.swiftpm/migrate_working_dir/# IntelliJ related*.iml*.ipr*.iws.idea/# The .vscode folder contains launch configuration and tasks you configure in# VS Code which you may wish to be included in version control, so this line# is commented out by default.#.vscode/# Flutter/Dart/Pub related**/doc/api/**/ios/Flutter/.last_build_id.dart_tool/.flutter-plugins.flutter-plugins-dependencies.pub-cache/.pub//build/# Symbolication relatedapp.*.symbols# Obfuscation relatedapp.*.map.json# Android Studio will place build artifacts here/android/app/debug/android/app/profile/android/app/release/build
-/.dart_tool
-/build
-/.dart_tool
+@"
+# Flutter/Dart general
+.dart_tool/
+.packages
+.pub/
+.flutter-plugins
+.flutter-plugins-dependencies
+.melos_tool/
+build/
+coverage/
+generated_plugin_registrant.dart
+
+# IDEs y editores
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Android
+android/.gradle/
+android/captures/
+android/local.properties
+android/.idea/
+
+# iOS
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/.generated/
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/.symlinks/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/App.framework
+ios/Flutter/engine/
+Flutter.framework
+App.framework
+
+# Web
+build/web/
+web/.dart_tool/
+
+# Linux
+linux/flutter/
+linux/.dart_tool/
+linux/.idea/
+
+# Windows
+windows/flutter/
+windows/.dart_tool/
+windows/.idea/
+
+# macOS
+macos/flutter/
+macos/.dart_tool/
+macos/.idea/
+
+# Intellij config files
+*.ipr
+*.iws
+*.bak
+*.swp
+
+# APK, IPA, binaries
+*.apk
+*.ipa
+*.dill
+*.so
+*.tar.gz
+*.zip
+*.exe
+
+# Crashlytics
+crashlytics-build.properties
+
+# Firebase
+firebase_app_id_file.json
+"@ | Set-Content .gitignore

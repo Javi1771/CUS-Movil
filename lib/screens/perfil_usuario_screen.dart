@@ -181,7 +181,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Column(
                               children: [
-                                const SizedBox(height: 60),
+                                const SizedBox(height: 75),
                                 _buildSection(
                                   title: 'Información Personal',
                                   iconPath: imagenesIconos['person']!,
@@ -256,30 +256,6 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
   Widget _buildBannerHeader(UsuarioCUS userData) {
     const govBlue = Color(0xFF0B3B60);
 
-    String? identificador;
-
-    // Lógica específica para folio/nómina/id_ciudadano
-    print('DEBUG - Tipo perfil: ${userData.tipoPerfil}');
-    print('DEBUG - Folio: ${userData.folio}');
-    print('DEBUG - ID Ciudadano: ${userData.idCiudadano}');
-    print('DEBUG - Nómina: ${userData.nomina}');
-
-    if (userData.tipoPerfil == TipoPerfilCUS.ciudadano) {
-      // Mostrar ID Ciudadano en el header si existe
-      if (userData.idCiudadano != null && userData.idCiudadano!.isNotEmpty) {
-        identificador = 'ID Ciudadano: ${userData.idCiudadano}';
-      }
-      // Si no hay ID ciudadano, mostrar folio
-      else if (userData.folio != null && userData.folio!.isNotEmpty) {
-        identificador = 'Folio: ${userData.folio}';
-      }
-    } else if (userData.tipoPerfil == TipoPerfilCUS.trabajador) {
-      identificador =
-          userData.nomina != null ? 'Nómina: ${userData.nomina}' : null;
-    }
-
-    print('DEBUG - Identificador final: $identificador');
-
     final nombre = userData.nombreCompleto ?? 'Usuario';
 
     return Container(
@@ -317,33 +293,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(height: 10),
-                // Identifier (Folio/Nómina)
-                if (identificador != null)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white38,
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      identificador,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                        letterSpacing: 0.3,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
                 // Subtitle
                 const Text(
                   "Información personal y de contacto",
@@ -361,25 +311,25 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
           ),
           // Profile picture positioned at bottom (like progress circle)
           Positioned(
-            bottom: -50,
+            bottom: -65,
             left: 0,
             right: 0,
             child: Center(
               child: GestureDetector(
                 onTap: _pickImage,
                 child: Container(
-                  width: 100,
-                  height: 100,
+                  width: 130,
+                  height: 130,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white,
                   ),
                   child: Container(
-                    margin: const EdgeInsets.all(4),
+                    margin: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        width: 3,
+                        width: 4,
                         color: govBlue,
                       ),
                     ),
@@ -387,31 +337,31 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                       alignment: Alignment.center,
                       children: [
                         CircleAvatar(
-                          radius: 38,
+                          radius: 50,
                           backgroundColor: Colors.white,
                           child: CircleAvatar(
-                            radius: 35,
+                            radius: 46,
                             backgroundImage: _imageFile != null
                                 ? FileImage(_imageFile!)
                                 : null,
                             backgroundColor: Colors.grey[300],
                             child: _imageFile == null
                                 ? const Icon(Icons.person,
-                                    size: 36, color: govBlue)
+                                    size: 48, color: govBlue)
                                 : null,
                           ),
                         ),
                         Positioned(
-                          bottom: 0,
-                          right: 0,
+                          bottom: 2,
+                          right: 2,
                           child: Container(
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               color: Colors.white,
                             ),
-                            padding: const EdgeInsets.all(4),
+                            padding: const EdgeInsets.all(6),
                             child: const Icon(Icons.camera_alt,
-                                size: 14, color: govBlue),
+                                size: 18, color: govBlue),
                           ),
                         ),
                       ],
