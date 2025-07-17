@@ -222,21 +222,21 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       context: context,
       barrierDismissible: true,
       builder: (context) => Dialog(
-        insetPadding: const EdgeInsets.all(16),
+        insetPadding: const EdgeInsets.all(20),
         backgroundColor: Colors.transparent,
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+            maxWidth: MediaQuery.of(context).size.width * 0.92,
           ),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 30,
-                offset: const Offset(0, 15),
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
                 spreadRadius: 0,
               ),
             ],
@@ -244,63 +244,76 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header elegante
+              // Header minimalista
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      govBlue,
-                      govBlueLight,
-                      govBlueDark,
-                    ],
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFAFBFC),
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(16),
                   ),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Color(0xFFE5E7EB),
+                      width: 1,
+                    ),
                   ),
                 ),
-                child: Column(
+                child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                          width: 1,
-                        ),
+                        color: govBlue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
-                        Icons.picture_as_pdf_rounded,
-                        size: 24,
-                        color: Colors.white,
+                      child: Icon(
+                        Icons.description,
+                        size: 16,
+                        color: govBlue,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Vista Previa del Documento',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            documento.nombre,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1F2937),
+                              height: 1.2,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Vista previa del documento',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: textSecondary,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      documento.nombre,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(
+                        Icons.close,
+                        size: 20,
+                        color: textSecondary,
                       ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.grey.withOpacity(0.1),
+                        padding: const EdgeInsets.all(8),
+                      ),
                     ),
                   ],
                 ),
@@ -309,67 +322,121 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
               // Contenido del PDF
               Flexible(
                 child: Container(
-                  margin: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: const Color(0xFFE2E8F0),
+                      color: const Color(0xFFE5E7EB),
                       width: 1,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(11),
                     child: SizedBox(
-                      height: 220,
+                      height: 320,
                       width: double.infinity,
-                      child: documento.ruta.startsWith('http')
-                          ? SfPdfViewer.network(
-                              documento.ruta,
-                              enableDoubleTapZooming: true,
-                              enableTextSelection: false,
-                              canShowScrollHead: false,
-                              canShowScrollStatus: false,
-                              canShowPaginationDialog: false,
-                            )
-                          : SfPdfViewer.file(
-                              File(documento.ruta),
-                              enableDoubleTapZooming: true,
-                              enableTextSelection: false,
-                              canShowScrollHead: false,
-                              canShowScrollStatus: false,
-                              canShowPaginationDialog: false,
+                      child: Stack(
+                        children: [
+                          documento.ruta.startsWith('http')
+                              ? SfPdfViewer.network(
+                                  documento.ruta,
+                                  enableDoubleTapZooming: true,
+                                  enableTextSelection: false,
+                                  canShowScrollHead: false,
+                                  canShowScrollStatus: false,
+                                  canShowPaginationDialog: false,
+                                )
+                              : SfPdfViewer.file(
+                                  File(documento.ruta),
+                                  enableDoubleTapZooming: true,
+                                  enableTextSelection: false,
+                                  canShowScrollHead: false,
+                                  canShowScrollStatus: false,
+                                  canShowPaginationDialog: false,
+                                ),
+                          // Overlay sutil para indicar que es una vista previa
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                'Vista previa',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
 
-              // Botones de acción elegantes
+              // Información del documento (movida abajo)
               Container(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFAFBFC),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: const Color(0xFFE5E7EB),
+                    width: 1,
+                  ),
+                ),
                 child: Row(
                   children: [
-                    Expanded(
-                      child: _buildDialogButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          _mostrarVistaPrevia(documento);
-                        },
-                        icon: Icons.open_in_full_rounded,
-                        label: 'Ver Completo',
-                        isPrimary: false,
-                      ),
+                    _buildDocumentInfo(
+                      'Formato',
+                      documento.extension.toUpperCase(),
+                      Icons.insert_drive_file,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildDialogButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: Icons.close_rounded,
-                        label: 'Cerrar',
-                        isPrimary: true,
-                      ),
+                    const SizedBox(width: 20),
+                    _buildDocumentInfo(
+                      'Tamaño',
+                      _formatFileSize(documento.tamano),
+                      Icons.storage,
+                    ),
+                    const SizedBox(width: 20),
+                    _buildDocumentInfo(
+                      'Subido',
+                      _formatDate(documento.fechaSubida),
+                      Icons.schedule,
                     ),
                   ],
+                ),
+              ),
+
+              // Botón de cerrar
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: _buildMinimalButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: Icons.check,
+                    label: 'Cerrar',
+                    isPrimary: true,
+                  ),
                 ),
               ),
             ],
@@ -379,6 +446,111 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     ).then((_) {
       _vistaPreviaAbierta = false;
     });
+  }
+
+  Widget _buildDocumentInfo(String label, String value, IconData icon) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: textSecondary,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF1F2937),
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMinimalButton({
+    required VoidCallback onPressed,
+    required IconData icon,
+    required String label,
+    required bool isPrimary,
+  }) {
+    return Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: isPrimary ? govBlue : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        border: isPrimary
+            ? null
+            : Border.all(
+                color: const Color(0xFFE5E7EB),
+                width: 1,
+              ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(10),
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: isPrimary ? Colors.white : textSecondary,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isPrimary ? Colors.white : textSecondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes == 0) return 'Desconocido';
+    const suffixes = ['B', 'KB', 'MB', 'GB'];
+    var i = (log(bytes) / log(1024)).floor();
+    return '${(bytes / pow(1024, i)).toStringAsFixed(1)} ${suffixes[i]}';
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date).inDays;
+    
+    if (difference == 0) {
+      return 'Hoy';
+    } else if (difference == 1) {
+      return 'Ayer';
+    } else if (difference < 7) {
+      return 'Hace $difference días';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 
   Widget _buildDialogButton({
@@ -446,8 +618,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       builder: (BuildContext context) {
         return Center(
           child: Dialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             backgroundColor: Colors.white,
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -506,8 +678,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       builder: (BuildContext context) {
         return Center(
           child: Dialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             backgroundColor: Colors.white,
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -566,8 +738,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       builder: (BuildContext context) {
         return Center(
           child: Dialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             backgroundColor: Colors.white,
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -737,9 +909,9 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                           ),
                         ),
                       ),
-                      
+
                       const SizedBox(width: 12),
-                      
+
                       // Información del documento
                       Expanded(
                         child: Column(
@@ -759,9 +931,9 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            
+
                             const SizedBox(height: 6),
-                            
+
                             // Estado
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -800,7 +972,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                                 ],
                               ),
                             ),
-                            
+
                             if (item != null) ...[
                               const SizedBox(height: 6),
                               Text(
@@ -815,7 +987,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                           ],
                         ),
                       ),
-                      
+
                       // Botones de acción
                       if (item == null && !estaBloquedo)
                         _buildActionButton(
@@ -844,7 +1016,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                         ),
                     ],
                   ),
-                  
+
                   // Información adicional
                   if (item != null) ...[
                     const SizedBox(height: 12),
@@ -885,7 +1057,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                       ),
                     ),
                   ],
-                  
+
                   // Mensaje de bloqueo
                   if (estaBloquedo && item == null) ...[
                     const SizedBox(height: 12),
@@ -969,6 +1141,146 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     );
   }
 
+  // Banner header widget - EXACTAMENTE IGUAL AL DEL PERFIL
+  Widget _buildBannerHeader() {
+    const govBlue = Color(0xFF0B3B60);
+
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Color(0xFF0B3B60),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(50),
+          bottomRight: Radius.circular(50),
+        ),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Main content
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(0, 50, 0, 50),
+            child: Column(
+              children: [
+                const SizedBox(height: 0),
+                // Title
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    "Mis Documentos",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.10,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Subtitle
+                const Text(
+                  "Gestiona tus documentos de forma segura",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+          // Progress indicator positioned at bottom (like profile picture)
+          Positioned(
+            bottom: -65,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                width: 130,
+                height: 130,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                child: Container(
+                  margin: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      width: 4,
+                      color: govBlue,
+                    ),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      LiquidCircularProgressIndicator(
+                        value: progreso,
+                        valueColor: AlwaysStoppedAnimation<Color>(govBlue),
+                        backgroundColor: Colors.white,
+                        borderColor: Colors.transparent,
+                        borderWidth: 0.0,
+                        direction: Axis.vertical,
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "${(progreso * 100).toStringAsFixed(0)}%",
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: progreso > 0.3 ? Colors.white : govBlue,
+                              letterSpacing: -0.5,
+                              shadows: [
+                                Shadow(
+                                  offset: const Offset(0, 1),
+                                  blurRadius: 3,
+                                  color: progreso > 0.3 
+                                      ? Colors.black.withOpacity(0.3)
+                                      : Colors.white.withOpacity(0.8),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            "Completado",
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: progreso > 0.3 ? Colors.white.withOpacity(0.9) : textSecondary,
+                              letterSpacing: 0.3,
+                              shadows: [
+                                Shadow(
+                                  offset: const Offset(0, 1),
+                                  blurRadius: 2,
+                                  color: progreso > 0.3 
+                                      ? Colors.black.withOpacity(0.2)
+                                      : Colors.white.withOpacity(0.6),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Cálculo dinámico de documentos subidos
@@ -1011,258 +1323,92 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
         totalDocumentos == 0 ? 0.0 : documentosSubidos / totalDocumentos;
 
     return Scaffold(
-      backgroundColor: backgroundGray,
-      body: CustomScrollView(
-        slivers: [
-          // App Bar elegante - TAMAÑO ORIGINAL RESTAURADO
-          SliverAppBar(
-            expandedHeight: 280,
-            floating: false,
-            pinned: true,
-            elevation: 0,
-            backgroundColor: govBlue,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      govBlue,
-                      govBlueLight,
-                      govBlueDark,
-                    ],
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    // Elementos decorativos - TAMAÑO ORIGINAL
-                    Positioned(
-                      top: -50,
-                      right: -30,
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.05),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 100,
-                      left: -40,
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.03),
-                        ),
-                      ),
-                    ),
-                    
-                    // Contenido principal - TAMAÑO ORIGINAL
-                    Positioned(
-                      bottom: 40,
-                      left: 0,
-                      right: 0,
-                      child: Column(
-                        children: [
-                          const Text(
-                            "Mis Documentos",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.8,
-                              height: 1.1,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Gestiona tus documentos de forma segura",
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.1,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 24),
-                          
-                          // Indicador de progreso elegante - TAMAÑO ORIGINAL
-                          Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.white.withOpacity(0.3),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
+      backgroundColor: const Color(0xFFF5F7FA), // Mismo background que el perfil
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildBannerHeader(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 75),
+                        if (documentosSubidos == 0)
+                          Center(
                             child: Container(
-                              margin: const EdgeInsets.all(8),
+                              margin: const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  width: 4,
-                                  color: govBlue,
-                                ),
-                              ),
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  LiquidCircularProgressIndicator(
-                                    value: progreso,
-                                    valueColor: AlwaysStoppedAnimation<Color>(govBlue),
-                                    backgroundColor: Colors.white,
-                                    borderColor: Colors.transparent,
-                                    borderWidth: 0.0,
-                                    direction: Axis.vertical,
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.04),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 3),
                                   ),
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        "${(progreso * 100).toStringAsFixed(0)}%",
-                                        style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w800,
-                                          color: govBlue,
-                                          letterSpacing: -0.5,
-                                        ),
-                                      ),
-                                      Text(
-                                        "Completado",
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: textSecondary,
-                                          letterSpacing: 0.3,
-                                        ),
-                                      ),
-                                    ],
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: govBlue.withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.folder_open_rounded,
+                                      color: govBlue,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No tienes documentos cargados',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: textPrimary,
+                                      letterSpacing: -0.3,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Agrega tus documentos tocando el botón + en cada sección.',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: textSecondary,
+                                      height: 1.4,
+                                    ),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ],
                               ),
                             ),
+                          )
+                        else
+                          Column(
+                            children: _documentosRequeridos.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final doc = entry.value;
+                              final item = _documentos[doc];
+                              return _buildDocumentCard(doc, item, index);
+                            }).toList(),
                           ),
-                        ],
-                      ),
+                        const SizedBox(height: 50), // Más espacio en la parte de abajo
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ),
-          
-          // Lista de documentos
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: _isLoading
-                ? SliverFillRemaining(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                            color: govBlue,
-                            strokeWidth: 2.5,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Cargando documentos...',
-                            style: TextStyle(
-                              color: textSecondary,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : documentosSubidos == 0
-                    ? SliverFillRemaining(
-                        child: Center(
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 16),
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.04),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 50,
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    color: govBlue.withOpacity(0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.folder_open_rounded,
-                                    color: govBlue,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No tienes documentos cargados',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: textPrimary,
-                                    letterSpacing: -0.3,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Agrega tus documentos tocando el botón + en cada sección.',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: textSecondary,
-                                    height: 1.4,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
-                    : SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final doc = _documentosRequeridos[index];
-                            final item = _documentos[doc];
-                            return _buildDocumentCard(doc, item, index);
-                          },
-                          childCount: _documentosRequeridos.length,
-                        ),
-                      ),
-          ),
-        ],
-      ),
-      
+
       // Confetti effect
       floatingActionButton: progreso >= 1.0
           ? Align(
@@ -1385,7 +1531,6 @@ class _PDFViewerScreenState extends State<_PDFViewerScreen> {
                     });
                   },
                 ),
-
           if (_isLoading)
             Container(
               color: Colors.white.withOpacity(0.9),

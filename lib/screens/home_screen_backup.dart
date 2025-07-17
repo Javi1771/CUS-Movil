@@ -144,27 +144,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _fadeController.forward();
   }
 
-  void _initializeBasics() async {
-    try {
-      // Cargar datos reales del usuario desde la API
-      _usuario = await UserDataService.getUserData();
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (e) {
-      debugPrint('[HomeScreen] Error cargando datos del usuario: $e');
-      // En caso de error, usar datos mínimos
-      _usuario = UsuarioCUS(
-        nombre: 'Usuario',
-        email: 'usuario@ejemplo.com',
-        curp: 'Sin CURP',
-        usuarioId: 'temp-id',
-        tipoPerfil: TipoPerfilCUS.ciudadano,
-      );
-      if (mounted) {
-        setState(() {});
-      }
-    }
+  void _initializeBasics() {
+    _usuario = UsuarioCUS(
+      nombre: 'Javier Lopez Camacho',
+      email: 'ciudadano@sanjuan.gob.mx',
+      curp: 'TEMP123456789',
+      usuarioId: 'temp-id',
+      tipoPerfil: TipoPerfilCUS.ciudadano,
+    );
   }
 
   Future<void> _loadResumenGeneral() async {
@@ -175,29 +162,79 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     try {
       debugPrint('[HomeScreen] ===== CARGANDO RESUMEN GENERAL =====');
-      
-      // Llamada a la API para obtener el resumen general dinámico
-      final resumenGeneral = await UserDataService.getResumenGeneral();
+
+      // Llamada única a la API para obtener el resumen general
+      // En producción esto sería: await UserDataService.getResumenGeneral();
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Simular respuesta de la API con todos los datos
+      final resumenGeneral = {
+        'estadisticas': {
+          'tramitesActivos': 8,
+          'pendientes': 2,
+          'porcentajeCompletados': 92.5,
+        },
+        'actividadReciente': [
+          {
+            'titulo': 'Licencia de Conducir',
+            'descripcion': 'Solicitud enviada y en revisión',
+            'fecha': DateTime.now()
+                .subtract(const Duration(hours: 2))
+                .toIso8601String(),
+            'estado': 'En proceso',
+            'tipo': 'licencia',
+          },
+          {
+            'titulo': 'Acta de Nacimiento',
+            'descripcion': 'Documento subido correctamente',
+            'fecha': DateTime.now()
+                .subtract(const Duration(days: 1))
+                .toIso8601String(),
+            'estado': 'Completado',
+            'tipo': 'documento',
+          },
+          {
+            'titulo': 'Constancia de Residencia',
+            'descripcion': 'Pago realizado, procesando solicitud',
+            'fecha': DateTime.now()
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
+            'estado': 'Pagado',
+            'tipo': 'constancia',
+          },
+          {
+            'titulo': 'Permiso de Construcción',
+            'descripcion': 'Documentación incompleta',
+            'fecha': DateTime.now()
+                .subtract(const Duration(days: 3))
+                .toIso8601String(),
+            'estado': 'Pendiente',
+            'tipo': 'permiso',
+          },
+        ],
+      };
 
       // Procesar estadísticas
-      final statsData = resumenGeneral['estadisticas'] as Map<String, dynamic>?;
+      final statsData = resumenGeneral['estadisticas'] as Map<String, dynamic>;
       final stats = EstadisticasActividad(
-        tramitesActivos: statsData?['tramitesActivos'] as int? ?? 0,
-        pendientes: statsData?['pendientes'] as int? ?? 0,
-        porcentajeCompletados: (statsData?['porcentajeCompletados'] as num?)?.toDouble() ?? 0.0,
+        tramitesActivos: statsData['tramitesActivos'] as int,
+        pendientes: statsData['pendientes'] as int,
+        porcentajeCompletados:
+            (statsData['porcentajeCompletados'] as num).toDouble(),
       );
 
       // Procesar actividad reciente
-      final actividadData = resumenGeneral['actividadReciente'] as List<dynamic>? ?? [];
+      final actividadData =
+          resumenGeneral['actividadReciente'] as List<dynamic>;
       final actividades = actividadData.map((item) {
         final data = item as Map<String, dynamic>;
         return ActividadReciente(
-          titulo: data['titulo'] as String? ?? 'Sin título',
-          descripcion: data['descripcion'] as String? ?? 'Sin descripción',
-          fecha: data['fecha'] != null ? DateTime.parse(data['fecha'] as String) : DateTime.now(),
-          estado: data['estado'] as String? ?? 'Sin estado',
-          icono: _getIconoParaTipo(data['tipo'] as String? ?? ''),
-          color: _getColorParaEstado(data['estado'] as String? ?? ''),
+          titulo: data['titulo'] as String,
+          descripcion: data['descripcion'] as String,
+          fecha: DateTime.parse(data['fecha'] as String),
+          estado: data['estado'] as String,
+          icono: _getIconoParaTipo(data['tipo'] as String),
+          color: _getColorParaEstado(data['estado'] as String),
         );
       }).toList();
 
@@ -207,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           _actividadReciente = actividades;
         });
         debugPrint('[HomeScreen] ✅ Resumen general cargado exitosamente');
-        
+
         // Reiniciar animaciones cuando se cargan los datos
         _slideController.reset();
         _fadeController.reset();
@@ -216,17 +253,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       }
     } catch (e) {
       debugPrint('[HomeScreen] ❌ Error cargando resumen general: $e');
-      // En caso de error, usar valores por defecto
-      if (mounted) {
-        setState(() {
-          _estadisticas = EstadisticasActividad(
-            tramitesActivos: 0,
-            pendientes: 0,
-            porcentajeCompletados: 0.0,
-          );
-          _actividadReciente = [];
-        });
-      }
+      // En caso de error, mantener valores por defecto
     } finally {
       if (mounted) {
         setState(() {
@@ -357,12 +384,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // Animación de refresh
     _slideController.reset();
     _fadeController.reset();
-    
+
     await Future.wait([
       _loadWeatherData(),
       _loadResumenGeneral(),
     ]);
-    
+
     // Reiniciar animaciones después del refresh
     _slideController.forward();
     _fadeController.forward();
@@ -467,7 +494,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
               children: [
-                // Avatar de usuario
+                // Avatar de usuario - CAMBIADO A IMAGEN
                 Container(
                   width: 48,
                   height: 48,
@@ -476,10 +503,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
                   ),
-                  child: const Icon(
-                    Icons.person_rounded,
-                    color: Colors.grey,
-                    size: 28,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.asset(
+                      'assets/logo_claveunica.png',
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
 
@@ -500,7 +531,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       const SizedBox(height: 4),
                       Text(
                         (_usuario?.nombre?.toUpperCase() ??
-                            'USUARIO'),
+                            'JAVIER LOPEZ CAMACHO'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -759,7 +790,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildStatCard(String value, String label, IconData icon, Color color) {
+  Widget _buildStatCard(
+      String value, String label, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -816,21 +848,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildAnimatedStatCard(String value, String label, IconData icon, Color color, int index) {
+  Widget _buildAnimatedStatCard(
+      String value, String label, IconData icon, Color color, int index) {
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 600 + (index * 200)),
       tween: Tween(begin: 0.0, end: 1.0),
       curve: Curves.elasticOut,
       builder: (context, animationValue, child) {
-        // Asegurar que animationValue esté en el rango válido
-        final safeAnimationValue = animationValue.clamp(0.0, 1.0);
-        
         return Transform.scale(
-          scale: safeAnimationValue,
+          scale: animationValue,
           child: Transform.translate(
-            offset: Offset(0, 20 * (1 - safeAnimationValue)),
+            offset: Offset(0, 20 * (1 - animationValue)),
             child: Opacity(
-              opacity: safeAnimationValue,
+              opacity: animationValue,
               child: GestureDetector(
                 onTap: () {
                   // Animación de tap
@@ -874,10 +904,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       const SizedBox(height: 8),
                       TweenAnimationBuilder<double>(
                         duration: Duration(milliseconds: 1000 + (index * 200)),
-                        tween: Tween(begin: 0.0, end: double.tryParse(value.replaceAll('%', '')) ?? 0.0),
+                        tween: Tween(
+                            begin: 0.0,
+                            end: double.tryParse(value.replaceAll('%', '')) ??
+                                0.0),
                         builder: (context, animatedValue, child) {
                           return Text(
-                            value.contains('%') ? '${animatedValue.toInt()}%' : '${animatedValue.toInt()}',
+                            value.contains('%')
+                                ? '${animatedValue.toInt()}%'
+                                : '${animatedValue.toInt()}',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
@@ -980,7 +1015,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       animation: _pulseAnimation!,
       builder: (context, child) {
         return Transform.scale(
-          scale: _pulseAnimation!.value.clamp(0.0, 2.0), // Limitar el rango de escala
+          scale: _pulseAnimation!.value,
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -1013,7 +1048,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0B3B60)),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Color(0xFF0B3B60)),
                       ),
                     ),
                   ),
@@ -1194,7 +1230,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildQuickActionCard(
+      String title, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1247,17 +1284,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildAnimatedQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap, int index) {
+  Widget _buildAnimatedQuickActionCard(
+      String title, IconData icon, Color color, VoidCallback onTap, int index) {
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 800 + (index * 200)),
       tween: Tween(begin: 0.0, end: 1.0),
       curve: Curves.elasticOut,
       builder: (context, animationValue, child) {
-        // Asegurar que animationValue esté en el rango válido
-        final safeAnimationValue = animationValue.clamp(0.0, 1.0);
-        
         return Transform.scale(
-          scale: safeAnimationValue,
+          scale: animationValue,
           child: GestureDetector(
             onTap: () {
               // Animación de tap con feedback háptico
@@ -1452,16 +1487,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildActivityItem(ActividadReciente actividad) {
     final index = _actividadReciente.indexOf(actividad);
     final isLast = index == 2 || index == _actividadReciente.length - 1;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: isLast ? null : Border(
-          bottom: BorderSide(
-            color: const Color(0xFFE5E7EB),
-            width: 1,
-          ),
-        ),
+        border: isLast
+            ? null
+            : Border(
+                bottom: BorderSide(
+                  color: const Color(0xFFE5E7EB),
+                  width: 1,
+                ),
+              ),
       ),
       child: Row(
         children: [
@@ -1532,30 +1569,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildAnimatedActivityItem(ActividadReciente actividad, int index) {
     final isLast = index == 2 || index == _actividadReciente.length - 1;
-    
+
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 600 + (index * 150)),
       tween: Tween(begin: 0.0, end: 1.0),
       curve: Curves.easeOutCubic,
       builder: (context, animationValue, child) {
-        // Asegurar que animationValue esté en el rango válido
-        final safeAnimationValue = animationValue.clamp(0.0, 1.0);
-        
         return Transform.translate(
-          offset: Offset(50 * (1 - safeAnimationValue), 0),
+          offset: Offset(50 * (1 - animationValue), 0),
           child: Opacity(
-            opacity: safeAnimationValue,
+            opacity: animationValue,
             child: GestureDetector(
               onTap: () => _showActivityDetails(actividad),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: isLast ? null : Border(
-                    bottom: BorderSide(
-                      color: const Color(0xFFE5E7EB),
-                      width: 1,
-                    ),
-                  ),
+                  border: isLast
+                      ? null
+                      : Border(
+                          bottom: BorderSide(
+                            color: const Color(0xFFE5E7EB),
+                            width: 1,
+                          ),
+                        ),
                 ),
                 child: Row(
                   children: [
@@ -1608,7 +1644,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: actividad.color.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
@@ -1668,7 +1705,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: actividad.color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -1713,16 +1751,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           animation: _pulseAnimation!,
           builder: (context, child) {
             return Transform.scale(
-              scale: _pulseAnimation!.value.clamp(0.0, 2.0), // Limitar el rango de escala
+              scale: _pulseAnimation!.value,
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: index < 2 ? Border(
-                    bottom: BorderSide(
-                      color: const Color(0xFFE5E7EB),
-                      width: 1,
-                    ),
-                  ) : null,
+                  border: index < 2
+                      ? Border(
+                          bottom: BorderSide(
+                            color: const Color(0xFFE5E7EB),
+                            width: 1,
+                          ),
+                        )
+                      : null,
                 ),
                 child: Row(
                   children: [
@@ -1739,7 +1779,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0B3B60)),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFF0B3B60)),
                           ),
                         ),
                       ),
@@ -1800,12 +1841,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: index < 2 ? Border(
-          bottom: BorderSide(
-            color: const Color(0xFFE5E7EB),
-            width: 1,
-          ),
-        ) : null,
+        border: index < 2
+            ? Border(
+                bottom: BorderSide(
+                  color: const Color(0xFFE5E7EB),
+                  width: 1,
+                ),
+              )
+            : null,
       ),
       child: Row(
         children: [
@@ -1880,11 +1923,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       tween: Tween(begin: 0.0, end: 1.0),
       curve: Curves.elasticOut,
       builder: (context, animationValue, child) {
-        // Asegurar que animationValue esté en el rango válido
-        final safeAnimationValue = animationValue.clamp(0.0, 1.0);
-        
         return Transform.scale(
-          scale: safeAnimationValue,
+          scale: animationValue,
           child: Container(
             padding: const EdgeInsets.all(32),
             child: Column(

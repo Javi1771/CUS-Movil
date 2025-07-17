@@ -364,5 +364,66 @@ class UserDataService {
     }
   }
 
-  // ... (otros métodos como uploadDocument, getUserDocuments pueden permanecer igual)
+  /// Obtiene el resumen general del usuario (estadísticas y actividad reciente)
+  static Future<Map<String, dynamic>> getResumenGeneral() async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception('Usuario no autenticado');
+    }
+
+    try {
+      debugPrint('[UserDataService] Obteniendo resumen general...');
+
+      final response = await http
+          .post(
+            Uri.parse(_apiUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+              'X-API-KEY': _apiKey,
+            },
+            body: jsonEncode({
+              'action': 'getResumenGeneral',
+              'token': token,
+            }),
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => throw TimeoutException('Tiempo de espera agotado'),
+          );
+
+      debugPrint('[UserDataService] Resumen general - Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        debugPrint('[UserDataService] Resumen general obtenido: $data');
+        
+        // Validar estructura de respuesta
+        if (data is Map<String, dynamic>) {
+          return {
+            'estadisticas': data['estadisticas'] ?? {
+              'tramitesActivos': 0,
+              'pendientes': 0,
+              'porcentajeCompletados': 0.0,
+            },
+            'actividadReciente': data['actividadReciente'] ?? [],
+          };
+        } else {
+          throw Exception('Estructura de respuesta no válida');
+        }
+      } else if (response.statusCode == 401) {
+        await _clearInvalidToken();
+        throw Exception('Sesión expirada. Por favor inicia sesión nuevamente');
+      } else {
+        throw _handleErrorResponse(response);
+      }
+    } on SocketException {
+      throw Exception('Error de conexión. Verifica tu internet');
+    } on TimeoutException {
+      throw Exception('Tiempo de espera agotado. Intenta nuevamente');
+    } catch (e) {
+      debugPrint('[UserDataService] Error obteniendo resumen general: $e');
+      throw Exception('Error al obtener resumen general: $e');
+    }
+  }
 }
