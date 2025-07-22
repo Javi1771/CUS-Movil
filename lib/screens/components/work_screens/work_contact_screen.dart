@@ -4,8 +4,6 @@ import 'package:cus_movil/screens/widgets/navigation_buttons.dart';
 import 'package:cus_movil/screens/widgets/steap_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../widgets/steap_header.dart';
-import '../widgets/navigation_buttons.dart';
 
 class ContactWorkScreen extends StatefulWidget {
   const ContactWorkScreen({super.key});

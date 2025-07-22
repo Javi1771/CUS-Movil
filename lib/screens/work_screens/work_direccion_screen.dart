@@ -122,9 +122,8 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
     final colonia = _isManualColonia
         ? _manualComunidadCtrl.text.trim()
         : (_selectedColonia ?? '');
-    final calle = _isManualCalle
-        ? _manualCalleCtrl.text.trim()
-        : (_selectedCalle ?? '');
+    final calle =
+        _isManualCalle ? _manualCalleCtrl.text.trim() : (_selectedCalle ?? '');
     final numExt = _numExtCtrl.text.trim();
     if (colonia.isEmpty || calle.isEmpty || numExt.isEmpty) return;
 
@@ -244,15 +243,6 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
         });
       }
     }
-<<<<<<< HEAD
-=======
-
-    final pos = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-    final latLng = LatLng(pos.latitude, pos.longitude);
-    await _populateFromCoordinates(latLng);
->>>>>>> e3d2422e334c94c6b9878b2c3d0330458b855e06
   }
 
   bool get _isFormValid {
@@ -490,8 +480,8 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
                                   inputFormatters: [UpperCaseTextFormatter()],
                                   validator: (v) =>
                                       v == null || v.trim().isEmpty
-                                      ? 'Requerido'
-                                      : null,
+                                          ? 'Requerido'
+                                          : null,
                                 ),
                               ],
                             ],
@@ -557,8 +547,8 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
                                   inputFormatters: [UpperCaseTextFormatter()],
                                   validator: (v) =>
                                       v == null || v.trim().isEmpty
-                                      ? 'Requerido'
-                                      : null,
+                                          ? 'Requerido'
+                                          : null,
                                 ),
                               ],
                             ],

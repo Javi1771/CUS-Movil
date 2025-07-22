@@ -5,9 +5,6 @@ import 'package:cus_movil/screens/widgets/steap_header.dart';
 import 'package:cus_movil/utils/curp_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../utils/curp_utils.dart';
-import '../widgets/navigation_buttons.dart';
-import '../widgets/steap_header.dart';
 
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
@@ -53,7 +50,7 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
   final _focusPass = FocusNode();
   final _focusConfirmPass = FocusNode();
 
-  bool _showPass = false;
+  final bool _showPass = false;
   final bool _submitted = false;
   final _passwordRegex =
       RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[$&!¡¿?@]).{8,}$');

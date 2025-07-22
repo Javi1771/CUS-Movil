@@ -65,18 +65,10 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
           children: [
             Container(
               width: double.infinity,
-<<<<<<< HEAD
               padding: const EdgeInsets.all(20),
               decoration: const BoxDecoration(
                 color: govBlue,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-=======
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: govBlue,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
->>>>>>> e3d2422e334c94c6b9878b2c3d0330458b855e06
               ),
               child: Icon(icon, size: 48, color: Colors.white),
             ),
@@ -283,17 +275,17 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: Column(
+                      child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
+                          Text(
                             'Continuar',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           Icon(
                             Icons.arrow_forward_rounded,
                             size: 28,

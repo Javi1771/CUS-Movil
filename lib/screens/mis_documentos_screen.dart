@@ -5,11 +5,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:liquid_progress_indicator_v2/liquid_progress_indicator.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:confetti/confetti.dart';
 import '../services/user_data_service.dart';
-import '../models/usuario_cus.dart';
 
 class MisDocumentosScreen extends StatefulWidget {
   const MisDocumentosScreen({super.key});

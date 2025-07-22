@@ -8,7 +8,6 @@ import 'package:cus_movil/services/location_service.dart';
 import 'package:cus_movil/services/user_data_service.dart';
 import 'package:cus_movil/services/tramites_service.dart';
 import 'package:cus_movil/models/usuario_cus.dart';
-import 'package:geolocator/geolocator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
