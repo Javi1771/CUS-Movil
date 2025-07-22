@@ -9,7 +9,9 @@ import '../widgets/steap_header.dart';
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     return newValue.copyWith(
       text: newValue.text.toUpperCase(),
       selection: newValue.selection,
@@ -55,8 +57,9 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
 
   bool _showPass = false;
   bool _hasStartedTyping = false; // Para controlar cuándo empezar a validar
-  final _passwordRegex =
-      RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[$&!¡¿?@]).{8,}$');
+  final _passwordRegex = RegExp(
+    r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[$&!¡¿?@]).{8,}$',
+  );
 
   @override
   void initState() {
@@ -126,8 +129,8 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
   void _onCurpChanged(String v) {
     final curp = v.toUpperCase();
     if (curp.length == 18 && _validateCurp(curp) == null) {
-      _fechaNacCtrl.text =
-          (obtenerFechaNacimientoDeCurp(curp) ?? '').toUpperCase();
+      _fechaNacCtrl.text = (obtenerFechaNacimientoDeCurp(curp) ?? '')
+          .toUpperCase();
       _generoCtrl.text = (obtenerGeneroDeCurp(curp) ?? '').toUpperCase();
       _estadoNacCtrl.text = (obtenerEstadoDeCurp(curp) ?? '').toUpperCase();
       FocusScope.of(context).requestFocus(_focusCurpVerify);
@@ -172,8 +175,9 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
     }
 
     final curpRegExp = RegExp(
-        r'^[A-Z]{4}\d{6}[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d$',
-        caseSensitive: false);
+      r'^[A-Z]{4}\d{6}[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d$',
+      caseSensitive: false,
+    );
     if (v == null || v.length != 18) return 'Deben ser 18 caracteres';
     if (!curpRegExp.hasMatch(v)) return 'CURP no válida';
     return null;
@@ -286,7 +290,7 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
         ],
       ),
       child: Column(children: children),
@@ -318,172 +322,209 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
                   children: [
                     // Datos del trabajador
                     _sectionHeader(Icons.work, 'Datos del Trabajador'),
-                    _sectionCard(children: [
-                      TextFormField(
-                        controller: _nominaCtrl,
-                        decoration: _inputDecoration('Nómina', Icons.badge),
-                        validator: (v) => _validateRequired(v, 'Nómina'),
-                        textCapitalization: TextCapitalization.characters,
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _puestoCtrl,
-                        decoration: _inputDecoration('Puesto', Icons.work),
-                        validator: (v) => _validateRequired(v, 'Puesto'),
-                        textCapitalization: TextCapitalization.characters,
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _departamentoCtrl,
-                        decoration:
-                            _inputDecoration('Departamento', Icons.apartment),
-                        validator: (v) => _validateRequired(v, 'Departamento'),
-                        textCapitalization: TextCapitalization.characters,
-                      ),
-                    ]),
+                    _sectionCard(
+                      children: [
+                        TextFormField(
+                          controller: _nominaCtrl,
+                          decoration: _inputDecoration('Nómina', Icons.badge),
+                          validator: (v) => _validateRequired(v, 'Nómina'),
+                          textCapitalization: TextCapitalization.characters,
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _puestoCtrl,
+                          decoration: _inputDecoration('Puesto', Icons.work),
+                          validator: (v) => _validateRequired(v, 'Puesto'),
+                          textCapitalization: TextCapitalization.characters,
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _departamentoCtrl,
+                          decoration: _inputDecoration(
+                            'Departamento',
+                            Icons.apartment,
+                          ),
+                          validator: (v) =>
+                              _validateRequired(v, 'Departamento'),
+                          textCapitalization: TextCapitalization.characters,
+                        ),
+                      ],
+                    ),
 
                     _sectionHeader(
-                        Icons.folder_shared, 'Datos del representante legal'),
-                    _sectionCard(children: [
-                      TextFormField(
-                        controller: _curpCtrl,
-                        focusNode: _focusCurp,
-                        onChanged: _onCurpChanged,
-                        decoration: _inputDecoration('CURP', Icons.badge),
-                        validator: _validateCurp,
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(18),
-                          UpperCaseTextFormatter()
-                        ],
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context)
-                            .requestFocus(_focusCurpVerify),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _curpVerifyCtrl,
-                        focusNode: _focusCurpVerify,
-                        decoration:
-                            _inputDecoration('Verificar CURP', Icons.verified),
-                        validator: _validateVerify,
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(18),
-                          UpperCaseTextFormatter()
-                        ],
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) =>
-                            FocusScope.of(context).requestFocus(_focusNombre),
-                      ),
-                    ]),
+                      Icons.folder_shared,
+                      'Datos del representante legal',
+                    ),
+                    _sectionCard(
+                      children: [
+                        TextFormField(
+                          controller: _curpCtrl,
+                          focusNode: _focusCurp,
+                          onChanged: _onCurpChanged,
+                          decoration: _inputDecoration('CURP', Icons.badge),
+                          validator: _validateCurp,
+                          inputFormatters: [
+                            LengthLimitingTextInputFormatter(18),
+                            UpperCaseTextFormatter(),
+                          ],
+                          textInputAction: TextInputAction.next,
+                          onFieldSubmitted: (_) => FocusScope.of(
+                            context,
+                          ).requestFocus(_focusCurpVerify),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _curpVerifyCtrl,
+                          focusNode: _focusCurpVerify,
+                          decoration: _inputDecoration(
+                            'Verificar CURP',
+                            Icons.verified,
+                          ),
+                          validator: _validateVerify,
+                          inputFormatters: [
+                            LengthLimitingTextInputFormatter(18),
+                            UpperCaseTextFormatter(),
+                          ],
+                          textInputAction: TextInputAction.next,
+                          onFieldSubmitted: (_) =>
+                              FocusScope.of(context).requestFocus(_focusNombre),
+                        ),
+                      ],
+                    ),
 
                     _sectionHeader(Icons.assignment_ind, 'Nombre completo'),
-                    _sectionCard(children: [
-                      TextFormField(
-                        controller: _nombreCtrl,
-                        focusNode: _focusNombre,
-                        decoration:
-                            _inputDecoration('Nombre(s)', Icons.account_circle),
-                        validator: (v) => _validateRequired(v, 'Nombre'),
-                        inputFormatters: [UpperCaseTextFormatter()],
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context)
-                            .requestFocus(_focusApellidoP),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _apellidoPCtrl,
-                        focusNode: _focusApellidoP,
-                        decoration:
-                            _inputDecoration('Apellido paterno', Icons.person),
-                        validator: (v) =>
-                            _validateRequired(v, 'Apellido paterno'),
-                        inputFormatters: [UpperCaseTextFormatter()],
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context)
-                            .requestFocus(_focusApellidoM),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _apellidoMCtrl,
-                        focusNode: _focusApellidoM,
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) =>
-                            FocusScope.of(context).requestFocus(_focusPass),
-                        decoration: _inputDecoration(
-                            'Apellido materno (opcional)', Icons.person),
-                        inputFormatters: [UpperCaseTextFormatter()],
-                      ),
-                    ]),
+                    _sectionCard(
+                      children: [
+                        TextFormField(
+                          controller: _nombreCtrl,
+                          focusNode: _focusNombre,
+                          decoration: _inputDecoration(
+                            'Nombre(s)',
+                            Icons.account_circle,
+                          ),
+                          validator: (v) => _validateRequired(v, 'Nombre'),
+                          inputFormatters: [UpperCaseTextFormatter()],
+                          textInputAction: TextInputAction.next,
+                          onFieldSubmitted: (_) => FocusScope.of(
+                            context,
+                          ).requestFocus(_focusApellidoP),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _apellidoPCtrl,
+                          focusNode: _focusApellidoP,
+                          decoration: _inputDecoration(
+                            'Apellido paterno',
+                            Icons.person,
+                          ),
+                          validator: (v) =>
+                              _validateRequired(v, 'Apellido paterno'),
+                          inputFormatters: [UpperCaseTextFormatter()],
+                          textInputAction: TextInputAction.next,
+                          onFieldSubmitted: (_) => FocusScope.of(
+                            context,
+                          ).requestFocus(_focusApellidoM),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _apellidoMCtrl,
+                          focusNode: _focusApellidoM,
+                          textInputAction: TextInputAction.next,
+                          onFieldSubmitted: (_) =>
+                              FocusScope.of(context).requestFocus(_focusPass),
+                          decoration: _inputDecoration(
+                            'Apellido materno (opcional)',
+                            Icons.person,
+                          ),
+                          inputFormatters: [UpperCaseTextFormatter()],
+                        ),
+                      ],
+                    ),
 
                     _sectionHeader(Icons.cake, 'Nacimiento'),
-                    _sectionCard(children: [
-                      TextFormField(
-                        controller: _fechaNacCtrl,
-                        readOnly: true,
-                        enabled: false,
-                        decoration: _inputDecoration(
-                            'Fecha de nacimiento', Icons.calendar_month),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _generoCtrl,
-                              readOnly: true,
-                              enabled: false,
-                              decoration: _inputDecoration('Género', Icons.wc),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _estadoNacCtrl,
-                              readOnly: true,
-                              enabled: false,
-                              decoration: _inputDecoration(
-                                  'Estado nacimiento', Icons.public),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ]),
-
-                    _sectionHeader(Icons.password, 'Contraseña'),
-                    _sectionCard(children: [
-                      TextFormField(
-                        controller: _passCtrl,
-                        focusNode: _focusPass,
-                        obscureText: !_showPass,
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) => FocusScope.of(context)
-                            .requestFocus(_focusConfirmPass),
-                        decoration:
-                            _inputDecoration('Contraseña', Icons.lock).copyWith(
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                                _showPass
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                                color: govBlue),
-                            onPressed: () =>
-                                setState(() => _showPass = !_showPass),
+                    _sectionCard(
+                      children: [
+                        TextFormField(
+                          controller: _fechaNacCtrl,
+                          readOnly: true,
+                          enabled: false,
+                          decoration: _inputDecoration(
+                            'Fecha de nacimiento',
+                            Icons.calendar_month,
                           ),
                         ),
-                        validator: _validatePassword,
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _confirmPassCtrl,
-                        focusNode: _focusConfirmPass,
-                        obscureText: !_showPass,
-                        textInputAction: TextInputAction.done,
-                        onFieldSubmitted: (_) => _goNext(),
-                        decoration: _inputDecoration(
-                            'Confirmar contraseña', Icons.check_circle_outline),
-                        validator: _validateConfirm,
-                      ),
-                    ]),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _generoCtrl,
+                                readOnly: true,
+                                enabled: false,
+                                decoration: _inputDecoration(
+                                  'Género',
+                                  Icons.wc,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _estadoNacCtrl,
+                                readOnly: true,
+                                enabled: false,
+                                decoration: _inputDecoration(
+                                  'Estado nacimiento',
+                                  Icons.public,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    _sectionHeader(Icons.password, 'Contraseña'),
+                    _sectionCard(
+                      children: [
+                        TextFormField(
+                          controller: _passCtrl,
+                          focusNode: _focusPass,
+                          obscureText: !_showPass,
+                          textInputAction: TextInputAction.next,
+                          onFieldSubmitted: (_) => FocusScope.of(
+                            context,
+                          ).requestFocus(_focusConfirmPass),
+                          decoration: _inputDecoration('Contraseña', Icons.lock)
+                              .copyWith(
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _showPass
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    color: govBlue,
+                                  ),
+                                  onPressed: () =>
+                                      setState(() => _showPass = !_showPass),
+                                ),
+                              ),
+                          validator: _validatePassword,
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _confirmPassCtrl,
+                          focusNode: _focusConfirmPass,
+                          obscureText: !_showPass,
+                          textInputAction: TextInputAction.done,
+                          onFieldSubmitted: (_) => _goNext(),
+                          decoration: _inputDecoration(
+                            'Confirmar contraseña',
+                            Icons.check_circle_outline,
+                          ),
+                          validator: _validateConfirm,
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

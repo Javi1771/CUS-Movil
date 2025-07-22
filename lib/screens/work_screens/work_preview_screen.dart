@@ -1,3 +1,4 @@
+// TODO Implement this library.
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
@@ -93,11 +94,20 @@ class PreviewWorkScreen extends StatelessWidget {
                       child: Column(
                         children: [
                           _buildItem(
-                              Icons.description, 'Nómina', datosFinales[0]),
+                            Icons.description,
+                            'Nómina',
+                            datosFinales[0],
+                          ),
                           _buildItem(
-                              Icons.library_books, 'Puesto', datosFinales[1]),
-                          _buildItem(Icons.library_books, 'Departamento',
-                              datosFinales[2]),
+                            Icons.library_books,
+                            'Puesto',
+                            datosFinales[1],
+                          ),
+                          _buildItem(
+                            Icons.library_books,
+                            'Departamento',
+                            datosFinales[2],
+                          ),
                         ],
                       ),
                     ),
@@ -105,7 +115,9 @@ class PreviewWorkScreen extends StatelessWidget {
 
                   //* 🔹 Representante Legal
                   _sectionHeader(
-                      Icons.folder_shared, 'Información del Trabajador'),
+                    Icons.folder_shared,
+                    'Información del Trabajador',
+                  ),
                   Card(
                     elevation: 6,
                     shape: RoundedRectangleBorder(
@@ -117,19 +129,40 @@ class PreviewWorkScreen extends StatelessWidget {
                       child: Column(
                         children: [
                           _buildItem(
-                              Icons.credit_card, 'CURP', datosFinales[3]),
+                            Icons.credit_card,
+                            'CURP',
+                            datosFinales[3],
+                          ),
                           _buildItem(
-                              Icons.account_circle, 'Nombre', datosFinales[5]),
+                            Icons.account_circle,
+                            'Nombre',
+                            datosFinales[5],
+                          ),
                           _buildItem(
-                              Icons.badge, 'Apellido Paterno', datosFinales[6]),
+                            Icons.badge,
+                            'Apellido Paterno',
+                            datosFinales[6],
+                          ),
                           _buildItem(
-                              Icons.badge, 'Apellido Materno', datosFinales[7]),
-                          _buildItem(Icons.cake, 'Fecha de Nacimiento',
-                              datosFinales[8]),
+                            Icons.badge,
+                            'Apellido Materno',
+                            datosFinales[7],
+                          ),
                           _buildItem(
-                              Icons.transgender, 'Género', datosFinales[9]),
+                            Icons.cake,
+                            'Fecha de Nacimiento',
+                            datosFinales[8],
+                          ),
                           _buildItem(
-                              Icons.map, 'Estado Nacimiento', datosFinales[10]),
+                            Icons.transgender,
+                            'Género',
+                            datosFinales[9],
+                          ),
+                          _buildItem(
+                            Icons.map,
+                            'Estado Nacimiento',
+                            datosFinales[10],
+                          ),
                         ],
                       ),
                     ),
@@ -147,16 +180,31 @@ class PreviewWorkScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         children: [
-                          _buildItem(Icons.markunread_mailbox, 'Código Postal',
-                              datosFinales[13]),
                           _buildItem(
-                              Icons.location_city, 'Colonia', datosFinales[14]),
+                            Icons.markunread_mailbox,
+                            'Código Postal',
+                            datosFinales[13],
+                          ),
                           _buildItem(
-                              Icons.streetview, 'Calle', datosFinales[15]),
-                          _buildItem(Icons.location_on, 'Número Ext.',
-                              datosFinales[16]),
+                            Icons.location_city,
+                            'Colonia',
+                            datosFinales[14],
+                          ),
                           _buildItem(
-                              Icons.pin_drop, 'Número Int.', datosFinales[17]),
+                            Icons.streetview,
+                            'Calle',
+                            datosFinales[15],
+                          ),
+                          _buildItem(
+                            Icons.location_on,
+                            'Número Ext.',
+                            datosFinales[16],
+                          ),
+                          _buildItem(
+                            Icons.pin_drop,
+                            'Número Int.',
+                            datosFinales[17],
+                          ),
                           // _buildItem(Icons.location_on, 'Latitud', datosFinales[17]),
                           // _buildItem(Icons.location_on, 'Longitud', datosFinales[18]),
                         ],
@@ -177,8 +225,11 @@ class PreviewWorkScreen extends StatelessWidget {
                       child: Column(
                         children: [
                           _buildItem(Icons.email, 'Correo', datosFinales[20]),
-                          _buildItem(Icons.phone_android, 'Teléfono',
-                              datosFinales[22]),
+                          _buildItem(
+                            Icons.phone_android,
+                            'Teléfono',
+                            datosFinales[22],
+                          ),
                         ],
                       ),
                     ),
@@ -192,8 +243,11 @@ class PreviewWorkScreen extends StatelessWidget {
       bottomNavigationBar: NavigationButtons(
         enabled: true,
         onBack: () => Navigator.pop(context),
-        onNext: () => Navigator.pushNamed(context, '/confirm-moral',
-            arguments: datosFinales),
+        onNext: () => Navigator.pushNamed(
+          context,
+          '/confirm-moral',
+          arguments: datosFinales,
+        ),
       ),
     );
   }

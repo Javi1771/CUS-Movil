@@ -42,9 +42,9 @@ dev_dependencies:
     sdk: flutter
   mockito: ^5.4.2
   build_runner: ^2.4.6
-
   flutter_lints: ^3.0.1 # Actualizado al lint moderno compatible con SDK 3.5.3
 
+# The following section is specific to Flutter packages.
 flutter:
   uses-material-design: true
 

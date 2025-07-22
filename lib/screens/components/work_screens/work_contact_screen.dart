@@ -4,16 +4,11 @@ import 'package:cus_movil/screens/widgets/navigation_buttons.dart';
 import 'package:cus_movil/screens/widgets/steap_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../widgets/steap_header.dart';
+import '../widgets/navigation_buttons.dart';
 
 class ContactWorkScreen extends StatefulWidget {
-  final Map<String, dynamic> userData;
-  final bool modoPerfil;
-
-  const ContactWorkScreen({
-    super.key,
-    this.userData = const {}, // 👈 valor por defecto
-    this.modoPerfil = false, // 👈 valor por defecto
-  });
+  const ContactWorkScreen({super.key});
 
   @override
   State<ContactWorkScreen> createState() => _ContactWorkScreenState();
@@ -51,8 +46,7 @@ class _ContactWorkScreenState extends State<ContactWorkScreen> {
     ]) {
       c.addListener(() {
         setState(() {
-          _isPhoneVerified =
-              _phoneCtrl.text.length == 10 &&
+          _isPhoneVerified = _phoneCtrl.text.length == 10 &&
               _phoneVerifyCtrl.text == _phoneCtrl.text;
           if (!_isPhoneVerified) _codeSent = false;
         });
@@ -132,7 +126,7 @@ class _ContactWorkScreenState extends State<ContactWorkScreen> {
       final List<String> datosCompletos =
           ModalRoute.of(context)!.settings.arguments as List<String>;
       final List<String> datosFinales = [...datosCompletos, ...datosContacto];
-      Navigator.pushNamed(context, '/work-terms', arguments: datosFinales);
+      Navigator.pushNamed(context, '/terms-work', arguments: datosFinales);
     }
   }
 
@@ -183,7 +177,7 @@ class _ContactWorkScreenState extends State<ContactWorkScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
         ],
       ),
       child: Column(children: children),
@@ -213,122 +207,102 @@ class _ContactWorkScreenState extends State<ContactWorkScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _sectionHeader(Icons.contact_mail, 'Correo electrónico'),
-                    _sectionCard(
-                      children: [
-                        TextFormField(
-                          controller: _emailCtrl,
-                          focusNode: _focusEmail,
-                          decoration: _inputDecoration(
-                            'Opcional: correo electrónico',
-                            Icons.email,
-                          ),
-                          validator: _validateEmail,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          onFieldSubmitted: (_) => FocusScope.of(
-                            context,
-                          ).requestFocus(_focusEmailVerify),
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _emailVerifyCtrl,
-                          focusNode: _focusEmailVerify,
-                          decoration: _inputDecoration(
-                            'Verificar correo',
-                            Icons.verified_user,
-                          ),
-                          validator: _validateEmailVerify,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          onFieldSubmitted: (_) =>
-                              FocusScope.of(context).requestFocus(_focusPhone),
-                        ),
-                      ],
-                    ),
+                    _sectionCard(children: [
+                      TextFormField(
+                        controller: _emailCtrl,
+                        focusNode: _focusEmail,
+                        decoration: _inputDecoration(
+                            'Opcional: correo electrónico', Icons.email),
+                        validator: _validateEmail,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_focusEmailVerify),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _emailVerifyCtrl,
+                        focusNode: _focusEmailVerify,
+                        decoration: _inputDecoration(
+                            'Verificar correo', Icons.verified_user),
+                        validator: _validateEmailVerify,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).requestFocus(_focusPhone),
+                      ),
+                    ]),
                     _sectionHeader(Icons.phone_android, 'Contacto Telefónico'),
-                    _sectionCard(
-                      children: [
-                        TextFormField(
-                          controller: _phoneCtrl,
-                          focusNode: _focusPhone,
-                          decoration: _inputDecoration(
-                            'Requerido: número de teléfono',
-                            Icons.phone,
+                    _sectionCard(children: [
+                      TextFormField(
+                        controller: _phoneCtrl,
+                        focusNode: _focusPhone,
+                        decoration: _inputDecoration(
+                            'Requerido: número de teléfono', Icons.phone),
+                        validator: _validatePhone,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(10),
+                        ],
+                        textInputAction: TextInputAction.next,
+                        onChanged: (v) {
+                          if (v.length == 10) {
+                            FocusScope.of(context)
+                                .requestFocus(_focusPhoneVerify);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _phoneVerifyCtrl,
+                        focusNode: _focusPhoneVerify,
+                        decoration:
+                            _inputDecoration('Verificar teléfono', Icons.check),
+                        validator: _validatePhoneVerify,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(10),
+                        ],
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _goNext(),
+                      ),
+                      if (_isPhoneVerified) ...[
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () => setState(() => _codeSent = true),
+                          icon: const Icon(Icons.send, color: Colors.white),
+                          label: const Text('Enviar código de verificación',
+                              style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: govBlue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                           ),
-                          validator: _validatePhone,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(10),
-                          ],
-                          textInputAction: TextInputAction.next,
-                          onChanged: (v) {
-                            if (v.length == 10) {
-                              FocusScope.of(
-                                context,
-                              ).requestFocus(_focusPhoneVerify);
-                            }
-                          },
                         ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _phoneVerifyCtrl,
-                          focusNode: _focusPhoneVerify,
-                          decoration: _inputDecoration(
-                            'Verificar teléfono',
-                            Icons.check,
+                        if (_codeSent) ...[
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _smsCodeCtrl,
+                            focusNode: _focusSmsCode,
+                            decoration: _inputDecoration(
+                                'Código de verificación', Icons.sms),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(6),
+                            ],
+                            validator: _validateSmsCode,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => _goNext(),
                           ),
-                          validator: _validatePhoneVerify,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(10),
-                          ],
-                          textInputAction: TextInputAction.done,
-                          onFieldSubmitted: (_) => _goNext(),
-                        ),
-                        if (_isPhoneVerified) ...[
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: () => setState(() => _codeSent = true),
-                            icon: const Icon(Icons.send, color: Colors.white),
-                            label: const Text(
-                              'Enviar código de verificación',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: govBlue,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                            ),
-                          ),
-                          if (_codeSent) ...[
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _smsCodeCtrl,
-                              focusNode: _focusSmsCode,
-                              decoration: _inputDecoration(
-                                'Código de verificación',
-                                Icons.sms,
-                              ),
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(6),
-                              ],
-                              validator: _validateSmsCode,
-                              textInputAction: TextInputAction.done,
-                              onFieldSubmitted: (_) => _goNext(),
-                            ),
-                          ],
                         ],
                       ],
-                    ),
+                    ]),
                   ],
                 ),
               ),

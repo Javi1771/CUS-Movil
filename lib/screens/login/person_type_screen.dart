@@ -18,10 +18,10 @@ class PersonTypeScreen extends StatefulWidget {
 
 class _PersonTypeScreenState extends State<PersonTypeScreen> {
   String? selectedType;
-  bool arrowDown = false;
 
   void _navigate() {
     Widget nextPage;
+
     switch (selectedType) {
       case 'fisica':
         nextPage = const FisicaDataScreen();
@@ -35,6 +35,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
       default:
         return;
     }
+
     Navigator.of(context).push(SlideUpRoute(page: nextPage));
   }
 
@@ -58,18 +59,26 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: double.infinity,
+<<<<<<< HEAD
               padding: const EdgeInsets.all(20),
               decoration: const BoxDecoration(
                 color: govBlue,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+=======
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: govBlue,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(16)),
+>>>>>>> e3d2422e334c94c6b9878b2c3d0330458b855e06
               ),
-              child: Icon(icon, size: 40, color: Colors.white),
+              child: Icon(icon, size: 48, color: Colors.white),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -79,7 +88,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                     title,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
@@ -89,7 +98,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                     content,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 16,
                       color: Colors.black54,
                     ),
                   ),
@@ -118,16 +127,13 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                       backgroundColor: govBlue,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
+                          horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     onPressed: () {
-                      setState(() {
-                        selectedType = type;
-                        arrowDown = true;
-                      });
+                      setState(() => selectedType = type);
                       Navigator.of(ctx).pop();
                     },
                     child: const Text('SELECCIONAR'),
@@ -250,7 +256,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                           icon: Icons.engineering_outlined,
                           type: 'trabajador',
                           infoText:
-                              'Un trabajador es una persona física que ocupa un puesto político o gubernamental en el municipio de San Juan del Río, Querétaro.',
+                              'Un trabajador es una persona física que presta un servicio personal subordinado a una persona o entidad a cambio de un salario.',
                         ),
                       ),
                     ],
@@ -263,8 +269,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                       color: Colors.grey.shade700,
                     ),
                   ),
-                  const SizedBox(
-                      height: 20), // 🔥 Reducido el espacio antes del botón
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     height: 72,
@@ -288,14 +293,9 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                               fontSize: 16,
                             ),
                           ),
+                          const SizedBox(height: 6),
                           Icon(
-                            (selectedType == null)
-                                ? Icons
-                                    .arrow_forward_rounded // 🔥 Flecha derecha cuando está deshabilitado
-                                : (arrowDown
-                                    ? Icons
-                                        .arrow_downward_rounded // 🔥 Flecha abajo cuando se selecciona
-                                    : Icons.arrow_forward_rounded),
+                            Icons.arrow_forward_rounded,
                             size: 28,
                           ),
                         ],
