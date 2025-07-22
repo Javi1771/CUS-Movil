@@ -20,7 +20,7 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen>
   late Animation<double> _headerFade, _cardFade, _footerFade;
 
   //? Paleta “Regal Blue”
-  static const Color regal50  = Color(0xFFF0F8FF);
+  static const Color regal50 = Color(0xFFF0F8FF);
   static const Color regal700 = Color(0xFF045EA0);
   static const Color regal900 = Color(0xFF0B3B60);
 
@@ -63,7 +63,7 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen>
   String? _validateCurpOrRfc(String? v) {
     if (v == null || v.trim().isEmpty) return 'CURP o RFC es obligatorio';
     final curp = RegExp(r'^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$');
-    final rfc  = RegExp(r'^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$');
+    final rfc = RegExp(r'^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$');
     final input = v.trim().toUpperCase();
     if (curp.hasMatch(input) || rfc.hasMatch(input)) return null;
     return 'CURP/RFC inválido';
@@ -113,7 +113,8 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen>
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24)),
                   elevation: 16,
                   margin: EdgeInsets.only(top: size.height * 0.18, bottom: 24),
                   child: Padding(
@@ -128,11 +129,15 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen>
                               color: regal50,
                               shape: BoxShape.circle,
                               boxShadow: [
-                                BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0,4)),
+                                BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 10,
+                                    offset: Offset(0, 10)),
                               ],
                             ),
                             padding: const EdgeInsets.all(16),
-                            child: const Icon(Icons.lock_open, size: 48, color: regal900),
+                            child: const Icon(Icons.lock_open,
+                                size: 48, color: regal900),
                           ),
                           const SizedBox(height: 16),
 
@@ -175,8 +180,11 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen>
                             decoration: _inputDecoration(
                               hint: 'CURP o RFC',
                               prefix: Icons.perm_identity_outlined,
-                              suffix: obscureId ? Icons.visibility_off : Icons.visibility,
-                              onSuffixTap: () => setState(() => obscureId = !obscureId),
+                              suffix: obscureId
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              onSuffixTap: () =>
+                                  setState(() => obscureId = !obscureId),
                             ),
                             validator: _validateCurpOrRfc,
                           ),
@@ -200,17 +208,21 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen>
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: regal900,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 30),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(32)),
                                 elevation: 6,
                               ),
-                              child: const Text('Enviar solicitud', style: TextStyle(fontSize: 16)),
+                              child: const Text('Enviar solicitud',
+                                  style: TextStyle(fontSize: 16)),
                             ),
                           ),
                           const SizedBox(height: 12),
 
                           TextButton(
-                            onPressed: () => Navigator.pushReplacementNamed(context, '/auth'),
+                            onPressed: () => Navigator.pushReplacementNamed(
+                                context, '/auth'),
                             child: const Text(
                               '¿Ya tienes cuenta? Iniciar sesión',
                               style: TextStyle(color: regal700),
@@ -252,7 +264,8 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen>
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(fontStyle: FontStyle.italic, color: Colors.black45),
+      hintStyle:
+          const TextStyle(fontStyle: FontStyle.italic, color: Colors.black45),
       prefixIcon: Container(
         margin: const EdgeInsets.symmetric(horizontal: 4),
         padding: const EdgeInsets.all(8),
@@ -270,7 +283,7 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen>
             ),
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 30),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
         borderSide: const BorderSide(color: regal700, width: 2),
@@ -288,8 +301,10 @@ class _HeaderClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     final path = Path()..lineTo(0, size.height * 0.75);
     path.quadraticBezierTo(
-      size.width * 0.5, size.height,
-      size.width, size.height * 0.75,
+      size.width * 0.5,
+      size.height,
+      size.width,
+      size.height * 0.75,
     );
     path.lineTo(size.width, 0);
     path.close();

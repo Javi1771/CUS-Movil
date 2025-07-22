@@ -124,7 +124,7 @@ class UsuarioCUS {
 
     // Obtener identificadores para determinar el tipo de perfil
     final folio = getStringValue(['folio', 'folioCUS', 'folio_cus']);
-    final nomina = getStringValue(['nomina', 'nómina', 'numeroNomina']);
+    final nomina = getStringValue(['no_nomina', 'nomina', 'nómina', 'numeroNomina']);
     final idCiudadano = getStringValue([
       'id_ciudadano', 
       'idCiudadano', 
@@ -135,6 +135,12 @@ class UsuarioCUS {
       'subGeneral',
       'sub'
     ]);
+
+    // Debug logging para nómina
+    print('[UsuarioCUS] 🎯 Nómina obtenida en modelo: $nomina');
+    if (nomina != null) {
+      print('[UsuarioCUS] ✅ Nómina encontrada, será asignada al usuario');
+    }
 
     // Obtener el tipo de perfil explícito si viene en los datos
     final tipoPerfilExplicito = getStringValue([

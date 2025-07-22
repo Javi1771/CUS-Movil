@@ -321,7 +321,7 @@ class _TramitesScreenState extends State<TramitesScreen>
           child: _tramitesFiltrados.isEmpty
               ? _buildEmptyState()
               : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
                   itemCount: _tramitesFiltrados.length,
                   itemBuilder: (context, index) {
                     if (index >= _tramitesFiltrados.length) {
@@ -1352,7 +1352,7 @@ class _TramitesScreenState extends State<TramitesScreen>
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
       children: [
         _buildResumenCard(),
         const SizedBox(height: 20),
@@ -1630,7 +1630,7 @@ class _TramitesScreenState extends State<TramitesScreen>
                         children: [
                           Icon(
                             Icons.inbox_outlined,
-                            size: 64,
+                            size: 48,
                             color: Colors.grey.shade400,
                           ),
                           const SizedBox(height: 16),
@@ -1979,7 +1979,7 @@ class _TramitesScreenState extends State<TramitesScreen>
           children: [
             Icon(
               icon,
-              size: 64,
+              size: 48,
               color: Colors.grey.shade400,
             ),
             const SizedBox(height: 16),
@@ -2038,7 +2038,7 @@ class _TramitesScreenState extends State<TramitesScreen>
           children: [
             Icon(
               Icons.error_outline,
-              size: 64,
+              size: 48,
               color: const Color(0xFFCE1D81).withOpacity(0.7),
             ),
             const SizedBox(height: 16),

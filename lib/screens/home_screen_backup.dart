@@ -405,8 +405,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   String _getFirstName() {
-    if (_usuario?.nombre?.isNotEmpty == true) {
-      final firstName = _usuario!.nombre!.split(' ')[0];
+    if (_usuario?.nombre.isNotEmpty == true) {
+      final firstName = _usuario!.nombre.split(' ')[0];
       return firstName.isNotEmpty ? firstName : 'Ciudadano';
     }
     return 'Ciudadano';
@@ -510,6 +510,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       width: 48,
                       height: 48,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.person_rounded,
+                          color: Color.fromARGB(255, 81, 73, 197),
+                          size: 28,
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -530,7 +537,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        (_usuario?.nombre?.toUpperCase() ??
+                        (_usuario?.nombre.toUpperCase() ??
                             'JAVIER LOPEZ CAMACHO'),
                         style: const TextStyle(
                           color: Colors.white,
@@ -561,7 +568,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Row(
             children: [
               // Ícono de clima
-              Container(
+              SizedBox(
                 width: 48,
                 height: 48,
                 child: _isLoadingWeather
@@ -609,7 +616,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                     ),
                     Text(
-                      'Viento: a ${_weatherData?.windSpeed?.toStringAsFixed(0) ?? 6} km/h',
+                      'Viento: a ${_weatherData?.windSpeed.toStringAsFixed(0) ?? 6} km/h',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
@@ -952,10 +959,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
+              const Icon(
                 Icons.analytics,
                 size: 48,
-                color: const Color(0xFF0B3B60),
+                color: Color(0xFF0B3B60),
               ),
               const SizedBox(height: 16),
               Text(
@@ -1493,9 +1500,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       decoration: BoxDecoration(
         border: isLast
             ? null
-            : Border(
+            : const Border(
                 bottom: BorderSide(
-                  color: const Color(0xFFE5E7EB),
+                  color: Color(0xFFE5E7EB),
                   width: 1,
                 ),
               ),
@@ -1586,9 +1593,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 decoration: BoxDecoration(
                   border: isLast
                       ? null
-                      : Border(
+                      : const Border(
                           bottom: BorderSide(
-                            color: const Color(0xFFE5E7EB),
+                            color: Color(0xFFE5E7EB),
                             width: 1,
                           ),
                         ),
@@ -1756,9 +1763,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   border: index < 2
-                      ? Border(
+                      ? const Border(
                           bottom: BorderSide(
-                            color: const Color(0xFFE5E7EB),
+                            color: Color(0xFFE5E7EB),
                             width: 1,
                           ),
                         )
@@ -1842,9 +1849,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: index < 2
-            ? Border(
+            ? const Border(
                 bottom: BorderSide(
-                  color: const Color(0xFFE5E7EB),
+                  color: Color(0xFFE5E7EB),
                   width: 1,
                 ),
               )

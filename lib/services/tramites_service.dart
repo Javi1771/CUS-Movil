@@ -295,11 +295,51 @@ class TramitesService {
     return userData;
   }
 
-  /// Extrae el id_general de los datos del usuario
+  /// Extrae el id_general de los datos del usuario basado en el tipo de perfil
   static String? _extractIdGeneral(Map<String, dynamic> userData) {
+    debugPrint('[TramitesService] ===== EXTRAYENDO ID PARA TRÁMITES =====');
     debugPrint('[TramitesService] Datos del usuario completos: $userData');
 
-    // Buscar en diferentes posibles ubicaciones del id_general
+    // Primero determinar el tipo de perfil del usuario
+    final tipoPerfilExplicito = _getStringValue(userData, [
+      'tipoPerfil', 
+      'tipo_perfil', 
+      'tipoUsuario', 
+      'tipo_usuario',
+      'userType',
+      'user_type'
+    ]);
+
+    final folio = _getStringValue(userData, ['folio', 'folioCUS', 'folio_cus']);
+    final nomina = _getStringValue(userData, ['no_nomina', 'nomina', 'nómina', 'numeroNomina']);
+
+    debugPrint('[TramitesService] Tipo de perfil: $tipoPerfilExplicito');
+    debugPrint('[TramitesService] Folio encontrado: $folio');
+    debugPrint('[TramitesService] Nómina encontrada: $nomina');
+
+    // Determinar si es trabajador
+    bool esTrabajador = false;
+    
+    if (tipoPerfilExplicito != null) {
+      esTrabajador = tipoPerfilExplicito.toLowerCase() == 'trabajador' ||
+                     tipoPerfilExplicito.toLowerCase() == 'employee' ||
+                     tipoPerfilExplicito.toLowerCase() == 'worker';
+    } else if (nomina != null && nomina.isNotEmpty) {
+      esTrabajador = true;
+      debugPrint('[TramitesService] Detectado como trabajador por presencia de nómina');
+    }
+
+    debugPrint('[TramitesService] Es trabajador: $esTrabajador');
+
+    // Si es trabajador, usar nómina como ID
+    if (esTrabajador && nomina != null && nomina.isNotEmpty) {
+      debugPrint('[TramitesService] ✅ USANDO NÓMINA COMO ID PARA TRABAJADOR: $nomina');
+      return nomina;
+    }
+
+    // Si no es trabajador o no tiene nómina, buscar id_general tradicional
+    debugPrint('[TramitesService] Buscando ID tradicional para ciudadano...');
+    
     final possibleKeys = [
       'id_usuario_general', // ✅ Agregado: este es el campo que viene en la respuesta
       'id_general',
@@ -320,7 +360,7 @@ class TramitesService {
       if (value != null &&
           value.toString().isNotEmpty &&
           value.toString() != 'null') {
-        debugPrint('[TramitesService] ID encontrado en $key: $value');
+        debugPrint('[TramitesService] ✅ ID encontrado en $key: $value');
         return value.toString();
       }
     }
@@ -334,7 +374,7 @@ class TramitesService {
         if (value != null &&
             value.toString().isNotEmpty &&
             value.toString() != 'null') {
-          debugPrint('[TramitesService] ID encontrado en data.$key: $value');
+          debugPrint('[TramitesService] ✅ ID encontrado en data.$key: $value');
           return value.toString();
         }
       }
@@ -349,15 +389,54 @@ class TramitesService {
         if (value != null &&
             value.toString().isNotEmpty &&
             value.toString() != 'null') {
-          debugPrint('[TramitesService] ID encontrado en user.$key: $value');
+          debugPrint('[TramitesService] ✅ ID encontrado en user.$key: $value');
           return value.toString();
         }
       }
     }
 
     // No se encontró el ID del usuario
-    debugPrint(
-        '[TramitesService] No se pudo encontrar id_general en los datos del usuario');
+    debugPrint('[TramitesService] ❌ No se pudo encontrar ID en los datos del usuario');
+    return null;
+  }
+
+  /// Función helper para obtener valores de múltiples claves posibles
+  static String? _getStringValue(Map<String, dynamic> json, List<String> keys) {
+    for (final key in keys) {
+      final value = json[key];
+      if (value != null &&
+          value.toString().trim().isNotEmpty &&
+          value.toString() != 'null') {
+        return value.toString().trim();
+      }
+    }
+
+    // También buscar en data anidada
+    final data = json['data'];
+    if (data != null && data is Map<String, dynamic>) {
+      for (final key in keys) {
+        final value = data[key];
+        if (value != null &&
+            value.toString().trim().isNotEmpty &&
+            value.toString() != 'null') {
+          return value.toString().trim();
+        }
+      }
+    }
+
+    // También buscar en user anidado
+    final user = json['user'];
+    if (user != null && user is Map<String, dynamic>) {
+      for (final key in keys) {
+        final value = user[key];
+        if (value != null &&
+            value.toString().trim().isNotEmpty &&
+            value.toString() != 'null') {
+          return value.toString().trim();
+        }
+      }
+    }
+
     return null;
   }
 

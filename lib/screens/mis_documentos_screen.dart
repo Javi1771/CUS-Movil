@@ -269,7 +269,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                         color: govBlue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.description,
                         size: 16,
                         color: govBlue,
@@ -292,7 +292,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
-                          Text(
+                          const Text(
                             'Vista previa del documento',
                             style: TextStyle(
                               fontSize: 13,
@@ -305,7 +305,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.close,
                         size: 20,
                         color: textSecondary,
@@ -460,7 +460,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 10,
               color: textSecondary,
               fontWeight: FontWeight.w500,
@@ -541,7 +541,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date).inDays;
-    
+
     if (difference == 0) {
       return 'Hoy';
     } else if (difference == 1) {
@@ -563,7 +563,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       height: 42,
       decoration: BoxDecoration(
         gradient: isPrimary
-            ? LinearGradient(
+            ? const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [govBlue, govBlueLight],
@@ -629,10 +629,10 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   Container(
                     width: 60,
                     height: 60,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [successColor, const Color(0xFF10B981)],
+                        colors: [successColor, Color(0xFF10B981)],
                       ),
                     ),
                     child: const Icon(Icons.check_rounded,
@@ -649,7 +649,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
+                  const Text(
                     'El documento se ha guardado correctamente.',
                     style: TextStyle(
                       fontSize: 14,
@@ -689,10 +689,10 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   Container(
                     width: 60,
                     height: 60,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [errorColor, const Color(0xFFEF4444)],
+                        colors: [errorColor, Color(0xFFEF4444)],
                       ),
                     ),
                     child: const Icon(Icons.error_outline_rounded,
@@ -711,7 +711,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   const SizedBox(height: 6),
                   Text(
                     _obtenerMensajeError(error),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: textSecondary,
                       height: 1.4,
@@ -749,10 +749,10 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   Container(
                     width: 60,
                     height: 60,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [textSecondary, const Color(0xFF9CA3AF)],
+                        colors: [textSecondary, Color(0xFF9CA3AF)],
                       ),
                     ),
                     child: const Icon(Icons.delete_outline_rounded,
@@ -769,7 +769,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
+                  const Text(
                     'Puedes volver a cargarlo cuando sea necesario.',
                     style: TextStyle(
                       fontSize: 14,
@@ -977,7 +977,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                               const SizedBox(height: 6),
                               Text(
                                 'Subido el ${item.fechaSubida.toLocal().toString().split(' ')[0]}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 11,
                                   color: textSecondary,
                                   fontWeight: FontWeight.w500,
@@ -1032,13 +1032,13 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                       ),
                       child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.visibility_outlined,
                             color: successColor,
                             size: 14,
                           ),
                           const SizedBox(width: 6),
-                          Expanded(
+                          const Expanded(
                             child: Text(
                               'Toca para ver vista previa',
                               style: TextStyle(
@@ -1074,7 +1074,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.info_outline_rounded,
                             color: errorColor,
                             size: 14,
@@ -1083,7 +1083,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                           Expanded(
                             child: Text(
                               razonBloqueo,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: errorColor,
                                 fontWeight: FontWeight.w500,
@@ -1161,11 +1161,11 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(0, 50, 0, 50),
-            child: Column(
+            child: const Column(
               children: [
-                const SizedBox(height: 0),
+                SizedBox(height: 0),
                 // Title
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
                     "Mis Documentos",
@@ -1180,9 +1180,9 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 // Subtitle
-                const Text(
+                Text(
                   "Gestiona tus documentos de forma segura",
                   style: TextStyle(
                     color: Colors.white70,
@@ -1192,7 +1192,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: 40),
               ],
             ),
           ),
@@ -1223,7 +1223,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     children: [
                       LiquidCircularProgressIndicator(
                         value: progreso,
-                        valueColor: AlwaysStoppedAnimation<Color>(govBlue),
+                        valueColor:
+                            const AlwaysStoppedAnimation<Color>(govBlue),
                         backgroundColor: Colors.white,
                         borderColor: Colors.transparent,
                         borderWidth: 0.0,
@@ -1243,7 +1244,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                                 Shadow(
                                   offset: const Offset(0, 1),
                                   blurRadius: 3,
-                                  color: progreso > 0.3 
+                                  color: progreso > 0.3
                                       ? Colors.black.withOpacity(0.3)
                                       : Colors.white.withOpacity(0.8),
                                 ),
@@ -1255,13 +1256,15 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: progreso > 0.3 ? Colors.white.withOpacity(0.9) : textSecondary,
+                              color: progreso > 0.3
+                                  ? Colors.white.withOpacity(0.9)
+                                  : textSecondary,
                               letterSpacing: 0.3,
                               shadows: [
                                 Shadow(
                                   offset: const Offset(0, 1),
                                   blurRadius: 2,
-                                  color: progreso > 0.3 
+                                  color: progreso > 0.3
                                       ? Colors.black.withOpacity(0.2)
                                       : Colors.white.withOpacity(0.6),
                                 ),
@@ -1323,7 +1326,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
         totalDocumentos == 0 ? 0.0 : documentosSubidos / totalDocumentos;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Mismo background que el perfil
+      backgroundColor:
+          const Color(0xFFF5F7FA), // Mismo background que el perfil
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -1338,7 +1342,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                         if (documentosSubidos == 0)
                           Center(
                             child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 16),
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 16),
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
                                 color: Colors.white,
@@ -1361,14 +1366,14 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                                       color: govBlue.withOpacity(0.1),
                                       shape: BoxShape.circle,
                                     ),
-                                    child: Icon(
+                                    child: const Icon(
                                       Icons.folder_open_rounded,
                                       color: govBlue,
                                       size: 24,
                                     ),
                                   ),
                                   const SizedBox(height: 16),
-                                  Text(
+                                  const Text(
                                     'No tienes documentos cargados',
                                     style: TextStyle(
                                       fontSize: 16,
@@ -1379,7 +1384,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: 6),
-                                  Text(
+                                  const Text(
                                     'Agrega tus documentos tocando el botón + en cada sección.',
                                     style: TextStyle(
                                       fontSize: 13,
@@ -1394,14 +1399,18 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                           )
                         else
                           Column(
-                            children: _documentosRequeridos.asMap().entries.map((entry) {
+                            children: _documentosRequeridos
+                                .asMap()
+                                .entries
+                                .map((entry) {
                               final index = entry.key;
                               final doc = entry.value;
                               final item = _documentos[doc];
                               return _buildDocumentCard(doc, item, index);
                             }).toList(),
                           ),
-                        const SizedBox(height: 50), // Más espacio en la parte de abajo
+                        const SizedBox(
+                            height: 50), // Más espacio en la parte de abajo
                       ],
                     ),
                   ),
@@ -1418,12 +1427,12 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                 blastDirection: 3.14 / 2,
                 blastDirectionality: BlastDirectionality.explosive,
                 shouldLoop: false,
-                colors: [
+                colors: const [
                   govBlue,
                   govBlueLight,
                   successColor,
-                  const Color(0xFF10B981),
-                  const Color(0xFF3B82F6),
+                  Color(0xFF10B981),
+                  Color(0xFF3B82F6),
                 ],
                 numberOfParticles: 40,
                 gravity: 0.3,

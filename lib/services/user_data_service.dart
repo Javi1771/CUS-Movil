@@ -76,6 +76,19 @@ class UserDataService {
     debugPrint('[UserDataService] SubGeneral: ${userData['subGeneral']}');
     debugPrint('[UserDataService] Sub: ${userData['sub']}');
     debugPrint('[UserDataService] Nómina: ${userData['nomina']}');
+    debugPrint('[UserDataService] no_nomina: ${userData['no_nomina']}');
+    
+    // Buscar todos los campos que podrían contener la nómina
+    final nominaFields = ['no_nomina', 'nomina', 'nómina', 'numeroNomina'];
+    for (final field in nominaFields) {
+      if (userData[field] != null) {
+        debugPrint('[UserDataService] ✅ Campo nómina $field encontrado: ${userData[field]}');
+      }
+    }
+    
+    // Verificar el resultado final de _getField para nómina
+    final nominaFinal = _getField(userData, ['no_nomina', 'nomina', 'nómina', 'numeroNomina']);
+    debugPrint('[UserDataService] 🎯 Nómina final obtenida: $nominaFinal');
     
     // Buscar ID ciudadano en todos los campos posibles
     final possibleIdFields = [
@@ -181,8 +194,8 @@ class UserDataService {
       razonSocial: _getField(
           data, ['razonSocial', 'razon_social', 'empresa', 'company']),
       tipoPerfil: tipoPerfil,
-      folio: data['folio']?.toString(),
-      nomina: data['nomina']?.toString(),
+      folio: _getField(data, ['folio', 'folioCUS', 'folio_cus']),
+      nomina: _getField(data, ['no_nomina', 'nomina', 'nómina', 'numeroNomina']),
       idCiudadano: _getField(data, [
         'id_ciudadano', 
         'idCiudadano', 
@@ -233,8 +246,11 @@ class UserDataService {
     }
 
     // Determinar por identificadores
-    if (data['folio'] != null) return TipoPerfilCUS.ciudadano;
-    if (data['nomina'] != null) return TipoPerfilCUS.trabajador;
+    final folio = _getField(data, ['folio', 'folioCUS', 'folio_cus']);
+    final nomina = _getField(data, ['no_nomina', 'nomina', 'nómina', 'numeroNomina']);
+    
+    if (folio != null) return TipoPerfilCUS.ciudadano;
+    if (nomina != null) return TipoPerfilCUS.trabajador;
     
     // Verificar ID ciudadano
     final idCiudadano = _getField(data, [

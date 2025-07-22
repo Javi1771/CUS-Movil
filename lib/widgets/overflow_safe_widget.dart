@@ -10,14 +10,14 @@ class OverflowSafeWidget extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
 
   const OverflowSafeWidget({
-    Key? key,
+    super.key,
     required this.child,
     this.direction = Axis.horizontal,
     this.enableScrolling = false,
     this.enableClipping = true,
     this.padding,
     this.margin,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -76,13 +76,13 @@ class OverflowSafeRow extends StatelessWidget {
   final bool enableScrolling;
 
   const OverflowSafeRow({
-    Key? key,
+    super.key,
     required this.children,
     this.mainAxisAlignment = MainAxisAlignment.start,
     this.crossAxisAlignment = CrossAxisAlignment.center,
     this.mainAxisSize = MainAxisSize.max,
     this.enableScrolling = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -119,13 +119,13 @@ class OverflowSafeColumn extends StatelessWidget {
   final bool enableScrolling;
 
   const OverflowSafeColumn({
-    Key? key,
+    super.key,
     required this.children,
     this.mainAxisAlignment = MainAxisAlignment.start,
     this.crossAxisAlignment = CrossAxisAlignment.center,
     this.mainAxisSize = MainAxisSize.max,
     this.enableScrolling = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -162,12 +162,12 @@ class OverflowSafeText extends StatelessWidget {
 
   const OverflowSafeText(
     this.text, {
-    Key? key,
+    super.key,
     this.style,
     this.maxLines = 1,
     this.overflow = TextOverflow.ellipsis,
     this.textAlign,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

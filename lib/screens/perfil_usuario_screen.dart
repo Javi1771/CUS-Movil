@@ -101,6 +101,33 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     return partes.isNotEmpty ? partes.join(', ') : 'Sin dirección';
   }
 
+  /// Método helper para obtener el ID General de cualquier fuente disponible
+  String _getIdGeneral() {
+    if (usuario == null) return '';
+
+    // Prioridad 1: idCiudadano
+    if (usuario!.idCiudadano != null && usuario!.idCiudadano!.isNotEmpty) {
+      return usuario!.idCiudadano!;
+    }
+
+    // Prioridad 2: usuarioId
+    if (usuario!.usuarioId != null && usuario!.usuarioId!.isNotEmpty) {
+      return usuario!.usuarioId!;
+    }
+
+    // Prioridad 3: folio (para ciudadanos sin ID específico)
+    if (usuario!.folio != null && usuario!.folio!.isNotEmpty) {
+      return usuario!.folio!;
+    }
+
+    // Prioridad 4: nómina (para trabajadores sin ID específico)
+    if (usuario!.nomina != null && usuario!.nomina!.isNotEmpty) {
+      return usuario!.nomina!;
+    }
+
+    return 'Sin ID General';
+  }
+
   Widget _buildProfileIdentifier() {
     if (usuario == null) return const SizedBox();
 
@@ -118,11 +145,12 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
           ));
         }
 
-        // Mostrar ID Ciudadano si existe
-        if (usuario!.idCiudadano != null && usuario!.idCiudadano!.isNotEmpty) {
+        // Mostrar ID General para ciudadanos
+        String idGeneral = _getIdGeneral();
+        if (idGeneral.isNotEmpty && idGeneral != 'Sin ID General') {
           identifiers.add(_buildInfoCard(
-            'ID Ciudadano',
-            _getDisplayValue(usuario!.idCiudadano, 'Sin ID'),
+            'ID General',
+            idGeneral,
             imagenesIconos['badge']!,
             Icons.person_pin,
           ));
@@ -130,17 +158,30 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
         break;
 
       case TipoPerfilCUS.trabajador:
-        identifiers.add(_buildInfoCard(
-          'Nómina',
-          _getDisplayValue(usuario!.nomina, 'Sin nómina'),
-          imagenesIconos['badge']!,
-          Icons.badge,
-        ));
+        // Campo "Nómina" para trabajadores
+        if (usuario!.nomina != null && usuario!.nomina!.isNotEmpty) {
+          identifiers.add(_buildInfoCard(
+            'Nómina',
+            _getDisplayValue(usuario!.nomina, 'Sin nómina'),
+            imagenesIconos['badge']!,
+            Icons.badge,
+          ));
+        }
         break;
 
       case TipoPerfilCUS.personaMoral:
       case TipoPerfilCUS.usuario:
       default:
+        // Mostrar ID General para otros tipos
+        String idGeneral = _getIdGeneral();
+        if (idGeneral.isNotEmpty && idGeneral != 'Sin ID General') {
+          identifiers.add(_buildInfoCard(
+            'ID General',
+            idGeneral,
+            imagenesIconos['badge']!,
+            Icons.person_pin,
+          ));
+        }
         break;
     }
 
@@ -243,7 +284,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                                 ),
                                 const SizedBox(height: 30),
                                 _buildLogoutButton(context),
-                                const SizedBox(height: 20),
+                                const SizedBox(height: 50),
                               ],
                             ),
                           ),
@@ -505,7 +546,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                 Navigator.of(context).pop();
                 await AuthService('temp').logout();
                 if (context.mounted) {
-                  Navigator.pushReplacementNamed(context, '/login');
+                  Navigator.pushReplacementNamed(context, '/auth');
                 }
               },
             ),
