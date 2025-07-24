@@ -1,21 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'routes/routes.dart';
 import 'utils/performance_monitor.dart';
+import 'utils/performance_config.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Descomenta solo si sabes manejar el ciclo de renderizado tú mismo
-  // WidgetsBinding.instance.deferFirstFrame();
+  // Configurar rendimiento antes de cargar la app
+  PerformanceConfig.initialize();
 
-  await dotenv.load(fileName: ".env");
+  // Cargar variables de entorno
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint('⚠️ Error cargando .env: $e');
+  }
+
+  // Inicializar formateo de fechas
   await initializeDateFormatting('es', null);
 
+  // Configurar manejo de errores optimizado
   FlutterError.onError = (FlutterErrorDetails details) {
     final exceptionString = details.exception.toString();
 
+    // Ignorar errores comunes de overflow que no afectan funcionalidad
     if (exceptionString.contains('RenderFlex overflowed') ||
         exceptionString.contains('overflowed by') ||
         exceptionString.contains('pixels on the')) {
@@ -23,6 +34,7 @@ Future<void> main() async {
       return;
     }
 
+    // Ignorar errores de layout menores
     if (exceptionString.contains('RenderBox') ||
         exceptionString.contains('constraints') ||
         exceptionString.contains('layout')) {
@@ -30,15 +42,22 @@ Future<void> main() async {
       return;
     }
 
+    // Ignorar errores de performance warnings
+    if (exceptionString.contains('Performance Warning') ||
+        exceptionString.contains('FPS dropped')) {
+      return;
+    }
+
+    // Solo mostrar errores críticos
     FlutterError.presentError(details);
   };
 
   runApp(const CusApp());
 
-  // Solo si usas deferFirstFrame (comentado arriba), permite el primer frame aquí
-  // WidgetsBinding.instance.allowFirstFrame();
-
-  PerformanceMonitor().startMonitoring();
+  // Iniciar monitoreo de rendimiento en debug mode
+  if (const bool.fromEnvironment('dart.vm.product') == false) {
+    PerformanceMonitor().startMonitoring();
+  }
 }
 
 class CusApp extends StatelessWidget {
@@ -54,18 +73,27 @@ class CusApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSwatch()
             .copyWith(secondary: const Color(0xFF28A745)),
         fontFamily: 'Roboto',
-        // Configuración para prevenir overflow de texto
+        // Configuración optimizada para rendimiento
         textTheme: const TextTheme().apply(
           fontSizeFactor: 1.0,
           fontSizeDelta: 0.0,
         ),
-        // Configuración de escalado de texto
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        // Configuración de splash para mejor rendimiento
+        splashFactory: InkRipple.splashFactory,
+        // Configuración de animaciones más rápidas
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
       ),
-      // Configuración global para prevenir overflow
+      // Configuración global optimizada
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
+            // Limitar el factor de escala de texto para evitar overflow
             textScaleFactor:
                 MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.2),
           ),
@@ -76,7 +104,17 @@ class CusApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         final pageBuilder = appRoutes[settings.name];
         if (pageBuilder != null) {
-          return MaterialPageRoute(builder: pageBuilder);
+          return PageRouteBuilder(
+            settings: settings,
+            pageBuilder: (context, animation, secondaryAnimation) => pageBuilder(context),
+            transitionDuration: const Duration(milliseconds: 200),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+          );
         }
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

@@ -23,7 +23,7 @@ class WeatherData {
   factory WeatherData.fromJson(Map<String, dynamic> json) {
     return WeatherData(
       city: json['name'] ?? 'Ciudad',
-      temperature: (json['main']['temp'] as num).toDouble(),
+      temperature: (json['main']['temp'] as num?)?.toDouble() ?? 0.0,
       description: json['weather'][0]['description'] ?? '',
       icon: json['weather'][0]['icon'] ?? '01d',
       humidity: json['main']['humidity'] ?? 0,
@@ -40,24 +40,17 @@ class WeatherData {
       debugPrint('[WeatherData] Location: ${location.toString()}');
       debugPrint('[WeatherData] Current: ${current.toString()}');
 
-      final cityName = location['name'] ?? location['region'] ?? '';
-      final temp = (current['temperature'] as num?)?.toDouble();
-      final descriptions = current['weather_descriptions'] as List?;
-      final description =
-          descriptions?.isNotEmpty == true ? descriptions![0] : '';
-      final weatherCode = current['weather_code'];
-      final humidity = current['humidity'];
-      final windSpeed = (current['wind_speed'] as num?)?.toDouble();
-
-      // Validar que tenemos datos válidos
-      if (cityName.isEmpty ||
-          temp == null ||
-          description.isEmpty ||
-          weatherCode == null ||
-          humidity == null ||
-          windSpeed == null) {
-        throw Exception('Datos incompletos de la API de clima');
-      }
+      final cityName =
+          location?['name'] ?? location?['region'] ?? 'Ciudad Desconocida';
+      final temp = (current?['temperature'] as num?)?.toDouble() ?? 0.0;
+      final descriptions = current?['weather_descriptions'] as List?;
+      final description = descriptions?.isNotEmpty == true
+          ? descriptions![0] ?? ''
+          : 'Sin descripción';
+      final weatherCode =
+          current?['weather_code'] ?? 113; // Código por defecto para soleado
+      final humidity = current?['humidity'] ?? 0;
+      final windSpeed = (current?['wind_speed'] as num?)?.toDouble() ?? 0.0;
 
       debugPrint(
           '[WeatherData] ✅ Datos procesados: $cityName, $temp°C, $description');
@@ -72,7 +65,15 @@ class WeatherData {
       );
     } catch (e) {
       debugPrint('[WeatherData] ❌ Error procesando datos: $e');
-      rethrow;
+      // Retornar datos por defecto en caso de error
+      return WeatherData(
+        city: 'Error',
+        temperature: 0.0,
+        description: 'No disponible',
+        icon: '01d',
+        humidity: 0,
+        windSpeed: 0.0,
+      );
     }
   }
 
@@ -126,12 +127,6 @@ class WeatherData {
         return '10d'; // Rain
       case 227:
       case 230:
-      case 323:
-      case 326:
-      case 329:
-      case 332:
-      case 335:
-      case 338:
       case 350:
       case 353:
       case 356:
@@ -142,7 +137,6 @@ class WeatherData {
       case 371:
       case 374:
       case 377:
-      case 350:
         return '13d'; // Snow
       default:
         return '02d'; // Default to partly cloudy
@@ -152,6 +146,7 @@ class WeatherData {
   String get temperatureString => '${temperature.round()}°C';
 
   String get capitalizedDescription {
+    if (description.isEmpty) return 'Sin descripción';
     return description
         .split(' ')
         .map((word) =>
@@ -160,6 +155,7 @@ class WeatherData {
   }
 
   IconData get weatherIcon {
+    if (icon.length < 2) return Icons.wb_sunny;
     switch (icon.substring(0, 2)) {
       case '01':
         return Icons.wb_sunny; // cielo despejado
@@ -185,6 +181,7 @@ class WeatherData {
   }
 
   Color get weatherColor {
+    if (icon.length < 2) return const Color(0xFFFAA21B);
     switch (icon.substring(0, 2)) {
       case '01':
         return const Color(0xFFFAA21B); // soleado - naranja
@@ -204,6 +201,17 @@ class WeatherData {
       default:
         return const Color(0xFFFAA21B);
     }
+  }
+
+  static WeatherData defaultData() {
+    return WeatherData(
+      city: 'Sin conexión',
+      temperature: 0.0,
+      description: 'No disponible',
+      icon: '01d',
+      humidity: 0,
+      windSpeed: 0.0,
+    );
   }
 }
 
@@ -256,7 +264,8 @@ class WeatherService {
       }
     } catch (e) {
       debugPrint('[WeatherService] ❌ Error completo: $e');
-      rethrow; // Propagar el error en lugar de usar datos mock
+      // Retornar datos por defecto en lugar de propagar el error
+      return WeatherData.defaultData();
     }
   }
 
@@ -298,7 +307,8 @@ class WeatherService {
       }
     } catch (e) {
       debugPrint('[WeatherService] ❌ Error coordenadas: $e');
-      rethrow; // Propagar el error en lugar de usar datos mock
+      // Retornar datos por defecto en lugar de propagar el error
+      return WeatherData.defaultData();
     }
   }
 }

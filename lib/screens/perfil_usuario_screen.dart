@@ -27,6 +27,9 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     'email': 'assets/Correo Electronico.png',
     'phone': 'assets/telefono.png',
     'home': 'assets/Direccion.png',
+    'work': 'assets/informacion laboral.png',
+    'department': 'assets/Departamento.png',
+    'position': 'assets/Puesto.png',
   };
 
   @override
@@ -188,6 +191,42 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     return Column(children: identifiers);
   }
 
+  Widget _buildWorkerSection() {
+    if (usuario == null || usuario!.tipoPerfil != TipoPerfilCUS.trabajador) {
+      return const SizedBox();
+    }
+
+    return Column(
+      children: [
+        _buildSection(
+          title: 'Información del Trabajador',
+          iconPath: imagenesIconos['work']!,
+          children: [
+            _buildInfoCard(
+              'Nómina',
+              _getDisplayValue(usuario!.nomina, 'Sin nómina'),
+              imagenesIconos['badge']!,
+              Icons.badge,
+            ),
+            _buildInfoCard(
+              'Departamento',
+              _getDisplayValue(usuario!.departamento, 'SECRETARIA DE ADMINISTRACION'),
+              imagenesIconos['department']!,
+              Icons.business,
+            ),
+            _buildInfoCard(
+              'Puesto',
+              _getDisplayValue(usuario!.puesto, 'PROGRAMADOR DE SISTEMAS'),
+              imagenesIconos['position']!,
+              Icons.work,
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const bgGray = Color(0xFFF5F7FA);
@@ -256,6 +295,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 10),
+                                _buildWorkerSection(),
                                 _buildSection(
                                   title: 'Información de Contacto',
                                   iconPath: imagenesIconos['contact']!,

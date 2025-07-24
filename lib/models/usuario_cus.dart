@@ -78,6 +78,8 @@ class UsuarioCUS {
   final String? razonSocial;
   final String? estado;
   final String? estadoCivil;
+  final String? departamento;
+  final String? puesto;
 
   // Documentos y foto
   final List<DocumentoCUS>? documentos;
@@ -104,6 +106,8 @@ class UsuarioCUS {
     this.razonSocial,
     this.estado,
     this.estadoCivil,
+    this.departamento,
+    this.puesto,
     this.documentos,
     this.foto,
   });
@@ -261,6 +265,8 @@ class UsuarioCUS {
       razonSocial: getStringValue(['razonSocial', 'razon_social', 'empresa']),
       estado: getStringValue(['estado', 'status', 'state']),
       estadoCivil: getStringValue(['estadoCivil', 'estado_civil']),
+      departamento: getStringValue(['departamento', 'department', 'area', 'secretaria']),
+      puesto: getStringValue(['puesto', 'position', 'cargo', 'job_title']),
       documentos: documentosList,
       foto: getStringValue(['foto', 'photo', 'avatar', 'profilePicture']),
     );
@@ -288,6 +294,8 @@ class UsuarioCUS {
       'razonSocial': razonSocial,
       'estado': estado,
       'estadoCivil': estadoCivil,
+      'departamento': departamento,
+      'puesto': puesto,
       'foto': foto,
       'documentos': documentos?.map((doc) => doc.toJson()).toList(),
     };
@@ -359,6 +367,10 @@ class UsuarioCUS {
     if (partes.isNotEmpty) return partes.join(', ');
     return direccion ?? 'No especificada';
   }
+
+  String get departamentoDisplay => departamento ?? 'SECRETARIA DE ADMINISTRACION';
+
+  String get puestoDisplay => puesto ?? 'PROGRAMADOR DE SISTEMAS';
 
   // Genera la lista de campos para la sección "Información Personal"
   List<Map<String, String>> get camposEspecificos {

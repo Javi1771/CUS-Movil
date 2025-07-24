@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cus_movil/services/auth_service.dart';
+import 'package:cus_movil/utils/rfc_test_helper.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -20,57 +23,211 @@ class _AuthScreenState extends State<AuthScreen> {
   static const Color regal700 = Color(0xFF045EA0);
   static const Color regal900 = Color(0xFF0B3B60);
 
-  String? _validateEmailOrCurp(String? value) {
+  @override
+  void initState() {
+    super.initState();
+    if (kDebugMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _testRFCValidation();
+      });
+    }
+  }
+
+  void _testRFCValidation() {
+    debugPrint('\n=== INICIO DE PRUEBAS DE VALIDACIÓN ===');
+
+    // Prueba del RFC especial
+    const specialRFC = 'ORG1213456789';
+    final result = RFCTestHelper.analyzeRFC(specialRFC);
+    debugPrint('RFC especial: $specialRFC');
+    debugPrint('Válido: ${result['valid']}');
+    debugPrint('Es excepción: ${result['isExcepcion']}');
+    debugPrint('Tipo: ${result['type']}');
+
+    // Ejecutar pruebas del helper
+    RFCTestHelper.testRFCValidation();
+  }
+
+  String? _validateEmailCurpOrRfc(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Este campo es obligatorio';
     }
-    final input = value.trim().toUpperCase();
-    final emailRegex = RegExp(r'^[\w\-.]+@([\w\-]+\.)+[\w\-]{2,4}$');
-    final curpRegex = RegExp(r'^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$');
-    if (!emailRegex.hasMatch(input) && !curpRegex.hasMatch(input)) {
-      return 'Ingresa un correo o CURP válido';
+
+    final input = value.trim();
+    final inputUpper = input.toUpperCase();
+
+    if (kDebugMode) {
+      debugPrint('\n🔍 Validando input: "$input" (${input.length} chars)');
     }
-    return null;
+
+    // Validación de email
+    if (input.contains('@')) {
+      final emailRegex =
+          RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+      if (emailRegex.hasMatch(input)) {
+        if (kDebugMode) debugPrint('✅ Email válido detectado');
+        return null;
+      }
+      return 'Formato de email incorrecto';
+    }
+
+    // Validación de CURP
+    if (inputUpper.length == 18) {
+      final curpRegex = RegExp(r'^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[A-Z0-9][0-9]$');
+      if (curpRegex.hasMatch(inputUpper)) {
+        if (kDebugMode) debugPrint('✅ CURP válido detectado');
+        return null;
+      }
+      return 'Formato de CURP incorrecto';
+    }
+
+    // Validación especial para RFC de excepción (comparación exacta)
+    if (inputUpper == 'ORG1213456789') {
+      debugPrint('✅ RFC de excepción aceptado exactamente');
+      return null;
+    }
+
+    // Validación estándar de RFC para otros casos
+    if (inputUpper.length >= 9 && inputUpper.length <= 13) {
+      final rfcAnalysis = RFCTestHelper.analyzeRFC(inputUpper);
+
+      if (kDebugMode) {
+        debugPrint('🔍 Análisis RFC:');
+        debugPrint('- Válido: ${rfcAnalysis['valid']}');
+        debugPrint('- Excepción: ${rfcAnalysis['isExcepcion']}');
+        debugPrint('- Tipo: ${rfcAnalysis['type']}');
+      }
+
+      if (rfcAnalysis['valid'] == true) {
+        if (kDebugMode) debugPrint('✅ RFC válido detectado');
+        return null;
+      }
+
+      return 'Formato de RFC incorrecto\n'
+          'Ejemplos válidos:\n'
+          '- Persona Física: ABCD123456 o ABCD123456EFG\n'
+          '- Persona Moral: ABC123456 o ABC123456789\n'
+          '- Caso especial exacto: ORG1213456789';
+    }
+
+    if (kDebugMode) debugPrint('❌ Formato no reconocido');
+    return 'Ingresa un correo, CURP (18 chars) o RFC (9-13 chars) válido';
   }
 
   String? _validatePassword(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Este campo es obligatorio';
     }
-    return null; // No se aplica ninguna validación de formato
+    if (value.length < 3) {
+      return 'La contraseña debe tener al menos 3 caracteres';
+    }
+    return null;
   }
 
   Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
     setState(() {
       _isLoading = true;
       _loginError = null;
     });
 
-    final user = userCtrl.text.trim();
+    String user = userCtrl.text.trim();
     final pass = passCtrl.text;
 
+    // Convertir a mayúsculas si es CURP/RFC
+    if (!user.contains('@')) {
+      user = user.toUpperCase();
+    }
+
+    debugPrint('🚀 Iniciando proceso de login...');
+    debugPrint('🚀 Usuario: "$user" (${user.length} chars)');
+    debugPrint('🚀 Password length: ${pass.length}');
+    debugPrint('🔐 Tipo de credencial detectado: ${_getCredentialType(user)}');
+
     try {
-      final authService = AuthService(user); // Pass the required argument
+      final authService = AuthService(user);
       final result = await authService.login(user, pass);
 
       if (result == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('¡Bienvenido!')),
-        );
-        Navigator.pushReplacementNamed(context, '/home');
+        debugPrint('✅ Login exitoso, navegando a home');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('¡Bienvenido!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       } else {
-        setState(() {
-          _loginError = 'Usuario o contraseña incorrectos.';
-        });
+        debugPrint('❌ Login falló');
+        if (mounted) {
+          setState(() {
+            _loginError = _getSpecificErrorMessage(user);
+          });
+        }
       }
     } catch (e) {
-      setState(() {
-        _loginError = 'Error de red o servidor: $e';
-      });
+      debugPrint('❌ Error en login: $e');
+      if (mounted) {
+        setState(() {
+          _loginError =
+              'Error de conexión.\nVerifica tu internet e intenta nuevamente.';
+        });
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  String _getCredentialType(String input) {
+    if (input.contains('@')) return 'Email';
+    if (input.length == 18) return 'CURP';
+    if (input == 'ORG1213456789') return 'RFC Excepción';
+    if (input.length >= 9 && input.length <= 13) return 'RFC';
+    return 'Desconocido';
+  }
+
+  String _getSpecificErrorMessage(String user) {
+    if (user.contains('@')) {
+      return 'Email o contraseña incorrectos.\nVerifica tus credenciales.';
+    } else if (user.length == 18) {
+      return 'CURP o contraseña incorrectos.\nVerifica tus credenciales.';
+    } else if (user == 'ORG1213456789') {
+      return 'RFC o contraseña incorrectos.\nVerifica que tu RFC esté registrado en el sistema.';
+    } else if (user.length >= 9 && user.length <= 13) {
+      return 'RFC o contraseña incorrectos.\nVerifica que tu RFC esté registrado en el sistema.';
+    } else {
+      return 'Usuario o contraseña incorrectos.\nVerifica tus credenciales e intenta nuevamente.';
+    }
+  }
+
+  Future<void> _launchPasswordRecovery() async {
+    const urlString =
+        'https://cus.sanjuandelrio.gob.mx/tramites-sjr/public/forgot-password.html';
+
+    try {
+      final Uri url = Uri.parse(urlString);
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'No se pudo abrir el enlace. Verifica tu conexión a internet.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
@@ -169,15 +326,22 @@ class _AuthScreenState extends State<AuthScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _label('Correo o CURP'),
+            _label('Correo, CURP o RFC'),
             TextFormField(
               controller: userCtrl,
-              keyboardType: TextInputType.emailAddress,
+              keyboardType: TextInputType.text,
+              textCapitalization: TextCapitalization.none,
               decoration: _inputDecoration(
-                hint: 'tu@correo.com / CURP',
-                prefix: Icons.email_outlined,
+                hint: 'ejemplo@correo.com / CURP / RFC',
+                prefix: Icons.account_circle_outlined,
               ),
-              validator: _validateEmailOrCurp,
+              validator: _validateEmailCurpOrRfc,
+              onChanged: (value) {
+                // Mostrar información en tiempo real sobre el tipo detectado
+                if (kDebugMode && value.length >= 9) {
+                  _showCredentialTypeInfo(value);
+                }
+              },
             ),
             const SizedBox(height: 24),
             _label('Contraseña'),
@@ -229,16 +393,27 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
             if (_loginError != null)
               Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: Text(
-                  _loginError!,
-                  style: const TextStyle(color: Colors.red),
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    _loginError!,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             TextButton(
-              onPressed: () =>
-                  Navigator.pushNamed(context, '/password-recovery'),
+              onPressed: _launchPasswordRecovery,
               child: const Text(
                 '¿Olvidaste tu contraseña?',
                 style: TextStyle(color: regal700),
@@ -262,6 +437,31 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       ),
     );
+  }
+
+  void _showCredentialTypeInfo(String value) {
+    final cleanValue = value.trim().toUpperCase();
+    String type = 'Desconocido';
+
+    if (cleanValue.contains('@')) {
+      type = 'Email';
+    } else if (cleanValue.length == 18) {
+      type = 'CURP';
+    } else if (cleanValue == 'ORG1213456789') {
+      type = 'RFC (Excepción)';
+    } else if (cleanValue.length >= 9 && cleanValue.length <= 13) {
+      final analysis = RFCTestHelper.analyzeRFC(cleanValue);
+      if (analysis['valid'] == true || analysis['isExcepcion'] == true) {
+        type = 'RFC ${analysis['type']}';
+        if (analysis['isExcepcion'] == true) {
+          type += ' (Excepción)';
+        }
+      } else {
+        type = 'RFC (formato incorrecto)';
+      }
+    }
+
+    debugPrint('🎯 Tipo detectado: $type para "$cleanValue"');
   }
 
   Widget _label(String text) => Align(
@@ -309,6 +509,14 @@ class _AuthScreenState extends State<AuthScreen> {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
         borderSide: const BorderSide(color: regal900, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
     );
   }
