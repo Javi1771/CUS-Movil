@@ -20,7 +20,6 @@ class _TramitesScreenState extends State<TramitesScreen>
   final TextEditingController _searchController = TextEditingController();
   int _selectedTabIndex = 0;
   late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
 
   final List<String> _estadosDisponibles = [
     'TODOS',
@@ -39,13 +38,6 @@ class _TramitesScreenState extends State<TramitesScreen>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 0.95,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.elasticOut,
-    ));
     _animationController.forward();
     _fetchTramites();
   }
@@ -123,7 +115,6 @@ class _TramitesScreenState extends State<TramitesScreen>
 
   @override
   Widget build(BuildContext context) {
-    const govBlue = Color(0xFF0B3B60);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -663,120 +654,6 @@ class _TramitesScreenState extends State<TramitesScreen>
     );
   }
 
-  Widget _buildFiltros() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _filtroEstado,
-          isExpanded: true,
-          icon: const Icon(Icons.filter_list, color: Color(0xFF0B3B60)),
-          style: const TextStyle(
-            color: Color(0xFF0B3B60),
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-          items: _estadosDisponibles.map((estado) {
-            final count = estado == 'TODOS'
-                ? _tramites.length
-                : _estadisticas[estado] ?? 0;
-            final color = _getEstadoColor(estado);
-
-            return DropdownMenuItem<String>(
-              value: estado,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  children: [
-                    // Icono del estado
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        _getEstadoIcon(estado),
-                        color: color,
-                        size: 16,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // Texto del estado
-                    Expanded(
-                      flex: 3,
-                      child: Text(
-                        estado == 'TODOS' ? 'Todos los estados' : estado,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF1E293B),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-
-                    const SizedBox(width: 8),
-
-                    // Contador con diseño mejorado
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            color.withOpacity(0.1),
-                            color.withOpacity(0.05),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: color.withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        count.toString(),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-          onChanged: (value) {
-            if (value != null) {
-              setState(() {
-                _filtroEstado = value;
-              });
-            }
-          },
-        ),
-      ),
-    );
-  }
-
   Color _getEstadoColor(String estado) {
     switch (estado.toUpperCase()) {
       case 'TODOS':
@@ -820,7 +697,6 @@ class _TramitesScreenState extends State<TramitesScreen>
   }
 
   Widget _buildTramiteCard(TramiteEstado tramite) {
-    final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
     final dateFormatShort = DateFormat('dd/MM/yyyy');
 
     return Container(
@@ -857,11 +733,11 @@ class _TramitesScreenState extends State<TramitesScreen>
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: tramite.colorEstado ?? Colors.grey,
+                      color: tramite.colorEstado,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      tramite.iconoEstado ?? Icons.description,
+                      tramite.iconoEstado,
                       color: Colors.white,
                       size: 20,
                     ),
@@ -873,9 +749,9 @@ class _TramitesScreenState extends State<TramitesScreen>
                       children: [
                         Tooltip(
                           message: _formatTextWithCapitalization(
-                              tramite.nombreTramite ?? 'Trámite sin nombre'),
+                              tramite.nombreTramite),
                           decoration: BoxDecoration(
-                            color: tramite.colorEstado ?? Colors.grey,
+                            color: tramite.colorEstado,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           textStyle: const TextStyle(
@@ -885,7 +761,7 @@ class _TramitesScreenState extends State<TramitesScreen>
                           ),
                           child: Text(
                             _formatTextWithCapitalization(
-                                tramite.nombreTramite ?? 'Trámite sin nombre'),
+                                tramite.nombreTramite),
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -901,7 +777,7 @@ class _TramitesScreenState extends State<TramitesScreen>
                             Expanded(
                               flex: 3,
                               child: Text(
-                                'Folio: ${tramite.folio ?? 'Sin folio'}',
+                                'Folio: ${tramite.folio}',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -945,11 +821,11 @@ class _TramitesScreenState extends State<TramitesScreen>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: tramite.colorEstado ?? Colors.grey,
+                      color: tramite.colorEstado,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      tramite.nombreEstado ?? 'Sin estado',
+                      tramite.nombreEstado,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -969,9 +845,9 @@ class _TramitesScreenState extends State<TramitesScreen>
                 children: [
                   Tooltip(
                     message: _formatTextWithCapitalization(
-                        tramite.descripcionEstado ?? 'Sin descripción'),
+                        tramite.descripcionEstado),
                     decoration: BoxDecoration(
-                      color: tramite.colorEstado ?? Colors.grey,
+                      color: tramite.colorEstado,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     textStyle: const TextStyle(
@@ -981,7 +857,7 @@ class _TramitesScreenState extends State<TramitesScreen>
                     ),
                     child: Text(
                       _formatTextWithCapitalization(
-                          tramite.descripcionEstado ?? 'Sin descripción'),
+                          tramite.descripcionEstado),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade700,
@@ -997,9 +873,9 @@ class _TramitesScreenState extends State<TramitesScreen>
                       Expanded(
                         child: Tooltip(
                           message: _formatTextWithCapitalization(
-                              tramite.nombreDependencia ?? 'Sin dependencia'),
+                              tramite.nombreDependencia),
                           decoration: BoxDecoration(
-                            color: tramite.colorEstado ?? Colors.grey,
+                            color: tramite.colorEstado,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           textStyle: const TextStyle(
@@ -1010,7 +886,7 @@ class _TramitesScreenState extends State<TramitesScreen>
                           child: _buildInfoItem(
                             'Dependencia',
                             _formatTextWithCapitalization(
-                                tramite.nombreDependencia ?? 'Sin dependencia'),
+                                tramite.nombreDependencia),
                             Icons.business,
                           ),
                         ),
@@ -1025,9 +901,7 @@ class _TramitesScreenState extends State<TramitesScreen>
                         flex: 1,
                         child: _buildInfoItem(
                           'Fecha de Entrada',
-                          tramite.fechaEntrada != null
-                              ? dateFormatShort.format(tramite.fechaEntrada)
-                              : 'Sin fecha',
+                          dateFormatShort.format(tramite.fechaEntrada),
                           Icons.calendar_today,
                         ),
                       ),
@@ -1036,9 +910,7 @@ class _TramitesScreenState extends State<TramitesScreen>
                         flex: 1,
                         child: _buildInfoItem(
                           'Días transcurridos',
-                          tramite.fechaEntrada != null
-                              ? _calculateDaysElapsed(tramite.fechaEntrada)
-                              : 'Sin fecha',
+                          _calculateDaysElapsed(tramite.fechaEntrada),
                           Icons.schedule,
                         ),
                       ),
@@ -1667,8 +1539,7 @@ class _TramitesScreenState extends State<TramitesScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: tramite.colorEstado.withOpacity(0.2) ??
-              Colors.grey.withOpacity(0.2),
+          color: tramite.colorEstado.withOpacity(0.2),
           width: 1,
         ),
         boxShadow: [
@@ -1687,13 +1558,12 @@ class _TramitesScreenState extends State<TramitesScreen>
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: tramite.colorEstado.withOpacity(0.1) ??
-                      Colors.grey.withOpacity(0.1),
+                  color: tramite.colorEstado.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Icon(
-                  tramite.iconoEstado ?? Icons.description,
-                  color: tramite.colorEstado ?? Colors.grey,
+                  tramite.iconoEstado,
+                  color: tramite.colorEstado,
                   size: 16,
                 ),
               ),
@@ -1704,9 +1574,9 @@ class _TramitesScreenState extends State<TramitesScreen>
                   children: [
                     Tooltip(
                       message: _formatTextWithCapitalization(
-                          tramite.nombreTramite ?? 'Trámite sin nombre'),
+                          tramite.nombreTramite),
                       decoration: BoxDecoration(
-                        color: tramite.colorEstado ?? Colors.grey,
+                        color: tramite.colorEstado,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       textStyle: const TextStyle(
@@ -1716,7 +1586,7 @@ class _TramitesScreenState extends State<TramitesScreen>
                       ),
                       child: Text(
                         _formatTextWithCapitalization(
-                            tramite.nombreTramite ?? 'Trámite sin nombre'),
+                            tramite.nombreTramite),
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -1728,7 +1598,7 @@ class _TramitesScreenState extends State<TramitesScreen>
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Folio: ${tramite.folio ?? 'Sin folio'}',
+                      'Folio: ${tramite.folio}',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -1740,11 +1610,11 @@ class _TramitesScreenState extends State<TramitesScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: tramite.colorEstado ?? Colors.grey,
+                  color: tramite.colorEstado,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  tramite.nombreEstado ?? 'Sin estado',
+                  tramite.nombreEstado,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
@@ -1757,9 +1627,9 @@ class _TramitesScreenState extends State<TramitesScreen>
           const SizedBox(height: 12),
           Tooltip(
             message: _formatTextWithCapitalization(
-                tramite.descripcionEstado ?? 'Sin descripción'),
+                tramite.descripcionEstado),
             decoration: BoxDecoration(
-              color: tramite.colorEstado ?? Colors.grey,
+              color: tramite.colorEstado,
               borderRadius: BorderRadius.circular(8),
             ),
             textStyle: const TextStyle(
@@ -1769,7 +1639,7 @@ class _TramitesScreenState extends State<TramitesScreen>
             ),
             child: Text(
               _formatTextWithCapitalization(
-                  tramite.descripcionEstado ?? 'Sin descripción'),
+                  tramite.descripcionEstado),
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey.shade700,
@@ -1777,42 +1647,6 @@ class _TramitesScreenState extends State<TramitesScreen>
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
-      String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),

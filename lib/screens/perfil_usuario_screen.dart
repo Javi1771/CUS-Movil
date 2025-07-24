@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -171,8 +173,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
       case TipoPerfilCUS.personaMoral:
       case TipoPerfilCUS.usuario:
-      default:
-        // Mostrar ID General para otros tipos
+      // Mostrar ID General para otros tipos
         String idGeneral = _getIdGeneral();
         if (idGeneral.isNotEmpty && idGeneral != 'Sin ID General') {
           identifiers.add(_buildInfoCard(

@@ -1,5 +1,7 @@
 // models/usuario_cus.dart
 
+// ignore_for_file: avoid_print
+
 // Enum para definir los tipos de perfil
 enum TipoPerfilCUS {
   ciudadano,
@@ -202,7 +204,7 @@ class UsuarioCUS {
       // Verificar otros indicadores de persona física vs moral
       final razonSocial = getStringValue(['razonSocial', 'razon_social', 'empresa']);
       final curp = getStringValue(['curp', 'CURP']);
-      final rfc = getStringValue(['rfc', 'RFC']);
+      getStringValue(['rfc', 'RFC']);
       
       print('[UsuarioCUS] Verificando otros indicadores...');
       print('[UsuarioCUS] Razón social: $razonSocial');

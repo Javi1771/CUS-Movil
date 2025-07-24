@@ -36,8 +36,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     with SingleTickerProviderStateMixin {
   static const govBlue = Color(0xFF0B3B60);
   static const govBlueLight = Color(0xFF1E40AF);
-  static const govBlueDark = Color(0xFF1E3A8A);
-  static const backgroundGray = Color(0xFFF8FAFC);
   static const cardBackground = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF0F172A);
   static const textSecondary = Color(0xFF64748B);
@@ -195,21 +193,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
   void _eliminarDocumento(String tipo) {
     setState(() => _documentos[tipo] = null);
     _mostrarAlertaEliminacion(tipo);
-  }
-
-  void _mostrarVistaPrevia(DocumentoItem documento) {
-    if (_vistaPreviaAbierta) return;
-    _vistaPreviaAbierta = true;
-
-    Navigator.of(context)
-        .push(
-      MaterialPageRoute(
-        builder: (context) => _PDFViewerScreen(documento: documento),
-      ),
-    )
-        .then((_) {
-      _vistaPreviaAbierta = false;
-    });
   }
 
   void _mostrarVistaPreviaDialog(DocumentoItem documento) {
@@ -549,64 +532,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
-  }
-
-  Widget _buildDialogButton({
-    required VoidCallback onPressed,
-    required IconData icon,
-    required String label,
-    required bool isPrimary,
-  }) {
-    return Container(
-      height: 42,
-      decoration: BoxDecoration(
-        gradient: isPrimary
-            ? const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [govBlue, govBlueLight],
-              )
-            : null,
-        color: isPrimary ? null : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        border: isPrimary
-            ? null
-            : Border.all(
-                color: govBlue.withOpacity(0.2),
-                width: 1,
-              ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(12),
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  color: isPrimary ? Colors.white : govBlue,
-                  size: 16,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: isPrimary ? Colors.white : govBlue,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.1,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   void _mostrarAlertaExito(String tipo, DocumentoItem documento) {
@@ -1453,7 +1378,6 @@ class _PDFViewerScreen extends StatefulWidget {
 
 class _PDFViewerScreenState extends State<_PDFViewerScreen> {
   static const govBlue = Color(0xFF0B3B60);
-  static const govBlueLight = Color(0xFF1E40AF);
   late PdfViewerController _pdfViewerController;
   int _currentPageNumber = 1;
   int _totalPages = 0;

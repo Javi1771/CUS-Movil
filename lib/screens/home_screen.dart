@@ -8,6 +8,9 @@ import 'package:cus_movil/services/location_service.dart';
 import 'package:cus_movil/services/user_data_service.dart';
 import 'package:cus_movil/services/tramites_service.dart';
 import 'package:cus_movil/models/usuario_cus.dart';
+import 'dart:async';                          
+import 'package:geolocator/geolocator.dart';  
+import 'package:cus_movil/models/weather_data.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +19,6 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-// Modelo para actividad reciente
 class ActividadReciente {
   final String titulo;
   final String descripcion;
@@ -35,7 +37,6 @@ class ActividadReciente {
   });
 }
 
-// Modelo para estadísticas de actividad
 class EstadisticasActividad {
   final int tramitesActivos;
   final int pendientes;
@@ -61,51 +62,46 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isLoadingStats = false;
   bool _isLoadingActivity = false;
 
-  // Datos dinámicos desde la API
+  StreamSubscription<Position>? _posSub;   
+  Timer? _weatherDebounce;                 
+
   EstadisticasActividad? _estadisticas;
   List<ActividadReciente> _actividadReciente = [];
 
-  // Animaciones - inicializadas como nullable para evitar LateInitializationError
   Animation<double>? _pulseAnimation;
   Animation<Offset>? _slideAnimation;
   Animation<double>? _fadeAnimation;
-  Animation<double>? _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _initializeBasics();
-    _loadWeatherData();
+    _initWeather();
     _loadResumenGeneral();
   }
 
   void _initializeAnimations() {
-    // Controlador principal
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
 
-    // Controlador de pulso para elementos destacados
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
 
-    // Controlador de deslizamiento para entrada de elementos
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
 
-    // Controlador de fade para transiciones suaves
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
-    // Crear las animaciones
     _pulseAnimation = Tween<double>(
       begin: 1.0,
       end: 1.05,
@@ -130,15 +126,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       curve: Curves.easeOut,
     ));
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.elasticOut,
-    ));
-
-    // Iniciar animaciones
     _pulseController.repeat(reverse: true);
     _slideController.forward();
     _fadeController.forward();
@@ -146,14 +133,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _initializeBasics() async {
     try {
-      // Cargar datos reales del usuario desde la API
       _usuario = await UserDataService.getUserData();
       if (mounted) {
         setState(() {});
       }
     } catch (e) {
-      debugPrint('[HomeScreen] Error cargando datos del usuario: $e');
-      // En caso de error, usar datos mínimos
       _usuario = UsuarioCUS(
         nombre: 'Usuario',
         email: 'usuario@ejemplo.com',
@@ -174,16 +158,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
 
     try {
-      debugPrint('[HomeScreen] ===== CARGANDO DATOS REALES DE TRÁMITES =====');
-
-      // Obtener datos reales de trámites desde la API
       final tramitesResponse = await TramitesService.getTramitesEstados();
       final tramites = tramitesResponse.data;
 
-      debugPrint(
-          '[HomeScreen] ✅ ${tramites.length} trámites obtenidos de la API');
-
-      // Calcular estadísticas reales
       final tramitesActivos = tramites.length;
       final pendientes = tramites
           .where((t) =>
@@ -206,9 +183,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         porcentajeCompletados: porcentajeCompletados,
       );
 
-      // Crear actividad reciente basada en trámites reales
       final actividades = tramites
-          .take(5) // Tomar los primeros 5 trámites
+          .take(5)
           .map((tramite) => ActividadReciente(
                 titulo: _formatTextWithCapitalization(tramite.nombreTramite),
                 descripcion: tramite.descripcionEstado,
@@ -219,7 +195,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ))
           .toList();
 
-      // Ordenar por fecha más reciente
       actividades.sort((a, b) => b.fecha.compareTo(a.fecha));
 
       if (mounted) {
@@ -228,23 +203,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           _actividadReciente = actividades;
         });
 
-        debugPrint('[HomeScreen] ✅ Estadísticas calculadas:');
-        debugPrint('  - Trámites activos: $tramitesActivos');
-        debugPrint('  - Pendientes: $pendientes');
-        debugPrint(
-            '  - Completados: $completados (${porcentajeCompletados.toStringAsFixed(1)}%)');
-        debugPrint('  - Actividades recientes: ${actividades.length}');
-
-        // Reiniciar animaciones cuando se cargan los datos
         _slideController.reset();
         _fadeController.reset();
         _slideController.forward();
         _fadeController.forward();
       }
     } catch (e) {
-      debugPrint('[HomeScreen] ❌ Error cargando datos de trámites: $e');
-
-      // En caso de error, usar valores por defecto
       if (mounted) {
         setState(() {
           _estadisticas = EstadisticasActividad(
@@ -265,7 +229,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  /// Formatea texto con capitalización adecuada
   String _formatTextWithCapitalization(String text) {
     if (text.isEmpty) return text;
 
@@ -275,133 +238,83 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }).join(' ');
   }
 
-  IconData _getIconoParaTipo(String tipo) {
-    switch (tipo.toLowerCase()) {
-      case 'licencia':
-        return Icons.drive_eta;
-      case 'documento':
-        return Icons.description;
-      case 'constancia':
-        return Icons.home;
-      case 'permiso':
-        return Icons.construction;
-      default:
-        return Icons.description;
+  Future<void> _fetchWeather(double lat, double lon) async {
+    try {
+      setState(() => _isLoadingWeather = true);
+      final data = await WeatherService.getByCoords(lat: lat, lon: lon);
+      if (!mounted) return;
+      setState(() => _weatherData = data);
+    } catch (e) {
+      debugPrint('Error al obtener el clima: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingWeather = false);
     }
   }
 
-  Color _getColorParaEstado(String estado) {
-    switch (estado.toLowerCase()) {
-      case 'completado':
-        return const Color(0xFF059669);
-      case 'en proceso':
-      case 'pagado':
-        return const Color(0xFF0B3B60);
-      case 'pendiente':
-        return const Color(0xFFD97706);
-      default:
-        return const Color(0xFF64748B);
-    }
-  }
-
-  Future<void> _loadWeatherData() async {
+  Future<void> _initWeather() async {
     if (_isLoadingWeather) return;
-
-    setState(() {
-      _isLoadingWeather = true;
-    });
+    setState(() => _isLoadingWeather = true);
 
     try {
-      debugPrint('[HomeScreen] ===== INICIANDO CARGA DE CLIMA =====');
-
-      WeatherData weatherData;
-
-      // Inicializar servicio de ubicación
       await _locationService.initialize();
-
-      // Verificar si el servicio está listo
       final isReady = await _locationService.isReady();
 
       if (isReady) {
-        debugPrint(
-            '[HomeScreen] ✅ Servicio de ubicación listo, obteniendo ubicación actual...');
-
-        // Intentar obtener ubicación actual
         final currentLocation = await _locationService.getCurrentLocation(
           timeout: const Duration(seconds: 8),
         );
 
         if (currentLocation != null) {
-          debugPrint(
-              '[HomeScreen] ✅ Ubicación obtenida: ${currentLocation.latitude}, ${currentLocation.longitude}');
-
-          // Obtener clima por coordenadas
-          weatherData = await WeatherService.getWeatherByCoordinates(
-            lat: currentLocation.latitude,
-            lon: currentLocation.longitude,
+          await _fetchWeather(
+            currentLocation.latitude, 
+            currentLocation.longitude
           );
-
-          debugPrint(
-              '[HomeScreen] ✅ Clima obtenido por coordenadas: ${weatherData.city}, ${weatherData.temperatureString}');
-        } else {
-          debugPrint(
-              '[HomeScreen] ⚠️ No se pudo obtener ubicación, usando ciudad por defecto');
-          weatherData = await _getDefaultWeather();
         }
-      } else {
-        debugPrint(
-            '[HomeScreen] ⚠️ Servicio de ubicación no disponible, usando ciudad por defecto');
-        weatherData = await _getDefaultWeather();
-      }
 
-      // Actualizar UI con los datos del clima
-      if (mounted) {
-        setState(() {
-          _weatherData = weatherData;
-        });
-        debugPrint('[HomeScreen] ✅ UI actualizada con datos del clima');
+        _posSub?.cancel();
+        _posSub = _locationService.getPositionStream(
+          distanceFilter: 300,
+        ).listen(
+          (pos) => _fetchWeather(pos.latitude, pos.longitude),
+          onError: (e) => debugPrint('Error en stream de ubicación: $e'),
+        );
       }
     } catch (e) {
-      debugPrint('[HomeScreen] ❌ Error cargando datos del clima: $e');
-
-      // En caso de error, intentar obtener clima por defecto
-      try {
-        final fallbackWeather = await _getDefaultWeather();
-        if (mounted) {
-          setState(() {
-            _weatherData = fallbackWeather;
-          });
-        }
-      } catch (fallbackError) {
-        debugPrint('[HomeScreen] ❌ Error en fallback: $fallbackError');
-      }
+      debugPrint('Error inicializando clima: $e');
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingWeather = false;
-        });
-      }
+      if (mounted) setState(() => _isLoadingWeather = false);
     }
   }
 
-  Future<WeatherData> _getDefaultWeather() async {
-    return await WeatherService.getCurrentWeather(
-      city: 'San Juan del Río',
-      country: 'MX',
-    );
+  Future<void> _refreshWeather() async {
+    try {
+      setState(() => _isLoadingWeather = true);
+      final currentLocation = await _locationService.getCurrentLocation(
+        timeout: const Duration(seconds: 8),
+      );
+
+      if (currentLocation != null) {
+        await _fetchWeather(
+          currentLocation.latitude, 
+          currentLocation.longitude
+        );
+      }
+    } catch (e) {
+      debugPrint('Error refrescando clima: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingWeather = false);
+    }
   }
 
   Future<void> _refreshData() async {
-    // Animación de refresh
     _slideController.reset();
     _fadeController.reset();
 
     await Future.wait([
-      _loadWeatherData(),
+      _refreshWeather(),
       _loadResumenGeneral(),
     ]);
 
-    // Reiniciar animaciones después del refresh
     _slideController.forward();
     _fadeController.forward();
   }
@@ -412,15 +325,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _pulseController.dispose();
     _slideController.dispose();
     _fadeController.dispose();
+    _posSub?.cancel();
+    _weatherDebounce?.cancel();
     super.dispose();
-  }
-
-  String _getFirstName() {
-    if (_usuario?.nombre.isNotEmpty == true) {
-      final firstName = _usuario!.nombre.split(' ')[0];
-      return firstName.isNotEmpty ? firstName : 'Ciudadano';
-    }
-    return 'Ciudadano';
   }
 
   Widget _getPageAtIndex(int index) {
@@ -448,7 +355,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           backgroundColor: Colors.white,
           child: ListView(
             padding: EdgeInsets.zero,
-            physics: const BouncingScrollPhysics(), // Scroll más suave
+            physics: const BouncingScrollPhysics(),
             children: [
               _buildNewHeader(),
               Padding(
@@ -474,23 +381,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildNewHeader() {
     final now = DateTime.now();
     final monthNames = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
 
     return Column(
       children: [
-        // BLOQUE SUPERIOR: CABECERA DE USUARIO - ANCHO COMPLETO
         Container(
           width: double.infinity,
           height: 100,
@@ -504,7 +400,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
               children: [
-                // Avatar de usuario - CAMBIADO A IMAGEN
                 Container(
                   width: 48,
                   height: 48,
@@ -530,8 +425,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-
-                // Texto del usuario
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -562,10 +455,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ),
         ),
-
         const SizedBox(height: 30),
-
-        // BLOQUE INFERIOR: INFORMACIÓN METEOROLÓGICA Y FECHA
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 10),
           height: 110,
@@ -576,7 +466,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           child: Row(
             children: [
-              // Ícono de clima
               SizedBox(
                 width: 48,
                 height: 48,
@@ -587,22 +476,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       )
                     : Icon(
                         _weatherData?.weatherIcon ?? Icons.wb_sunny_rounded,
-                        color: Colors.white,
+                        color: _weatherData?.weatherColor ?? Colors.white,
                         size: 48,
                       ),
               ),
-
               const SizedBox(width: 18),
-
-              // Datos del clima
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _weatherData?.temperatureString ??
-                          (_isLoadingWeather ? '--°C' : '23°C'),
+                      _weatherData?.temperatureString ?? '--°C',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -611,33 +496,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Prob. de precipitaciones: ${_weatherData?.humidity ?? 5}%',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                      ),
+                      _weatherData?.capitalizedDescription ?? 'Cargando...',
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
                     ),
                     Text(
-                      'Humedad: ${_weatherData?.humidity ?? 55}%',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                      ),
+                      'Humedad: ${_weatherData?.humidity ?? '--'}%',
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
                     ),
                     Text(
-                      'Viento: a ${_weatherData?.windSpeed.toStringAsFixed(0) ?? 6} km/h',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                      ),
+                      'Viento: ${_weatherData != null ? (_weatherData!.windSpeed * 3.6).round() : '--'} km/h',
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
                     ),
                   ],
                 ),
               ),
-
               const SizedBox(width: 18),
-
-              // Ícono de calendario
               Container(
                 width: 54,
                 height: 54,
@@ -647,7 +520,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
                 child: Column(
                   children: [
-                    // Barra azul del mes
                     Container(
                       width: double.infinity,
                       height: 16,
@@ -669,7 +541,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-                    // Día
                     Expanded(
                       child: Center(
                         child: Text(
@@ -688,14 +559,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ],
           ),
         ),
-
         const SizedBox(height: 16),
       ],
     );
   }
 
   Widget _buildAnimatedStatsCards() {
-    // Verificar que las animaciones estén inicializadas
     if (_slideAnimation == null || _fadeAnimation == null) {
       return _buildStatsCardsWithoutAnimation();
     }
@@ -871,7 +740,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       tween: Tween(begin: 0.0, end: 1.0),
       curve: Curves.elasticOut,
       builder: (context, animationValue, child) {
-        // Asegurar que animationValue esté en el rango válido
         final safeAnimationValue = animationValue.clamp(0.0, 1.0);
 
         return Transform.scale(
@@ -882,7 +750,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               opacity: safeAnimationValue,
               child: GestureDetector(
                 onTap: () {
-                  // Animación de tap
                   _showStatDetails(label, value);
                 },
                 child: Container(
@@ -1025,7 +892,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildShimmerStatCard() {
-    // Verificar que la animación esté inicializada
     if (_pulseAnimation == null) {
       return _buildStaticLoadingCard();
     }
@@ -1034,8 +900,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       animation: _pulseAnimation!,
       builder: (context, child) {
         return Transform.scale(
-          scale: _pulseAnimation!.value
-              .clamp(0.0, 2.0), // Limitar el rango de escala
+          scale: _pulseAnimation!.value,
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -1068,8 +933,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Color(0xFF0B3B60)),
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0B3B60)),
                       ),
                     ),
                   ),
@@ -1161,181 +1025,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildQuickActionsWithoutAnimation() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Acciones Rápidas',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1F2937),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildQuickActionCard(
-                'Nuevo Trámite',
-                Icons.add_circle_outline,
-                const Color(0xFF0B3B60),
-                () => setState(() => _page = 2),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildQuickActionCard(
-                'Mis Documentos',
-                Icons.folder_open,
-                const Color(0xFF059669),
-                () => setState(() => _page = 1),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuickActionCard(
-      String title, IconData icon, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.white,
-              size: 16,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAnimatedQuickActionCard(
-      String title, IconData icon, Color color, VoidCallback onTap, int index) {
-    return TweenAnimationBuilder<double>(
-      duration: Duration(milliseconds: 800 + (index * 200)),
-      tween: Tween(begin: 0.0, end: 1.0),
-      curve: Curves.elasticOut,
-      builder: (context, animationValue, child) {
-        // Asegurar que animationValue esté en el rango válido
-        final safeAnimationValue = animationValue.clamp(0.0, 1.0);
-
-        return Transform.scale(
-          scale: safeAnimationValue,
-          child: GestureDetector(
-            onTap: () {
-              // Animación de tap con feedback háptico
-              _animateButtonPress();
-              onTap();
-            },
-            onTapDown: (_) => _animateButtonPress(),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Hero(
-                    tag: 'action_icon_$index',
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        icon,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _animateButtonPress() {
-    _animationController.forward().then((_) {
-      _animationController.reverse();
-    });
-  }
-
   Widget _buildAnimatedRecentActivity() {
-    // Verificar que las animaciones estén inicializadas
     if (_slideAnimation == null || _fadeAnimation == null) {
       return _buildRecentActivityWithoutAnimation();
     }
@@ -1547,7 +1237,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       tween: Tween(begin: 0.0, end: 1.0),
       curve: Curves.easeOutCubic,
       builder: (context, animationValue, child) {
-        // Asegurar que animationValue esté en el rango válido
         final safeAnimationValue = animationValue.clamp(0.0, 1.0);
 
         return Transform.translate(
@@ -1717,7 +1406,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildLoadingActivity() {
     return Column(
       children: List.generate(3, (index) {
-        // Verificar que la animación esté inicializada
         if (_pulseAnimation == null) {
           return _buildStaticLoadingActivityItem(index);
         }
@@ -1726,8 +1414,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           animation: _pulseAnimation!,
           builder: (context, child) {
             return Transform.scale(
-              scale: _pulseAnimation!.value
-                  .clamp(0.0, 2.0), // Limitar el rango de escala
+              scale: _pulseAnimation!.value,
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -1899,7 +1586,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       tween: Tween(begin: 0.0, end: 1.0),
       curve: Curves.elasticOut,
       builder: (context, animationValue, child) {
-        // Asegurar que animationValue esté en el rango válido
         final safeAnimationValue = animationValue.clamp(0.0, 1.0);
 
         return Transform.scale(
