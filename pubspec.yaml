@@ -75,5 +75,9 @@ flutter:
     - assets/Ocupacion.png
     - assets/telefono.png
     - assets/logo_institucional.png
+    - assets/planmunicipal.png
+    - assets/sjrlegado.png
+    - assets/Puesto.png
+    - assets/Departamento.png
     - .env
     

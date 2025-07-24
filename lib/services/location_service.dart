@@ -60,6 +60,12 @@ class LocationService {
 
   Future<bool> _performInitialization() async {
     try {
+      // EMERGENCY FIX: Deshabilitar temporalmente para evitar ANR
+      debugPrint('[LocationService] ⚠️ EMERGENCY: Geolocator deshabilitado para evitar ANR');
+      debugPrint('[LocationService] ⚠️ Retornando false para usar ubicación por defecto');
+      return false;
+      
+      /* CÓDIGO ORIGINAL COMENTADO PARA EVITAR BLOQUEOS ANR
       // Verificar servicios de ubicación con timeout
       final serviceEnabled = await _isLocationServiceEnabledCached()
           .timeout(const Duration(seconds: 3));
@@ -81,6 +87,7 @@ class LocationService {
 
       debugPrint('[LocationService] Inicialización exitosa');
       return true;
+      */
     } catch (e) {
       debugPrint('[LocationService] Error en _performInitialization: $e');
       return false;
