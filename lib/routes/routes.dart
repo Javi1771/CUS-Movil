@@ -9,7 +9,7 @@ import '../screens/login/password_recovery_screen.dart';
 import '../screens/login/person_type_screen.dart';
 import '../screens/components/privacy_policy_screen.dart';
 
-// ------------------- Rutas personas físicas -------------------
+// ------------------- Rutas persionas físicas -------------------
 // 👈 1. IMPORTA LA NUEVA PANTALLA DE INICIO DEL FLUJO
 import '../screens/person_screens/fisica_data_screen.dart';
 import '../screens/person_screens/direccion_data_screen.dart';
