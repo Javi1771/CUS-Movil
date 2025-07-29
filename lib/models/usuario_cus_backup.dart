@@ -12,6 +12,7 @@ enum TipoPerfilCUS {
 }
 
 class DocumentoCUS {
+  // ... (Tu clase DocumentoCUS está bien, no necesita cambios)
   final String nombreDocumento;
   final String urlDocumento;
   final String? uploadDate;
@@ -23,54 +24,11 @@ class DocumentoCUS {
   });
 
   factory DocumentoCUS.fromJson(Map<String, dynamic> json) {
-    // Buscar el nombre del documento en múltiples campos posibles
-    String nombreDoc = json['nombreDocumento']?.toString() ?? 
-                      json['nombre']?.toString() ?? 
-                      json['name']?.toString() ?? 
-                      json['title']?.toString() ?? 
-                      json['filename']?.toString() ?? 
-                      json['original_filename']?.toString() ?? 
-                      json['display_name']?.toString() ?? 
-                      'Documento sin nombre';
-
-    // Buscar la URL del documento en múltiples campos posibles
-    String urlDoc = json['urlDocumento']?.toString() ?? 
-                   json['url']?.toString() ?? 
-                   json['secure_url']?.toString() ?? 
-                   json['public_url']?.toString() ?? 
-                   json['link']?.toString() ?? 
-                   json['file_url']?.toString() ?? 
-                   json['cloudinary_url']?.toString() ?? 
-                   json['path']?.toString() ?? 
-                   '';
-
-    // Buscar la fecha en múltiples campos posibles
-    String? fechaDoc = json['uploadDate']?.toString() ?? 
-                      json['fecha']?.toString() ?? 
-                      json['created_at']?.toString() ?? 
-                      json['upload_date']?.toString() ?? 
-                      json['fechaSubida']?.toString() ?? 
-                      json['timestamp']?.toString() ?? 
-                      json['date']?.toString();
-
-    // Si la URL no es completa, intentar construirla para Cloudinary
-    if (urlDoc.isNotEmpty && !urlDoc.startsWith('http')) {
-      // Si parece ser un ID o path de Cloudinary, construir la URL completa
-      if (urlDoc.contains('/') || urlDoc.length > 10) {
-        // Formato típico de Cloudinary: https://res.cloudinary.com/cloud-name/image/upload/v1234567890/path/file.pdf
-        urlDoc = 'https://res.cloudinary.com/your-cloud-name/image/upload/$urlDoc';
-      }
-    }
-
-    // Validar que la URL sea válida
-    if (urlDoc.isEmpty) {
-      print('[DocumentoCUS] Advertencia: URL de documento vacía para $nombreDoc');
-    }
-
     return DocumentoCUS(
-      nombreDocumento: nombreDoc,
-      urlDocumento: urlDoc,
-      uploadDate: fechaDoc,
+      nombreDocumento:
+          json['nombreDocumento']?.toString() ?? 'Documento sin nombre',
+      urlDocumento: json['urlDocumento']?.toString() ?? '',
+      uploadDate: json['uploadDate']?.toString(),
     );
   }
 
@@ -183,20 +141,6 @@ class UsuarioCUS {
     final curp = getStringValue(['curp', 'CURP']);
     final nombre = getStringValue(['nombre', 'name', 'firstName']) ?? '';
     final email = getStringValue(['email', 'correo', 'mail']) ?? '';
-    
-    // DIAGNÓSTICO: Buscar fecha de nacimiento en múltiples campos
-    final fechaNacimiento = getStringValue([
-      'fechaNacimiento', 
-      'fecha_nacimiento', 
-      'birthDate', 
-      'birth_date', 
-      'dateOfBirth', 
-      'date_of_birth',
-      'nacimiento',
-      'birthday',
-      'fecha'
-    ]);
-    print('[UsuarioCUS] 🎂 Fecha de nacimiento encontrada: $fechaNacimiento');
 
     // --- Lógica de Detección de Perfil ---
     TipoPerfilCUS tipoPerfil;
@@ -249,10 +193,6 @@ class UsuarioCUS {
       documentosList = documentosData
           .map((doc) => DocumentoCUS.fromJson(doc as Map<String, dynamic>))
           .toList();
-      print('[UsuarioCUS] ✅ Documentos parseados: ${documentosList.length}');
-      for (final doc in documentosList) {
-        print('[UsuarioCUS] 📄 Documento: ${doc.nombreDocumento} -> ${doc.urlDocumento}');
-      }
     }
 
     return UsuarioCUS(
@@ -264,7 +204,7 @@ class UsuarioCUS {
       nombre: nombre.isNotEmpty ? nombre : 'Usuario Sin Nombre',
       nombreCompleto: getStringValue(['nombreCompleto', 'fullName']),
       curp: curp ?? 'Sin CURP',
-      fechaNacimiento: fechaNacimiento,
+      fechaNacimiento: getStringValue(['fechaNacimiento', 'birthDate']),
       nacionalidad:
           getStringValue(['nacionalidad', 'nationality']) ?? 'Mexicana',
       email: email.isNotEmpty ? email : 'sin-email@ejemplo.com',

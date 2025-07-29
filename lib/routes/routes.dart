@@ -9,7 +9,7 @@ import '../screens/login/password_recovery_screen.dart';
 import '../screens/login/person_type_screen.dart';
 import '../screens/components/privacy_policy_screen.dart';
 
-// ------------------- Rutas personas físicas -------------------
+// ------------------- Rutas persionas físicas -------------------
 // 👈 1. IMPORTA LA NUEVA PANTALLA DE INICIO DEL FLUJO
 import '../screens/person_screens/fisica_data_screen.dart';
 import '../screens/person_screens/direccion_data_screen.dart';
@@ -30,6 +30,7 @@ import '../screens/work_screens/work_direccion_screen.dart';
 import '../screens/work_screens/work_contact_screen.dart';
 import '../screens/work_screens/work_terms_screen.dart';
 import '../screens/work_screens/work_preview_screen.dart';
+import '../screens/work_screens/work_confirmation_screen.dart';
 
 // Generales
 import '../screens/home_screen.dart';
@@ -38,6 +39,11 @@ import '../screens/home_screen.dart';
 // Importa la pantalla de perfil del usuario
 import '../screens/perfil_usuario_screen.dart';
 import '../screens/tramites_screen.dart';
+
+// Perfiles específicos
+import '../screens/perfiles/perfil_ciudadano_screen.dart';
+import '../screens/perfiles/perfil_trabajador_screen.dart';
+import '../screens/perfiles/perfil_organizacion_screen.dart';
 
 final Map<String, WidgetBuilder> appRoutes = {
   // Rutas públicas
@@ -69,9 +75,15 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/work-contact': (_) => const ContactWorkScreen(),
   '/work-terms': (_) => const TermsAndConditionsWorkScreen(),
   '/work-preview': (_) => const PreviewWorkScreen(),
+  '/work-confirmation': (_) => const WorkConfirmationScreen(),
 
   '/home': (_) => const HomeScreen(),
   '/mis-documentos': (_) => const MisDocumentosScreen(),
   '/perfil-usuario': (_) => const PerfilUsuarioScreen(),
   '/tramites': (_) => const TramitesScreen(),
+  
+  // Perfiles específicos
+  '/perfil-ciudadano': (_) => const PerfilCiudadanoScreen(),
+  '/perfil-trabajador': (_) => const PerfilTrabajadorScreen(),
+  '/perfil-organizacion': (_) => const PerfilOrganizacionScreen(),
 };

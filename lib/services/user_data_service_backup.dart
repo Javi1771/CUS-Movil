@@ -72,28 +72,31 @@ class UserDataService {
     debugPrint('[UserDataService] User data extracted: $userData');
     debugPrint('[UserDataService] Folio: ${userData['folio']}');
     debugPrint('[UserDataService] ID Ciudadano: ${userData['id_ciudadano']}');
-    debugPrint('[UserDataService] ID Usuario General: ${userData['id_usuario_general']}');
+    debugPrint(
+        '[UserDataService] ID Usuario General: ${userData['id_usuario_general']}');
     debugPrint('[UserDataService] SubGeneral: ${userData['subGeneral']}');
     debugPrint('[UserDataService] Sub: ${userData['sub']}');
     debugPrint('[UserDataService] Nómina: ${userData['nomina']}');
     debugPrint('[UserDataService] no_nomina: ${userData['no_nomina']}');
-    
+
     // Buscar todos los campos que podrían contener la nómina
     final nominaFields = ['no_nomina', 'nomina', 'nómina', 'numeroNomina'];
     for (final field in nominaFields) {
       if (userData[field] != null) {
-        debugPrint('[UserDataService] ✅ Campo nómina $field encontrado: ${userData[field]}');
+        debugPrint(
+            '[UserDataService] ✅ Campo nómina $field encontrado: ${userData[field]}');
       }
     }
-    
+
     // Verificar el resultado final de _getField para nómina
-    final nominaFinal = _getField(userData, ['no_nomina', 'nomina', 'nómina', 'numeroNomina']);
+    final nominaFinal =
+        _getField(userData, ['no_nomina', 'nomina', 'nómina', 'numeroNomina']);
     debugPrint('[UserDataService] 🎯 Nómina final obtenida: $nominaFinal');
-    
+
     // Buscar ID ciudadano en todos los campos posibles
     final possibleIdFields = [
-      'id_ciudadano', 
-      'idCiudadano', 
+      'id_ciudadano',
+      'idCiudadano',
       'ciudadano_id',
       'id_usuario_general',
       'idUsuarioGeneral',
@@ -101,10 +104,11 @@ class UserDataService {
       'subGeneral',
       'sub'
     ];
-    
+
     for (final field in possibleIdFields) {
       if (userData[field] != null) {
-        debugPrint('[UserDataService] Campo $field encontrado: ${userData[field]}');
+        debugPrint(
+            '[UserDataService] Campo $field encontrado: ${userData[field]}');
       }
     }
 
@@ -195,10 +199,11 @@ class UserDataService {
           data, ['razonSocial', 'razon_social', 'empresa', 'company']),
       tipoPerfil: tipoPerfil,
       folio: _getField(data, ['folio', 'folioCUS', 'folio_cus']),
-      nomina: _getField(data, ['no_nomina', 'nomina', 'nómina', 'numeroNomina']),
+      nomina:
+          _getField(data, ['no_nomina', 'nomina', 'nómina', 'numeroNomina']),
       idCiudadano: _getField(data, [
-        'id_ciudadano', 
-        'idCiudadano', 
+        'id_ciudadano',
+        'idCiudadano',
         'ciudadano_id',
         'id_usuario_general',
         'idUsuarioGeneral',
@@ -212,9 +217,9 @@ class UserDataService {
   static TipoPerfilCUS _determineProfileType(Map<String, dynamic> data) {
     // Buscar tipo de perfil explícito
     final tipoPerfilExplicito = _getField(data, [
-      'tipoPerfil', 
-      'tipo_perfil', 
-      'tipoUsuario', 
+      'tipoPerfil',
+      'tipo_perfil',
+      'tipoUsuario',
       'tipo_usuario',
       'userType',
       'user_type'
@@ -247,15 +252,16 @@ class UserDataService {
 
     // Determinar por identificadores
     final folio = _getField(data, ['folio', 'folioCUS', 'folio_cus']);
-    final nomina = _getField(data, ['no_nomina', 'nomina', 'nómina', 'numeroNomina']);
-    
+    final nomina =
+        _getField(data, ['no_nomina', 'nomina', 'nómina', 'numeroNomina']);
+
     if (folio != null) return TipoPerfilCUS.ciudadano;
     if (nomina != null) return TipoPerfilCUS.trabajador;
-    
+
     // Verificar ID ciudadano
     final idCiudadano = _getField(data, [
-      'id_ciudadano', 
-      'idCiudadano', 
+      'id_ciudadano',
+      'idCiudadano',
       'ciudadano_id',
       'id_usuario_general',
       'idUsuarioGeneral',
@@ -263,12 +269,12 @@ class UserDataService {
       'subGeneral',
       'sub'
     ]);
-    
+
     if (idCiudadano != null) return TipoPerfilCUS.ciudadano;
-    
+
     // Verificar otros indicadores
     if (data['razonSocial'] != null) return TipoPerfilCUS.personaMoral;
-    
+
     // Si tiene CURP, es persona física
     final curp = _getField(data, ['curp', 'CURP']);
     if (curp != null && curp.isNotEmpty && curp != 'Sin CURP') {
@@ -345,17 +351,12 @@ class UserDataService {
 
   static Future uploadDocument(String tipo, String s) async {}
 
-  /// MÉTODO MEJORADO PARA CLOUDINARY: Obtiene los documentos del usuario
   static Future<List<DocumentoCUS>> getUserDocuments() async {
     final token = await AuthService.getToken();
     if (token == null) {
       throw Exception('Usuario no autenticado');
     }
-    
     try {
-      debugPrint('[UserDataService] 📄 Obteniendo documentos del usuario...');
-      
-      // Intentar primero con acción específica para documentos
       final response = await http.post(
         Uri.parse(_apiUrl),
         headers: {
@@ -364,155 +365,23 @@ class UserDataService {
           'X-API-KEY': _apiKey,
         },
         body: jsonEncode({
-          'action': 'getUserDocuments',
+          // Ajusta el body según lo que espera tu API
+          'action': 'getUserData',
           'token': token,
         }),
-      ).timeout(const Duration(seconds: 15));
-
-      debugPrint('[UserDataService] 📄 Documentos - Status: ${response.statusCode}');
-
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        debugPrint('[UserDataService] 📄 Respuesta completa: $data');
-        
-        List<dynamic> documentosData = [];
-        
-        // Buscar documentos en múltiples ubicaciones posibles
-        final possiblePaths = [
-          data['documentos'],
-          data['documents'], 
-          data['files'],
-          data['data']?['documentos'],
-          data['data']?['documents'],
-          data['data']?['files'],
-          data['result']?['documentos'],
-          data['result']?['documents'],
-          data['payload']?['documentos'],
-          data['payload']?['documents'],
-          data['cloudinary']?['resources'],
-          data['resources'],
-        ];
-
-        for (final path in possiblePaths) {
-          if (path != null && path is List && path.isNotEmpty) {
-            documentosData = path;
-            debugPrint('[UserDataService] 📄 Documentos encontrados en ruta: ${path.length} documentos');
-            break;
-          }
-        }
-
-        // Si no se encontraron documentos con la acción específica, intentar getUserData
-        if (documentosData.isEmpty) {
-          debugPrint('[UserDataService] 📄 No se encontraron documentos con getUserDocuments, intentando getUserData...');
-          
-          final userResponse = await http.post(
-            Uri.parse(_apiUrl),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-              'X-API-KEY': _apiKey,
-            },
-            body: jsonEncode({
-              'action': 'getUserData',
-              'token': token,
-            }),
-          ).timeout(const Duration(seconds: 15));
-
-          if (userResponse.statusCode == 200) {
-            final userData = jsonDecode(userResponse.body);
-            debugPrint('[UserDataService] 📄 Respuesta getUserData: $userData');
-            
-            final extractedUserData = _extractUserData(userData);
-            if (extractedUserData != null) {
-              final userDocsPaths = [
-                extractedUserData['documentos'],
-                extractedUserData['documents'],
-                extractedUserData['files'],
-              ];
-              
-              for (final path in userDocsPaths) {
-                if (path != null && path is List && path.isNotEmpty) {
-                  documentosData = path;
-                  debugPrint('[UserDataService] 📄 Documentos encontrados en userData: ${path.length} documentos');
-                  break;
-                }
-              }
-            }
-          }
-        }
-
-        debugPrint('[UserDataService] 📄 Total documentos encontrados: ${documentosData.length}');
-        
-        if (documentosData.isEmpty) {
-          debugPrint('[UserDataService] 📄 ⚠️ No se encontraron documentos en ninguna ubicación');
-          return [];
-        }
-
-        // Procesar cada documento
-        final documentosProcesados = <DocumentoCUS>[];
-        
-        for (int i = 0; i < documentosData.length; i++) {
-          final doc = documentosData[i];
-          debugPrint('[UserDataService] 📄 Procesando documento $i: $doc');
-          
-          try {
-            final documentoProcesado = DocumentoCUS.fromJson(doc as Map<String, dynamic>);
-            documentosProcesados.add(documentoProcesado);
-            debugPrint('[UserDataService] 📄 ✅ Documento procesado: ${documentoProcesado.nombreDocumento} -> ${documentoProcesado.urlDocumento}');
-          } catch (e) {
-            debugPrint('[UserDataService] 📄 ❌ Error parseando documento $i: $e');
-            debugPrint('[UserDataService] 📄 Documento problemático: $doc');
-            
-            // Intentar crear documento manualmente con campos básicos
-            try {
-              final documentoManual = DocumentoCUS(
-                nombreDocumento: doc['nombre']?.toString() ?? 
-                                doc['name']?.toString() ?? 
-                                doc['nombreDocumento']?.toString() ?? 
-                                doc['filename']?.toString() ?? 
-                                doc['original_filename']?.toString() ?? 
-                                'Documento ${i + 1}',
-                urlDocumento: doc['url']?.toString() ?? 
-                             doc['urlDocumento']?.toString() ?? 
-                             doc['secure_url']?.toString() ?? 
-                             doc['public_url']?.toString() ?? 
-                             doc['link']?.toString() ?? 
-                             doc['file_url']?.toString() ?? 
-                             '',
-                uploadDate: doc['fecha']?.toString() ?? 
-                           doc['uploadDate']?.toString() ?? 
-                           doc['created_at']?.toString() ?? 
-                           doc['timestamp']?.toString(),
-              );
-              
-              if (documentoManual.urlDocumento.isNotEmpty) {
-                documentosProcesados.add(documentoManual);
-                debugPrint('[UserDataService] 📄 ✅ Documento manual creado: ${documentoManual.nombreDocumento}');
-              } else {
-                debugPrint('[UserDataService] 📄 ❌ Documento sin URL válida, omitiendo');
-              }
-            } catch (e2) {
-              debugPrint('[UserDataService] 📄 ❌ Error creando documento manual: $e2');
-            }
-          }
-        }
-
-        debugPrint('[UserDataService] 📄 🎯 Total documentos procesados exitosamente: ${documentosProcesados.length}');
-        return documentosProcesados;
-        
+        // Ajusta la ruta según la estructura de tu respuesta
+        final documentos = (data['data']?['documentos'] ?? []) as List;
+        return documentos.map((doc) => DocumentoCUS.fromJson(doc)).toList();
       } else if (response.statusCode == 401) {
         await _clearInvalidToken();
         throw Exception('Sesión expirada. Por favor inicia sesión nuevamente');
       } else {
-        debugPrint('[UserDataService] 📄 ❌ Error HTTP: ${response.statusCode} - ${response.body}');
         throw _handleErrorResponse(response);
       }
-    } on SocketException {
-      throw Exception('Error de conexión. Verifica tu internet');
-    } on TimeoutException {
-      throw Exception('Tiempo de espera agotado. Intenta nuevamente');
     } catch (e) {
-      debugPrint('[UserDataService] 📄 ❌ Error obteniendo documentos: $e');
       rethrow;
     }
   }
@@ -545,20 +414,22 @@ class UserDataService {
             onTimeout: () => throw TimeoutException('Tiempo de espera agotado'),
           );
 
-      debugPrint('[UserDataService] Resumen general - Status: ${response.statusCode}');
+      debugPrint(
+          '[UserDataService] Resumen general - Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         debugPrint('[UserDataService] Resumen general obtenido: $data');
-        
+
         // Validar estructura de respuesta
         if (data is Map<String, dynamic>) {
           return {
-            'estadisticas': data['estadisticas'] ?? {
-              'tramitesActivos': 0,
-              'pendientes': 0,
-              'porcentajeCompletados': 0.0,
-            },
+            'estadisticas': data['estadisticas'] ??
+                {
+                  'tramitesActivos': 0,
+                  'pendientes': 0,
+                  'porcentajeCompletados': 0.0,
+                },
             'actividadReciente': data['actividadReciente'] ?? [],
           };
         } else {

@@ -345,7 +345,7 @@ class UserDataService {
 
   static Future uploadDocument(String tipo, String s) async {}
 
-  /// MÉTODO MEJORADO PARA CLOUDINARY: Obtiene los documentos del usuario
+  /// MÉTODO CORREGIDO: Obtiene los documentos del usuario
   static Future<List<DocumentoCUS>> getUserDocuments() async {
     final token = await AuthService.getToken();
     if (token == null) {
@@ -353,9 +353,8 @@ class UserDataService {
     }
     
     try {
-      debugPrint('[UserDataService] 📄 Obteniendo documentos del usuario...');
+      debugPrint('[UserDataService] Obteniendo documentos del usuario...');
       
-      // Intentar primero con acción específica para documentos
       final response = await http.post(
         Uri.parse(_apiUrl),
         headers: {
@@ -364,46 +363,40 @@ class UserDataService {
           'X-API-KEY': _apiKey,
         },
         body: jsonEncode({
-          'action': 'getUserDocuments',
+          'action': 'getUserDocuments', // Acción específica para documentos
           'token': token,
         }),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 10));
 
-      debugPrint('[UserDataService] 📄 Documentos - Status: ${response.statusCode}');
+      debugPrint('[UserDataService] Documentos - Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        debugPrint('[UserDataService] 📄 Respuesta completa: $data');
+        debugPrint('[UserDataService] Documentos response: $data');
         
+        // Intentar múltiples rutas para encontrar los documentos
         List<dynamic> documentosData = [];
         
-        // Buscar documentos en múltiples ubicaciones posibles
-        final possiblePaths = [
-          data['documentos'],
-          data['documents'], 
-          data['files'],
-          data['data']?['documentos'],
-          data['data']?['documents'],
-          data['data']?['files'],
-          data['result']?['documentos'],
-          data['result']?['documents'],
-          data['payload']?['documentos'],
-          data['payload']?['documents'],
-          data['cloudinary']?['resources'],
-          data['resources'],
-        ];
-
-        for (final path in possiblePaths) {
-          if (path != null && path is List && path.isNotEmpty) {
-            documentosData = path;
-            debugPrint('[UserDataService] 📄 Documentos encontrados en ruta: ${path.length} documentos');
-            break;
-          }
+        // Ruta 1: data.documentos
+        if (data['documentos'] != null && data['documentos'] is List) {
+          documentosData = data['documentos'];
         }
-
-        // Si no se encontraron documentos con la acción específica, intentar getUserData
-        if (documentosData.isEmpty) {
-          debugPrint('[UserDataService] 📄 No se encontraron documentos con getUserDocuments, intentando getUserData...');
+        // Ruta 2: data.documents
+        else if (data['documents'] != null && data['documents'] is List) {
+          documentosData = data['documents'];
+        }
+        // Ruta 3: data.data.documentos
+        else if (data['data'] != null && data['data']['documentos'] != null && data['data']['documentos'] is List) {
+          documentosData = data['data']['documentos'];
+        }
+        // Ruta 4: data.data.documents
+        else if (data['data'] != null && data['data']['documents'] != null && data['data']['documents'] is List) {
+          documentosData = data['data']['documents'];
+        }
+        // Ruta 5: Si getUserData devuelve el usuario completo, extraer documentos del usuario
+        else {
+          // Intentar obtener los documentos desde getUserData como fallback
+          debugPrint('[UserDataService] No se encontraron documentos con acción específica, intentando getUserData...');
           
           final userResponse = await http.post(
             Uri.parse(_apiUrl),
@@ -416,95 +409,55 @@ class UserDataService {
               'action': 'getUserData',
               'token': token,
             }),
-          ).timeout(const Duration(seconds: 15));
+          ).timeout(const Duration(seconds: 10));
 
           if (userResponse.statusCode == 200) {
             final userData = jsonDecode(userResponse.body);
-            debugPrint('[UserDataService] 📄 Respuesta getUserData: $userData');
-            
             final extractedUserData = _extractUserData(userData);
+            
             if (extractedUserData != null) {
-              final userDocsPaths = [
-                extractedUserData['documentos'],
-                extractedUserData['documents'],
-                extractedUserData['files'],
-              ];
-              
-              for (final path in userDocsPaths) {
-                if (path != null && path is List && path.isNotEmpty) {
-                  documentosData = path;
-                  debugPrint('[UserDataService] 📄 Documentos encontrados en userData: ${path.length} documentos');
-                  break;
-                }
+              final documentosFromUser = extractedUserData['documentos'] ?? extractedUserData['documents'];
+              if (documentosFromUser != null && documentosFromUser is List) {
+                documentosData = documentosFromUser;
               }
             }
           }
         }
 
-        debugPrint('[UserDataService] 📄 Total documentos encontrados: ${documentosData.length}');
+        debugPrint('[UserDataService] Documentos encontrados: ${documentosData.length}');
         
         if (documentosData.isEmpty) {
-          debugPrint('[UserDataService] 📄 ⚠️ No se encontraron documentos en ninguna ubicación');
+          debugPrint('[UserDataService] No se encontraron documentos en la respuesta');
           return [];
         }
 
-        // Procesar cada documento
-        final documentosProcesados = <DocumentoCUS>[];
-        
-        for (int i = 0; i < documentosData.length; i++) {
-          final doc = documentosData[i];
-          debugPrint('[UserDataService] 📄 Procesando documento $i: $doc');
-          
+        return documentosData.map((doc) {
           try {
-            final documentoProcesado = DocumentoCUS.fromJson(doc as Map<String, dynamic>);
-            documentosProcesados.add(documentoProcesado);
-            debugPrint('[UserDataService] 📄 ✅ Documento procesado: ${documentoProcesado.nombreDocumento} -> ${documentoProcesado.urlDocumento}');
+            return DocumentoCUS.fromJson(doc as Map<String, dynamic>);
           } catch (e) {
-            debugPrint('[UserDataService] 📄 ❌ Error parseando documento $i: $e');
-            debugPrint('[UserDataService] 📄 Documento problemático: $doc');
-            
-            // Intentar crear documento manualmente con campos básicos
-            try {
-              final documentoManual = DocumentoCUS(
-                nombreDocumento: doc['nombre']?.toString() ?? 
-                                doc['name']?.toString() ?? 
-                                doc['nombreDocumento']?.toString() ?? 
-                                doc['filename']?.toString() ?? 
-                                doc['original_filename']?.toString() ?? 
-                                'Documento ${i + 1}',
-                urlDocumento: doc['url']?.toString() ?? 
-                             doc['urlDocumento']?.toString() ?? 
-                             doc['secure_url']?.toString() ?? 
-                             doc['public_url']?.toString() ?? 
-                             doc['link']?.toString() ?? 
-                             doc['file_url']?.toString() ?? 
-                             '',
-                uploadDate: doc['fecha']?.toString() ?? 
-                           doc['uploadDate']?.toString() ?? 
-                           doc['created_at']?.toString() ?? 
-                           doc['timestamp']?.toString(),
-              );
-              
-              if (documentoManual.urlDocumento.isNotEmpty) {
-                documentosProcesados.add(documentoManual);
-                debugPrint('[UserDataService] 📄 ✅ Documento manual creado: ${documentoManual.nombreDocumento}');
-              } else {
-                debugPrint('[UserDataService] 📄 ❌ Documento sin URL válida, omitiendo');
-              }
-            } catch (e2) {
-              debugPrint('[UserDataService] 📄 ❌ Error creando documento manual: $e2');
-            }
+            debugPrint('[UserDataService] Error parseando documento: $e');
+            debugPrint('[UserDataService] Documento problemático: $doc');
+            // Crear un documento por defecto si hay error en el parsing
+            return DocumentoCUS(
+              nombreDocumento: doc['nombre']?.toString() ?? 
+                              doc['name']?.toString() ?? 
+                              doc['nombreDocumento']?.toString() ?? 
+                              'Documento sin nombre',
+              urlDocumento: doc['url']?.toString() ?? 
+                           doc['urlDocumento']?.toString() ?? 
+                           doc['link']?.toString() ?? 
+                           '',
+              uploadDate: doc['fecha']?.toString() ?? 
+                         doc['uploadDate']?.toString() ?? 
+                         doc['fechaSubida']?.toString(),
+            );
           }
-        }
-
-        debugPrint('[UserDataService] 📄 🎯 Total documentos procesados exitosamente: ${documentosProcesados.length}');
-        return documentosProcesados;
+        }).toList();
         
       } else if (response.statusCode == 401) {
         await _clearInvalidToken();
         throw Exception('Sesión expirada. Por favor inicia sesión nuevamente');
       } else {
-        debugPrint('[UserDataService] 📄 ❌ Error HTTP: ${response.statusCode} - ${response.body}');
         throw _handleErrorResponse(response);
       }
     } on SocketException {
@@ -512,7 +465,7 @@ class UserDataService {
     } on TimeoutException {
       throw Exception('Tiempo de espera agotado. Intenta nuevamente');
     } catch (e) {
-      debugPrint('[UserDataService] 📄 ❌ Error obteniendo documentos: $e');
+      debugPrint('[UserDataService] Error obteniendo documentos: $e');
       rethrow;
     }
   }

@@ -72,7 +72,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
 
   bool _isLoading = false;
   bool _vistaPreviaAbierta = false;
-  bool _hasInitialized = false;
   late ConfettiController _confettiController;
 
   int get documentosSubidos =>
@@ -86,223 +85,58 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     super.initState();
     _confettiController =
         ConfettiController(duration: const Duration(seconds: 3));
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_hasInitialized) {
-      _hasInitialized = true;
-      _cargarDocumentosDesdeAPI();
-    }
+    _cargarDocumentosDesdeAPI();
   }
 
   Future<void> _cargarDocumentosDesdeAPI() async {
-    if (!mounted) return;
-    
     setState(() => _isLoading = true);
     
     try {
-      print('[MisDocumentosScreen] 🔍 DIAGNÓSTICO: Iniciando carga de documentos...');
-      
-      // Mostrar estado de conexión de forma más eficiente
-      if (mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🔍 Conectando...'),
-            backgroundColor: Colors.blue,
-            duration: Duration(seconds: 1),
-          ),
-        );
-      }
-      
       final docs = await UserDataService.getUserDocuments();
-      if (!mounted) return;
       
-      print('[MisDocumentosScreen] 🔍 DIAGNÓSTICO: ${docs.length} documentos recibidos');
-      
-      // Procesar documentos de forma más eficiente
-      await _procesarDocumentosEnBackground(docs);
-      
-      if (!mounted) return;
-      
-      final documentosCargados = _documentos.values.where((doc) => doc != null).length;
-      
-      // Mostrar resultado final
-      ScaffoldMessenger.of(context).clearSnackBars();
-      if (docs.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('✅ ${docs.length} documentos encontrados'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-            action: SnackBarAction(
-              label: 'Detalles',
-              textColor: Colors.white,
-              onPressed: () => _mostrarDiagnosticoCompleto(docs),
-            ),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('⚠️ No se encontraron documentos'),
-            backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 2),
-            action: SnackBarAction(
-              label: 'Diagnóstico',
-              textColor: Colors.white,
-              onPressed: () => _mostrarDiagnosticoCompleto([]),
-            ),
-          ),
-        );
-      }
-      
-    } catch (e) {
-      print('[MisDocumentosScreen] ❌ Error: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Error: ${e.toString().length > 50 ? e.toString().substring(0, 50) + "..." : e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-            action: SnackBarAction(
-              label: 'Reintentar',
-              textColor: Colors.white,
-              onPressed: () => _cargarDocumentosDesdeAPI(),
-            ),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  Future<void> _procesarDocumentosEnBackground(List docs) async {
-    // Procesar documentos en chunks para evitar bloquear la UI
-    const chunkSize = 5;
-    int documentosMapeados = 0;
-    
-    for (int i = 0; i < docs.length; i += chunkSize) {
-      if (!mounted) return;
-      
-      final chunk = docs.skip(i).take(chunkSize);
-      
-      for (final doc in chunk) {
-        final nombreApi = doc.nombreDocumento.toLowerCase();
+      for (final doc in docs) {
+        String nombreApi = doc.nombreDocumento.toLowerCase();
         String? key;
         
-        // Mapeo optimizado
+        // Mapeo mejorado de documentos
         if (nombreApi.contains('ine') || nombreApi.contains('credencial')) {
           key = 'INE';
-        } else if (nombreApi.contains('nacimiento')) {
+        } else if (nombreApi.contains('nacimiento') || nombreApi.contains('birth')) {
           key = 'Acta de Nacimiento';
         } else if (nombreApi.contains('curp')) {
           key = 'CURP';
-        } else if (nombreApi.contains('domicilio') || nombreApi.contains('comprobante')) {
+        } else if (nombreApi.contains('domicilio') || nombreApi.contains('comprobante') || nombreApi.contains('address')) {
           key = 'Comprobante Domicilio';
-        } else if (nombreApi.contains('matrimonio')) {
+        } else if (nombreApi.contains('matrimonio') || nombreApi.contains('marriage')) {
           key = 'Acta de Matrimonio';
-        } else if (nombreApi.contains('concubinato')) {
+        } else if (nombreApi.contains('concubinato') || nombreApi.contains('concubinage')) {
           key = 'Acta de Concubinato';
         }
         
         if (key != null && _documentos.containsKey(key)) {
-          if (doc.urlDocumento.isNotEmpty && doc.urlDocumento.startsWith('http')) {
-            _documentos[key] = DocumentoItem(
-              nombre: doc.nombreDocumento,
-              ruta: doc.urlDocumento,
-              fechaSubida: DateTime.tryParse(doc.uploadDate ?? '') ?? DateTime.now(),
-              tamano: 0,
-              extension: 'pdf',
-            );
-            documentosMapeados++;
-            print('[MisDocumentosScreen] ✅ $key cargado');
-          }
+          _documentos[key] = DocumentoItem(
+            nombre: doc.nombreDocumento,
+            ruta: doc.urlDocumento,
+            fechaSubida: DateTime.tryParse(doc.uploadDate ?? '') ?? DateTime.now(),
+            tamano: 0,
+            extension: 'pdf',
+          );
         }
       }
       
-      // Permitir que la UI se actualice entre chunks
-      await Future.delayed(const Duration(milliseconds: 10));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar documentos: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      setState(() => _isLoading = false);
     }
-    
-    print('[MisDocumentosScreen] 🎯 Total mapeados: $documentosMapeados');
-  }
-
-  void _mostrarDiagnosticoCompleto(List docs) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('🔍 Diagnóstico Completo'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('📊 Resumen:', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('• Documentos recibidos: ${docs.length}'),
-              Text('• Documentos cargados en UI: ${_documentos.values.where((doc) => doc != null).length}'),
-              const SizedBox(height: 16),
-              
-              if (docs.isNotEmpty) ...[
-                Text('📄 Documentos encontrados:', style: TextStyle(fontWeight: FontWeight.bold)),
-                ...docs.asMap().entries.map((entry) {
-                  final i = entry.key;
-                  final doc = entry.value;
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 8.0, top: 4.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${i + 1}. ${doc.nombreDocumento}'),
-                        Text('   URL: ${doc.urlDocumento.isEmpty ? "❌ VACÍA" : "✅ OK"}', 
-                             style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                        Text('   Válida: ${doc.urlDocumento.startsWith('http') ? "✅ SÍ" : "❌ NO"}', 
-                             style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ] else ...[
-                Text('❌ No se encontraron documentos', style: TextStyle(color: Colors.red)),
-                const SizedBox(height: 8),
-                Text('Posibles causas:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('• Problema de conexión con el servidor'),
-                Text('• No hay documentos subidos en Cloudinary'),
-                Text('• Error en la estructura de respuesta de la API'),
-              ],
-              
-              const SizedBox(height: 16),
-              Text('🎯 Estado por tipo:', style: TextStyle(fontWeight: FontWeight.bold)),
-              ..._documentos.entries.map((entry) {
-                final tipo = entry.key;
-                final doc = entry.value;
-                final estado = doc != null ? "✅ CARGADO" : "❌ NO CARGADO";
-                return Text('• $tipo: $estado');
-              }).toList(),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _cargarDocumentosDesdeAPI();
-            },
-            child: const Text('🔄 Reintentar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -931,9 +765,19 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
             ? 'Bloqueado'
             : 'Pendiente';
 
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 300 + (index * 50)),
-      curve: Curves.easeOut,
+    return TweenAnimationBuilder<double>(
+      duration: Duration(milliseconds: 600 + (index * 100)),
+      tween: Tween(begin: 0.0, end: 1.0),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 20 * (1 - value)),
+          child: Opacity(
+            opacity: value,
+            child: child,
+          ),
+        );
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         child: Material(
@@ -1477,23 +1321,13 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                                   ),
                                   const SizedBox(height: 6),
                                   const Text(
-                                    'Los documentos de Cloudinary aparecerán aquí automáticamente.',
+                                    'Agrega tus documentos tocando el botón + en cada sección.',
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: textSecondary,
                                       height: 1.4,
                                     ),
                                     textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton.icon(
-                                    onPressed: _cargarDocumentosDesdeAPI,
-                                    icon: const Icon(Icons.refresh),
-                                    label: const Text('Recargar Documentos'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: govBlue,
-                                      foregroundColor: Colors.white,
-                                    ),
                                   ),
                                 ],
                               ),
