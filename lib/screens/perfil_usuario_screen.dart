@@ -62,13 +62,13 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     switch (usuario!.tipoPerfil) {
       case TipoPerfilCUS.ciudadano:
         return const PerfilCiudadanoScreen();
-      
+
       case TipoPerfilCUS.trabajador:
         return const PerfilTrabajadorScreen();
-      
+
       case TipoPerfilCUS.personaMoral:
         return const PerfilOrganizacionScreen();
-      
+
       case TipoPerfilCUS.usuario:
       default:
         // Para usuarios genéricos, mostrar perfil de ciudadano por defecto
@@ -86,7 +86,8 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0B3B60)),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(Color(0xFF0B3B60)),
                   ),
                   SizedBox(height: 16),
                   Text(

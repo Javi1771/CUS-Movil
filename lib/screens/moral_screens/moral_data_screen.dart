@@ -17,6 +17,7 @@ class UpperCaseTextFormatter extends TextInputFormatter {
   }
 }
 
+
 class MoralDataScreen extends StatefulWidget {
   const MoralDataScreen({super.key});
 

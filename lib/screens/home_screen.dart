@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:cus_movil/screens/perfil_usuario_screen.dart';
-import 'package:cus_movil/screens/mis_documentos_screen.dart';
-import 'package:cus_movil/screens/tramites_screen.dart';
-import 'package:cus_movil/services/weather_service.dart';
-import 'package:cus_movil/services/location_service.dart';
-import 'package:cus_movil/services/user_data_service.dart';
-import 'package:cus_movil/services/tramites_service.dart';
-import 'package:cus_movil/models/usuario_cus.dart';
-import 'dart:async';                          
-import 'package:geolocator/geolocator.dart';  
-import 'package:cus_movil/models/weather_data.dart';
+import 'package:geolocator/geolocator.dart';
+import 'dart:async';
+
+// Imports locales usando rutas relativas
+import 'perfil_usuario_screen.dart';
+import 'mis_documentos_screen.dart';
+import 'tramites_screen.dart';
+import 'secretarias_screen.dart';
+import '../services/weather_service.dart';
+import '../services/location_service.dart';
+import '../services/user_data_service.dart';
+import '../services/tramites_service.dart';
+import '../models/usuario_cus.dart';
+import '../models/weather_data.dart';
+import '../models/secretaria.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -67,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   EstadisticasActividad? _estadisticas;
   List<ActividadReciente> _actividadReciente = [];
+  List<Secretaria> _secretarias = [];
 
   Animation<double>? _pulseAnimation;
   Animation<Offset>? _slideAnimation;
@@ -79,6 +84,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _initializeBasics();
     _initWeather();
     _loadResumenGeneral();
+    _loadSecretarias();
+  }
+
+  void _loadSecretarias() {
+    _secretarias = SecretariasData.getSecretariasEjemplo();
   }
 
   void _initializeAnimations() {
@@ -339,6 +349,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       case 2:
         return const TramitesScreen();
       case 3:
+        return const SecretariasScreen();
+      case 4:
         return const PerfilUsuarioScreen();
       default:
         return _buildHomePage();
@@ -365,6 +377,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   children: [
                     _buildAnimatedStatsCards(),
                     const SizedBox(height: 24),
+                    _buildSecretariasSection(),
                     const SizedBox(height: 24),
                     _buildAnimatedRecentActivity(),
                     const SizedBox(height: 80),
@@ -372,6 +385,297 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecretariasSection() {
+    if (_slideAnimation == null || _fadeAnimation == null) {
+      return _buildSecretariasSectionWithoutAnimation();
+    }
+
+    return SlideTransition(
+      position: _slideAnimation!,
+      child: FadeTransition(
+        opacity: _fadeAnimation!,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Secretarías de Gobierno',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => setState(() => _page = 3),
+                  child: const Text(
+                    'Ver todas',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF0B3B60),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 160,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                itemCount: _secretarias.take(4).length,
+                itemBuilder: (context, index) {
+                  final secretaria = _secretarias[index];
+                  return _buildSecretariaCard(secretaria, index);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecretariasSectionWithoutAnimation() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Secretarías de Gobierno',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+            TextButton(
+              onPressed: () => setState(() => _page = 3),
+              child: const Text(
+                'Ver todas',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF0B3B60),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 160,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            itemCount: _secretarias.take(4).length,
+            itemBuilder: (context, index) {
+              final secretaria = _secretarias[index];
+              return _buildSecretariaCard(secretaria, index);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSecretariaCard(Secretaria secretaria, int index) {
+    final color = Color(int.parse(secretaria.color.replaceFirst('#', '0xFF')));
+    
+    return TweenAnimationBuilder<double>(
+      duration: Duration(milliseconds: 600 + (index * 150)),
+      tween: Tween(begin: 0.0, end: 1.0),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(30 * (1 - value), 0),
+          child: Opacity(
+            opacity: value,
+            child: child,
+          ),
+        );
+      },
+      child: Container(
+        width: 180,
+        height: 160, // Altura fija para evitar overflow
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              color.withOpacity(0.02),
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+              spreadRadius: 0,
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          border: Border.all(
+            color: color.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => setState(() => _page = 3),
+            splashColor: color.withOpacity(0.1),
+            highlightColor: color.withOpacity(0.05),
+            child: Padding(
+              padding: const EdgeInsets.all(14), // Reducido de 16 a 14
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min, // Importante para evitar overflow
+                children: [
+                  // Header con icono mejorado
+                  Row(
+                    children: [
+                      Container(
+                        width: 42, // Reducido de 48 a 42
+                        height: 42, // Reducido de 48 a 42
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              color,
+                              color.withOpacity(0.8),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12), // Reducido de 14 a 12
+                          boxShadow: [
+                            BoxShadow(
+                              color: color.withOpacity(0.3),
+                              blurRadius: 6, // Reducido de 8 a 6
+                              offset: const Offset(0, 3), // Reducido de 4 a 3
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.account_balance,
+                          color: Colors.white,
+                          size: 22, // Reducido de 24 a 22
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6, // Reducido de 8 a 6
+                          vertical: 3, // Reducido de 4 a 3
+                        ),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10), // Reducido de 12 a 10
+                          border: Border.all(
+                            color: color.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          '${secretaria.servicios.length}',
+                          style: TextStyle(
+                            fontSize: 11, // Reducido de 12 a 11
+                            color: color,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 12), // Reducido de 16 a 12
+                  
+                  // Título mejorado con Flexible para evitar overflow
+                  Flexible(
+                    child: Text(
+                      secretaria.nombre,
+                      style: const TextStyle(
+                        fontSize: 13, // Reducido de 14 a 13
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1E293B),
+                        height: 1.1, // Reducido de 1.2 a 1.1
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 6), // Reducido de 8 a 6
+                  
+                  // Descripción de servicios
+                  Text(
+                    '${secretaria.servicios.length} servicios',
+                    style: TextStyle(
+                      fontSize: 11, // Reducido de 12 a 11
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  
+                  const Spacer(),
+                  
+                  // Footer con indicador de acción
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 6), // Reducido de 8 a 6
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(8), // Reducido de 10 a 8
+                      border: Border.all(
+                        color: color.withOpacity(0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 12, // Reducido de 14 a 12
+                          color: color,
+                        ),
+                        const SizedBox(width: 4), // Reducido de 6 a 4
+                        Text(
+                          'Ver detalles',
+                          style: TextStyle(
+                            fontSize: 10, // Reducido de 11 a 10
+                            color: color,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -1652,6 +1956,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Icon(Icons.home_rounded, size: 24, color: Colors.white),
           Icon(Icons.folder_open_rounded, size: 24, color: Colors.white),
           Icon(Icons.description_rounded, size: 24, color: Colors.white),
+          Icon(Icons.account_balance, size: 24, color: Colors.white),
           Icon(Icons.person_rounded, size: 24, color: Colors.white),
         ],
         color: const Color(0xFF0B3B60),

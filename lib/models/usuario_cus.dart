@@ -2,13 +2,55 @@
 
 // ignore_for_file: avoid_print
 
-// Enum para definir los tipos de perfil
+/// Enum para definir los tipos de perfil en el sistema CUS
 enum TipoPerfilCUS {
+  /// Perfil para ciudadanos con folio CUS
   ciudadano,
+  
+  /// Perfil para trabajadores del gobierno con nómina
   trabajador,
+  
+  /// Perfil para personas morales/organizaciones con RFC de 12 dígitos
   personaMoral,
+  
+  /// Perfil genérico para usuarios sin clasificación específica
   usuario,
-  organizacion, // Alias para personaMoral
+  
+  /// Alias para personaMoral (mantener compatibilidad)
+  organizacion,
+}
+
+/// Extensión para obtener descripciones legibles de los tipos de perfil
+extension TipoPerfilCUSExtension on TipoPerfilCUS {
+  /// Obtiene la descripción en español del tipo de perfil
+  String get descripcion {
+    switch (this) {
+      case TipoPerfilCUS.ciudadano:
+        return 'Ciudadano';
+      case TipoPerfilCUS.trabajador:
+        return 'Trabajador del Gobierno';
+      case TipoPerfilCUS.personaMoral:
+      case TipoPerfilCUS.organizacion:
+        return 'Organización/Empresa';
+      case TipoPerfilCUS.usuario:
+        return 'Usuario General';
+    }
+  }
+
+  /// Indica si el perfil requiere folio CUS
+  bool get requiereFolio {
+    return this == TipoPerfilCUS.ciudadano;
+  }
+
+  /// Indica si el perfil requiere número de nómina
+  bool get requiereNomina {
+    return this == TipoPerfilCUS.trabajador;
+  }
+
+  /// Indica si el perfil requiere RFC
+  bool get requiereRFC {
+    return this == TipoPerfilCUS.personaMoral || this == TipoPerfilCUS.organizacion;
+  }
 }
 
 class DocumentoCUS {
@@ -23,8 +65,11 @@ class DocumentoCUS {
   });
 
   factory DocumentoCUS.fromJson(Map<String, dynamic> json) {
+    print('[DocumentoCUS] 🔍 PROCESANDO DOCUMENTO: $json');
+    
     // Buscar el nombre del documento en múltiples campos posibles
-    String nombreDoc = json['nombreDocumento']?.toString() ?? 
+    String nombreDoc = json['nombre_documento']?.toString() ?? 
+                      json['nombreDocumento']?.toString() ?? 
                       json['nombre']?.toString() ?? 
                       json['name']?.toString() ?? 
                       json['title']?.toString() ?? 
@@ -34,7 +79,8 @@ class DocumentoCUS {
                       'Documento sin nombre';
 
     // Buscar la URL del documento en múltiples campos posibles
-    String urlDoc = json['urlDocumento']?.toString() ?? 
+    String urlDoc = json['url_documento']?.toString() ?? 
+                   json['urlDocumento']?.toString() ?? 
                    json['url']?.toString() ?? 
                    json['secure_url']?.toString() ?? 
                    json['public_url']?.toString() ?? 
@@ -45,33 +91,50 @@ class DocumentoCUS {
                    '';
 
     // Buscar la fecha en múltiples campos posibles
-    String? fechaDoc = json['uploadDate']?.toString() ?? 
+    String? fechaDoc = json['upload_date']?.toString() ?? 
+                      json['uploadDate']?.toString() ?? 
                       json['fecha']?.toString() ?? 
                       json['created_at']?.toString() ?? 
-                      json['upload_date']?.toString() ?? 
                       json['fechaSubida']?.toString() ?? 
                       json['timestamp']?.toString() ?? 
                       json['date']?.toString();
 
-    // Si la URL no es completa, intentar construirla para Cloudinary
-    if (urlDoc.isNotEmpty && !urlDoc.startsWith('http')) {
-      // Si parece ser un ID o path de Cloudinary, construir la URL completa
-      if (urlDoc.contains('/') || urlDoc.length > 10) {
+    print('[DocumentoCUS] 📄 Nombre extraído: $nombreDoc');
+    print('[DocumentoCUS] 🔗 URL extraída: $urlDoc');
+    print('[DocumentoCUS] 📅 Fecha extraída: $fechaDoc');
+
+    // Validar y procesar la URL de Cloudinary
+    if (urlDoc.isNotEmpty) {
+      // Si la URL ya es completa y válida, usarla tal como está
+      if (urlDoc.startsWith('https://res.cloudinary.com/')) {
+        print('[DocumentoCUS] ✅ URL de Cloudinary válida detectada');
+      } 
+      // Si no es completa pero contiene elementos de Cloudinary, intentar construirla
+      else if (!urlDoc.startsWith('http') && (urlDoc.contains('/') || urlDoc.length > 10)) {
+        print('[DocumentoCUS] 🔧 Intentando construir URL de Cloudinary...');
         // Formato típico de Cloudinary: https://res.cloudinary.com/cloud-name/image/upload/v1234567890/path/file.pdf
-        urlDoc = 'https://res.cloudinary.com/your-cloud-name/image/upload/$urlDoc';
+        urlDoc = 'https://res.cloudinary.com/dsngx5ckc/raw/upload/$urlDoc';
+        print('[DocumentoCUS] 🔧 URL construida: $urlDoc');
       }
+      
+      // Validación final de URL
+      if (urlDoc.startsWith('http')) {
+        print('[DocumentoCUS] ✅ URL final válida: $urlDoc');
+      } else {
+        print('[DocumentoCUS] ⚠️ URL no válida después del procesamiento: $urlDoc');
+      }
+    } else {
+      print('[DocumentoCUS] ❌ URL de documento vacía para $nombreDoc');
     }
 
-    // Validar que la URL sea válida
-    if (urlDoc.isEmpty) {
-      print('[DocumentoCUS] Advertencia: URL de documento vacía para $nombreDoc');
-    }
-
-    return DocumentoCUS(
+    final documento = DocumentoCUS(
       nombreDocumento: nombreDoc,
       urlDocumento: urlDoc,
       uploadDate: fechaDoc,
     );
+    
+    print('[DocumentoCUS] 🎯 Documento creado: ${documento.nombreDocumento} -> ${documento.urlDocumento}');
+    return documento;
   }
 
   Map<String, dynamic> toJson() {
@@ -287,15 +350,124 @@ class UsuarioCUS {
 
   // --- GETTERS PARA LA UI (Mejorados) ---
 
+  /// Obtiene el nombre a mostrar según el tipo de perfil
   String get nombreDisplay {
-    if (tipoPerfil == TipoPerfilCUS.personaMoral) {
+    if (tipoPerfil == TipoPerfilCUS.personaMoral || tipoPerfil == TipoPerfilCUS.organizacion) {
       return razonSocial ?? nombre; // Prioriza razón social para organizaciones
     }
     return nombreCompleto ?? nombre;
   }
 
+  /// Obtiene la nacionalidad con valor por defecto
   String get nacionalidadDisplay {
     return nacionalidad ?? 'Mexicana';
+  }
+
+  /// Obtiene la descripción del tipo de perfil
+  String get tipoPerfilDescripcion {
+    return tipoPerfil.descripcion;
+  }
+
+  /// Obtiene el identificador principal según el tipo de perfil
+  String? get identificadorPrincipal {
+    switch (tipoPerfil) {
+      case TipoPerfilCUS.ciudadano:
+        return folio ?? idCiudadano;
+      case TipoPerfilCUS.trabajador:
+        return nomina;
+      case TipoPerfilCUS.personaMoral:
+      case TipoPerfilCUS.organizacion:
+        return rfc;
+      case TipoPerfilCUS.usuario:
+        return usuarioId ?? idCiudadano;
+    }
+  }
+
+  /// Obtiene la etiqueta del identificador principal
+  String get etiquetaIdentificador {
+    switch (tipoPerfil) {
+      case TipoPerfilCUS.ciudadano:
+        return folio != null ? 'Folio CUS' : 'ID Ciudadano';
+      case TipoPerfilCUS.trabajador:
+        return 'Número de Nómina';
+      case TipoPerfilCUS.personaMoral:
+      case TipoPerfilCUS.organizacion:
+        return 'RFC';
+      case TipoPerfilCUS.usuario:
+        return 'ID Usuario';
+    }
+  }
+
+  /// Construye la dirección completa
+  String get direccionCompleta {
+    final partes = <String>[];
+    
+    if (calle?.isNotEmpty == true) partes.add(calle!);
+    if (asentamiento?.isNotEmpty == true) partes.add(asentamiento!);
+    if (estado?.isNotEmpty == true) partes.add(estado!);
+    if (codigoPostal?.isNotEmpty == true) partes.add('CP $codigoPostal');
+    
+    return partes.isNotEmpty ? partes.join(', ') : 'Sin dirección registrada';
+  }
+
+  /// Verifica si el perfil está completo según su tipo
+  bool get perfilCompleto {
+    // Validaciones básicas para todos los perfiles
+    if (nombre.isEmpty || email.isEmpty || curp.isEmpty) {
+      return false;
+    }
+
+    // Validaciones específicas por tipo de perfil
+    switch (tipoPerfil) {
+      case TipoPerfilCUS.ciudadano:
+        return folio?.isNotEmpty == true || idCiudadano?.isNotEmpty == true;
+      case TipoPerfilCUS.trabajador:
+        return nomina?.isNotEmpty == true;
+      case TipoPerfilCUS.personaMoral:
+      case TipoPerfilCUS.organizacion:
+        return rfc?.isNotEmpty == true && razonSocial?.isNotEmpty == true;
+      case TipoPerfilCUS.usuario:
+        return true; // Usuario genérico no requiere campos específicos
+    }
+  }
+
+  /// Obtiene una lista de campos faltantes para completar el perfil
+  List<String> get camposFaltantes {
+    final faltantes = <String>[];
+
+    if (nombre.isEmpty) faltantes.add('Nombre');
+    if (email.isEmpty) faltantes.add('Correo electrónico');
+    if (curp.isEmpty) faltantes.add('CURP');
+
+    switch (tipoPerfil) {
+      case TipoPerfilCUS.ciudadano:
+        if (folio?.isEmpty != false && idCiudadano?.isEmpty != false) {
+          faltantes.add('Folio CUS o ID Ciudadano');
+        }
+        break;
+      case TipoPerfilCUS.trabajador:
+        if (nomina?.isEmpty != false) faltantes.add('Número de Nómina');
+        break;
+      case TipoPerfilCUS.personaMoral:
+      case TipoPerfilCUS.organizacion:
+        if (rfc?.isEmpty != false) faltantes.add('RFC');
+        if (razonSocial?.isEmpty != false) faltantes.add('Razón Social');
+        break;
+      case TipoPerfilCUS.usuario:
+        break; // No requiere campos adicionales
+    }
+
+    return faltantes;
+  }
+
+  /// Verifica si tiene documentos cargados
+  bool get tieneDocumentos {
+    return documentos?.isNotEmpty == true;
+  }
+
+  /// Obtiene el número de documentos cargados
+  int get numeroDocumentos {
+    return documentos?.length ?? 0;
   }
 
   // Método toJson para serializar el objeto a JSON

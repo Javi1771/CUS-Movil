@@ -15,9 +15,7 @@ Future<T> withTimeout<T>(
   try {
     return await future.timeout(timeout);
   } catch (e) {
-    if (operation != null) {
-      print('⏰ Timeout en $operation después de ${timeout.inSeconds}s: $e');
-    }
+    if (operation != null) {}
     rethrow;
   }
 }
