@@ -48,10 +48,8 @@ class SurfaceErrorHandler {
       WidgetsBinding.instance.ensureVisualUpdate();
       
       // Limpiar el cache de renderizado si está disponible
-      if (WidgetsBinding.instance.renderView != null) {
-        WidgetsBinding.instance.renderView.markNeedsPaint();
-      }
-      
+      WidgetsBinding.instance.renderView.markNeedsPaint();
+          
       if (kDebugMode) {
         debugPrint('🔄 Intentando recuperación de Surface');
       }
@@ -69,10 +67,8 @@ class SurfaceErrorHandler {
       WidgetsFlutterBinding.ensureInitialized();
       
       // Forzar una actualización del renderizado
-      if (WidgetsBinding.instance.renderView != null) {
-        WidgetsBinding.instance.renderView.markNeedsPaint();
-      }
-      
+      WidgetsBinding.instance.renderView.markNeedsPaint();
+          
       if (kDebugMode) {
         debugPrint('⚙️ Configuración de Surface optimizada');
       }
@@ -86,15 +82,6 @@ class SurfaceErrorHandler {
   /// Verifica el estado de la superficie de renderizado
   static bool checkSurfaceHealth() {
     try {
-      final binding = WidgetsBinding.instance;
-      final renderView = binding.renderView;
-      
-      if (renderView == null) {
-        if (kDebugMode) {
-          debugPrint('❌ RenderView es null');
-        }
-        return false;
-      }
       
       if (kDebugMode) {
         debugPrint('✅ Surface está saludable');
@@ -119,10 +106,8 @@ class SurfaceErrorHandler {
         }
         
         // Limpiar el estado actual
-        if (WidgetsBinding.instance.renderView != null) {
-          WidgetsBinding.instance.renderView.markNeedsPaint();
-        }
-        
+        WidgetsBinding.instance.renderView.markNeedsPaint();
+              
         // Esperar un frame antes de continuar
         await WidgetsBinding.instance.endOfFrame;
         

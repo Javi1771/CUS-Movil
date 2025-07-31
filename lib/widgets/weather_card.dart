@@ -513,8 +513,13 @@ class WeatherDetailsModal extends StatelessWidget {
                   child: Column(
                     children: [
                       // Main weather info
+// Dentro de tu WeatherDetailsModal:
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        // 1) Le damos todo el ancho posible
+                        width: double.infinity,
+                        // opcional: para no pasarse de cierto máximo, podrías usar:
+                        // constraints: BoxConstraints(maxWidth: 400),
+                        padding: const EdgeInsets.all(25),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(20),
@@ -522,6 +527,8 @@ class WeatherDetailsModal extends StatelessWidget {
                               Border.all(color: Colors.white.withOpacity(0.3)),
                         ),
                         child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment.center, // Centrar contenido
                           children: [
                             Icon(
                               weatherData.weatherIcon,
@@ -715,7 +722,7 @@ class _WeeklyForecastModalState extends State<WeeklyForecastModal> {
               end: Alignment.bottomRight,
               colors: [
                 Color(0xFF4facfe),
-                Color(0xFF00f2fe),
+                Color.fromARGB(255, 1, 59, 62),
               ],
             ),
             borderRadius: BorderRadius.only(

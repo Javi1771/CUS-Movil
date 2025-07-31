@@ -36,13 +36,6 @@ class ApiCompatibility {
   /// Verifica la compatibilidad del renderizado
   static bool checkRenderingCompatibility() {
     try {
-      final binding = WidgetsBinding.instance;
-      if (binding.renderView == null) {
-        if (kDebugMode) {
-          debugPrint('❌ RenderView no disponible');
-        }
-        return false;
-      }
       
       if (kDebugMode) {
         debugPrint('✅ Renderizado compatible');
@@ -88,10 +81,8 @@ class ApiCompatibility {
     
     safeExecute(() {
       // Limpiar cache de renderizado
-      if (WidgetsBinding.instance.renderView != null) {
-        WidgetsBinding.instance.renderView.markNeedsPaint();
-      }
-    }, description: 'limpiar cache de renderizado');
+      WidgetsBinding.instance.renderView.markNeedsPaint();
+        }, description: 'limpiar cache de renderizado');
   }
   
   /// Configuración de emergencia para problemas de API

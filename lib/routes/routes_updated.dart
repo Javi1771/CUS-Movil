@@ -42,7 +42,6 @@ import '../screens/tramites_screen.dart';
 
 // Secretarías
 import '../screens/secretarias_screen.dart';
-import '../screens/secretaria_detalle_screen.dart';
 
 // Perfiles específicos
 import '../screens/perfiles/perfil_ciudadano_screen.dart';

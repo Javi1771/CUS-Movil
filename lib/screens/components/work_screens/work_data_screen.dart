@@ -2,7 +2,6 @@
 
 import 'package:cus_movil/screens/widgets/navigation_buttons.dart';
 import 'package:cus_movil/screens/widgets/steap_header.dart';
-import 'package:cus_movil/utils/curp_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -50,10 +49,7 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
   final _focusPass = FocusNode();
   final _focusConfirmPass = FocusNode();
 
-  final bool _showPass = false;
   final bool _submitted = false;
-  final _passwordRegex =
-      RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[$&!¡¿?@]).{8,}$');
 
   @override
   void initState() {
@@ -103,54 +99,6 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
       f.dispose();
     }
     super.dispose();
-  }
-
-  void _onCurpChanged(String v) {
-    final curp = v.toUpperCase();
-    if (curp.length == 18 && _validateCurp(curp) == null) {
-      _fechaNacCtrl.text =
-          (obtenerFechaNacimientoDeCurp(curp) ?? '').toUpperCase();
-      _generoCtrl.text = (obtenerGeneroDeCurp(curp) ?? '').toUpperCase();
-      _estadoNacCtrl.text = (obtenerEstadoDeCurp(curp) ?? '').toUpperCase();
-      FocusScope.of(context).requestFocus(_focusCurpVerify);
-    }
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'La contraseña es obligatoria';
-    }
-    if (!_passwordRegex.hasMatch(value)) {
-      return 'Debe tener ≥8 caracteres, 1 mayúscula, 1 minúscula,\n'
-          '1 número y 1 símbolo de \$&!¡¿?@';
-    }
-    return null;
-  }
-
-  String? _validateConfirm(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Confirma la contraseña';
-    }
-    if (value != _passCtrl.text) {
-      return 'Las contraseñas no coinciden';
-    }
-    return null;
-  }
-
-  String? _validateCurp(String? v) {
-    final curpRegExp = RegExp(
-        r'^[A-Z]{4}\d{6}[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d$',
-        caseSensitive: false);
-    if (v == null || v.length != 18) return 'Deben ser 18 caracteres';
-    if (!curpRegExp.hasMatch(v)) return 'CURP no válida';
-    return null;
-  }
-
-  String? _validateVerify(String? v) {
-    if (v == null || v.isEmpty) return 'Requerido';
-    return v.toUpperCase() != _curpCtrl.text.toUpperCase()
-        ? 'No coincide con CURP'
-        : null;
   }
 
   bool get _isFormValid => _formKey.currentState?.validate() == true;

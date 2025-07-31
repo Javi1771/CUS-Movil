@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -138,8 +140,9 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
   String _getEtiquetaIdentificador() {
     if (usuario == null) return 'ID';
     if (usuario!.rfc != null && usuario!.rfc!.isNotEmpty) return 'RFC';
-    if (usuario!.usuarioId != null && usuario!.usuarioId!.isNotEmpty)
+    if (usuario!.usuarioId != null && usuario!.usuarioId!.isNotEmpty) {
       return 'ID de Registro';
+    }
     if (usuario!.folio != null && usuario!.folio!.isNotEmpty) return 'Folio';
     return 'ID';
   }
@@ -289,7 +292,7 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
         _getDisplayValue(userData.razonSocial, 'Organización sin Nombre');
 
     // CORRECCIÓN: Ahora userData.rfc tendrá el valor correcto desde el modelo.
-    final rfcOrganizacion = _getDisplayValue(userData.rfc, 'Sin RFC');
+    _getDisplayValue(userData.rfc, 'Sin RFC');
 
     return Container(
       width: double.infinity,

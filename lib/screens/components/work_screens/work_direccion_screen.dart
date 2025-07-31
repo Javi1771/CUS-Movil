@@ -243,24 +243,6 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
     }
   }
 
-  InputDecoration _inputDecoration(String label, [IconData? icon]) {
-    return InputDecoration(
-      labelText: label,
-      prefixIcon: icon != null ? Icon(icon, color: govBlue) : null,
-      filled: true,
-      fillColor: Colors.grey[50],
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: govBlue, width: 2),
-      ),
-    );
-  }
-
   Widget _sectionHeader(IconData icon, String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),

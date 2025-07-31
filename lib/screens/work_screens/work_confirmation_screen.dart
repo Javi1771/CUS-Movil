@@ -19,7 +19,6 @@ class _WorkConfirmationScreenState extends State<WorkConfirmationScreen>
 
   bool _isLoading = false;
   bool _isSuccess = false;
-  bool _hasError = false;
   String _message = '';
   String _errorDetails = '';
   
@@ -66,7 +65,6 @@ class _WorkConfirmationScreenState extends State<WorkConfirmationScreen>
   Future<void> _submitRegistration() async {
     setState(() {
       _isLoading = true;
-      _hasError = false;
       _isSuccess = false;
     });
 
@@ -117,7 +115,6 @@ class _WorkConfirmationScreenState extends State<WorkConfirmationScreen>
           _isSuccess = true;
           _message = result['message'] ?? 'Registro completado exitosamente';
         } else {
-          _hasError = true;
           _message = result['message'] ?? 'Error en el registro';
           _errorDetails = result['error'] ?? '';
         }
@@ -129,7 +126,6 @@ class _WorkConfirmationScreenState extends State<WorkConfirmationScreen>
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _hasError = true;
         _message = 'Error inesperado durante el registro';
         _errorDetails = e.toString();
       });

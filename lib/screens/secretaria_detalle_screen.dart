@@ -1,5 +1,7 @@
 // screens/secretaria_detalle_screen.dart
 
+// ignore_for_file: unused_field
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
