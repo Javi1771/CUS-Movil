@@ -16,13 +16,13 @@ class WeatherService {
     return key;
   }
 
-  // Endpoints
+  //* Endpoints
   static const _currentEndpoint =
       'https://weather.googleapis.com/v1/currentConditions:lookup';
   static const _forecastEndpoint =
       'https://weather.googleapis.com/v1/forecast/days:lookup';
 
-  /// Obtiene las condiciones actuales en [lat],[lon].
+  ///* Obtiene las condiciones actuales en [lat],[lon].
   static Future<WeatherData> getByCoords({
     required double lat,
     required double lon,
@@ -81,8 +81,8 @@ class WeatherService {
     }
   }
 
-  /// Obtiene el pronóstico diario para [days] días a partir de hoy en [lat],[lon].
-  /// Devuelve la lista de mapas JSON de cada día en `forecastDays`.
+  ///* Obtiene el pronóstico diario para [days] días a partir de hoy en [lat],[lon].
+  ///* Devuelve la lista de mapas JSON de cada día en `forecastDays`.
   static Future<List<dynamic>> getWeeklyForecast({
     required double lat,
     required double lon,

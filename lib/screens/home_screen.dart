@@ -16,7 +16,6 @@ import 'package:cus_movil/widgets/weather_card.dart';
 import 'secretarias_screen.dart';
 import '../models/secretaria.dart';
 
-
 //* Configuración global de caché para imágenes
 final imageCacheManager = CacheManager(
   Config(
@@ -25,6 +24,7 @@ final imageCacheManager = CacheManager(
     maxNrOfCacheObjects: 100,
   ),
 );
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -282,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _fetchWeather(double lat, double lon) async {
-    // ← Si ya estamos cargando, no hacemos nada
+    //! ← Si ya estamos cargando, no hacemos nada
     if (_isLoadingWeather || !mounted) return;
 
     _currentLat = lat;
@@ -302,7 +302,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     } catch (e) {
       debugPrint('[HomeScreen] Error al obtener el clima: $e');
 
-      // Crear datos simulados en caso de error
+      //! Crear datos simulados en caso de error
       setState(() => _weatherData = null);
 
       if (mounted) {
@@ -365,7 +365,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             .getPositionStream(distanceFilter: 300)
             .listen((pos) {
           if (!mounted) return;
-          // Cada vez que llegue una nueva posición, reinicia el timer
+          //* Cada vez que llegue una nueva posición, reinicia el timer
           _weatherDebounce?.cancel();
           _weatherDebounce = Timer(const Duration(seconds: 5), () {
             _fetchWeather(pos.latitude, pos.longitude);
@@ -640,7 +640,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildSecretariaCard(Secretaria secretaria, int index) {
     final color = Color(int.parse(secretaria.color.replaceFirst('#', '0xFF')));
-    
+
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 600 + (index * 150)),
       tween: Tween(begin: 0.0, end: 1.0),
@@ -698,7 +698,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               padding: const EdgeInsets.all(14), // Reducido de 16 a 14
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min, // Importante para evitar overflow
+                mainAxisSize:
+                    MainAxisSize.min, // Importante para evitar overflow
                 children: [
                   // Header con icono mejorado
                   Row(
@@ -715,7 +716,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               color.withOpacity(0.8),
                             ],
                           ),
-                          borderRadius: BorderRadius.circular(12), // Reducido de 14 a 12
+                          borderRadius:
+                              BorderRadius.circular(12), // Reducido de 14 a 12
                           boxShadow: [
                             BoxShadow(
                               color: color.withOpacity(0.3),
@@ -738,7 +740,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                         decoration: BoxDecoration(
                           color: color.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10), // Reducido de 12 a 10
+                          borderRadius:
+                              BorderRadius.circular(10), // Reducido de 12 a 10
                           border: Border.all(
                             color: color.withOpacity(0.2),
                             width: 1,
@@ -755,9 +758,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 12), // Reducido de 16 a 12
-                  
+
                   // Título mejorado con Flexible para evitar overflow
                   Flexible(
                     child: Text(
@@ -773,9 +776,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 6), // Reducido de 8 a 6
-                  
+
                   // Descripción de servicios
                   Text(
                     '${secretaria.servicios.length} servicios',
@@ -785,16 +788,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  
+
                   const Spacer(),
-                  
+
                   // Footer con indicador de acción
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 6), // Reducido de 8 a 6
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 6), // Reducido de 8 a 6
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(8), // Reducido de 10 a 8
+                      borderRadius:
+                          BorderRadius.circular(8), // Reducido de 10 a 8
                       border: Border.all(
                         color: color.withOpacity(0.1),
                         width: 1,
@@ -830,74 +835,78 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildNewHeader() {
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+
     return Column(
       children: [
         Container(
           width: double.infinity,
-          height: 100,
+          height: statusBarHeight + 100,
+          //* Padding para desplazar el contenido debajo de la barra de estado
+          padding: EdgeInsets.only(
+            top: statusBarHeight,
+            left: 20,
+            right: 20,
+            bottom: 16,
+          ),
           decoration: const BoxDecoration(
             color: Color(0xFF0B3B60),
             borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(40),
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  margin: const EdgeInsets.only(right: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                margin: const EdgeInsets.only(right: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Image.asset(
+                    'assets/logo_claveunica.png',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.person_rounded,
+                        color: Color.fromARGB(255, 81, 73, 197),
+                        size: 28,
+                      );
+                    },
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.asset(
-                      'assets/logo_claveunica.png',
-                      width: 48,
-                      height: 48,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.person_rounded,
-                          color: Color.fromARGB(255, 81, 73, 197),
-                          size: 28,
-                        );
-                      },
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Hola Ciudadano!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Hola Ciudadano!',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),
+                    const SizedBox(height: 4),
+                    Text(
+                      (_usuario?.nombre.toUpperCase() ?? 'USUARIO'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        (_usuario?.nombre.toUpperCase() ?? 'USUARIO'),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 30),

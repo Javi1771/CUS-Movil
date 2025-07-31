@@ -37,16 +37,16 @@ class WeatherData {
         : '';
     final conditionCode = condition['type']?.toString() ?? '';
 
-    // Temperatura
+    //? Temperatura
     final tempObj = json['temperature'] ?? {};
     final temp = tempObj is Map
         ? (tempObj['degrees'] as num?)?.toDouble() ?? 0.0
         : 0.0;
 
-    // Humedad
+    //? Humedad
     final humidity = (json['relativeHumidity'] as num?)?.toInt() ?? 0;
 
-    // Viento
+    //? Viento
     final windObj = json['wind'] ?? {};
     double windSpeed = 0.0;
     if (windObj is Map) {
@@ -62,25 +62,25 @@ class WeatherData {
       }
     }
 
-    // Sensación térmica
+    //? Sensación térmica
     final feelsLikeObj = json['feelsLikeTemperature'] ?? {};
     final feelsLike = feelsLikeObj is Map
         ? (feelsLikeObj['degrees'] as num?)?.toDouble()
         : null;
 
-    // Presión atmosférica
+    //? Presión atmosférica
     final pressureObj = json['airPressure'] ?? {};
     final pressure = pressureObj is Map
         ? (pressureObj['meanSeaLevelMillibars'] as num?)?.toDouble()
         : null;
 
-    // Índice UV
+    //? Índice UV
     final uvIndex = (json['uvIndex'] as num?)?.toInt();
 
-    // Cobertura de nubes
+    //? Cobertura de nubes
     final cloudCover = (json['cloudCover'] as num?)?.toInt();
 
-    // Punto de rocío
+    //? Punto de rocío
     final dewPointObj = json['dewPoint'] ?? {};
     final dewPoint = dewPointObj is Map
         ? (dewPointObj['degrees'] as num?)?.toDouble()
@@ -101,7 +101,7 @@ class WeatherData {
     );
   }
 
-  // Getter básicos
+  //* Getters básicos
   String get temperatureString => '${temperature.round()}°C';
 
   String get capitalizedDescription => description
@@ -109,63 +109,136 @@ class WeatherData {
       .map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1) : '')
       .join(' ');
 
+  //? Icono según condición (usa contains para códigos en inglés y español)
   IconData get weatherIcon {
     final c = conditionCode.toUpperCase();
-    if (c == 'CLEAR') return Icons.wb_sunny;
-    if (c == 'CLOUDY' || c == 'MOSTLY_CLOUDY') return Icons.cloud;
-    if (c == 'RAIN' || c == 'SHOWERS' || c == 'DRIZZLE') return Icons.grain;
-    if (c == 'THUNDERSTORM') return Icons.flash_on;
-    if (c == 'SNOW' || c == 'SNOW_SHOWERS' || c == 'SLEET') {
-      return Icons.ac_unit;
+
+    //? Llovizna ligera
+    if (c.contains('DRIZZLE') || c.contains('LLUVIZNA')) {
+      return Icons.snowing;
     }
-    if (c == 'MOSTLY_CLEAR') return Icons.wb_sunny;
-    if (c == 'FOG' || c == 'HAZE' || c == 'MIST') return Icons.foggy;
-    if (c == 'PARTLY_CLOUDY') return Icons.wb_cloudy;
-    return Icons.wb_sunny;
+
+    //? Lluvia normal
+    if (c.contains('RAIN') && !c.contains('HEAVY')) {
+      return Icons.umbrella_rounded;
+    }
+
+    //? Aguaceros fuertes / tormenta de lluvia
+    if (c.contains('HEAVY RAIN') || c.contains('TORRENTIAL')) {
+      return Icons.beach_access_rounded;
+    }
+
+    //? Tormenta eléctrica 
+    if (c.contains('THUNDER') || c.contains('STORM')) {
+      return Icons.thunderstorm_rounded;
+    }
+
+    //? Sol y nieve mezclados
+    if (c.contains('SUNNY_SNOW') || (c.contains('SNOW') && c.contains('SUNNY'))) {
+      return Icons.sunny_snowing;
+    }
+
+    //? Nieve con nubes
+    if (c.contains('CLOUDY_SNOW') || (c.contains('SNOW') && c.contains('CLOUD'))) {
+      return Icons.cloudy_snowing;
+    }
+
+    //? Nieve simple
+    if (c.contains('SNOW') || c.contains('BLIZZARD')) {
+      return Icons.ac_unit_rounded;
+    }
+
+    //? Aguanieve o granizo
+    if (c.contains('SLEET') || c.contains('HAIL')) {
+      return Icons.grain;
+    }
+
+    //? Niebla / calina
+    if (c.contains('FOG') || c.contains('MIST') || c.contains('HAZE')) {
+      return Icons.foggy;
+    }
+
+    //? Parcialmente soleado
+    if (c.contains('PARTLY') && c.contains('SUNNY')) {
+      return Icons.sunny;
+    }
+
+    //? Parcialmente nublado
+    if (c.contains('PARTLY') && c.contains('CLOUD')) {
+      return Icons.filter_drama;
+    }
+
+    //? Nublado
+    if (c.contains('CLOUD') || c.contains('OVERCAST')) {
+      return Icons.wb_cloudy_rounded;
+    }
+
+    //? Crepúsculo (amanecer/atardecer)
+    if (c.contains('TWILIGHT') || c.contains('SUNSET') || c.contains('SUNRISE')) {
+      return Icons.wb_twilight;
+    }
+
+    //? Noche despejada
+    if (c.contains('NIGHT') || c.contains('MOON')) {
+      return Icons.bedtime;
+    }
+
+    //? Despejado / soleado
+    if (c.contains('CLEAR') || c.contains('SUNNY')) {
+      return Icons.wb_sunny_rounded;
+    }
+
+    //! Por defecto
+    return Icons.help_outline_rounded;
   }
 
+  //? Color principal según condición
   Color get weatherColor {
     final c = conditionCode.toUpperCase();
-    if (c == 'CLEAR') return const Color(0xFFFAA21B);
-    if (c == 'CLOUDY' || c == 'MOSTLY_CLOUDY') {
-      return const Color(0xFF7ECBFB);
-    }
-    if (c == 'RAIN' || c == 'SHOWERS' || c == 'DRIZZLE') {
+    if (c.contains('RAIN') || c.contains('DRIZZLE') || c.contains('LLUV')) {
       return const Color(0xFF00B2E2);
     }
-    if (c == 'THUNDERSTORM') {
+    if (c.contains('THUNDER')) {
       return const Color(0xFF085184);
     }
-    if (c == 'SNOW' || c == 'SNOW_SHOWERS' || c == 'SLEET') {
-      return const Color(0xFFFFFFFF);
+    if (c.contains('SNOW') || c.contains('NIEVE')) {
+      return const Color(0xFFB3E5FC);
     }
-    if (c == 'FOG' || c == 'HAZE' || c == 'MIST') {
+    if (c.contains('FOG') || c.contains('HAZE') || c.contains('MIST')) {
       return const Color(0xFF64748B);
     }
-    if (c == 'PARTLY_CLOUDY') {
-      return const Color(0xFF90CAF9);
+    if (c.contains('CLOUD') || c.contains('NUB')) {
+      return const Color(0xFF7ECBFB);
+    }
+    if (c.contains('CLEAR')) {
+      return const Color(0xFFFAA21B);
     }
     return const Color(0xFFFAA21B);
   }
 
-  // Gradiente según la condición
+  //? Gradiente según la condición
   List<Color> get weatherGradient {
     final c = conditionCode.toUpperCase();
-    if (c.contains('RAIN')) {
+    if (c.contains('RAIN') || c.contains('DRIZZLE') || c.contains('LLUV')) {
       return [const Color(0xFF4DA0B0), const Color(0xFF2C3E50)];
-    } else if (c.contains('CLOUD')) {
-      return [const Color(0xFF616161), const Color(0xFF9BC5C3)];
-    } else if (c.contains('THUNDER')) {
+    }
+    if (c.contains('THUNDER')) {
       return [const Color(0xFF0F2027), const Color(0xFF203A43)];
-    } else if (c.contains('SNOW')) {
+    }
+    if (c.contains('SNOW') || c.contains('NIEVE')) {
       return [const Color(0xFFE6DADA), const Color(0xFF274046)];
-    } else if (c.contains('FOG')) {
+    }
+    if (c.contains('FOG') || c.contains('HAZE') || c.contains('MIST')) {
       return [const Color(0xFF606C88), const Color(0xFF3F4C6B)];
     }
-    return [const Color.fromARGB(255, 99, 73, 40), const Color(0xFFED8F03)];
+    if (c.contains('CLOUD') || c.contains('NUB')) {
+      return [const Color(0xFF616161), const Color(0xFF9BC5C3)];
+    }
+    //! default: despejado
+    return [const Color(0xFFFAA21B), const Color.fromARGB(255, 83, 72, 36)];
   }
 
-  // Getters extendidos
+  //? Getters extendidos
   String get feelsLikeString =>
       feelsLike != null ? '${feelsLike!.round()}°C' : '--';
 

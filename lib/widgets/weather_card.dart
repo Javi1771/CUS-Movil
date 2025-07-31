@@ -125,20 +125,7 @@ class _WeatherCardState extends State<WeatherCard>
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final monthNames = [
-      'ENE',
-      'FEB',
-      'MAR',
-      'ABR',
-      'MAY',
-      'JUN',
-      'JUL',
-      'AGO',
-      'SEP',
-      'OCT',
-      'NOV',
-      'DIC'
-    ];
+    final monthNames = [ 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC' ];
 
     final color = widget.weatherData?.weatherColor ?? const Color(0xFF667eea);
     final gradient = widget.weatherData?.weatherGradient ??
@@ -173,7 +160,7 @@ class _WeatherCardState extends State<WeatherCard>
       ),
       child: Stack(
         children: [
-          // Decorative circles
+          //* Decorative circles
           Positioned(
             top: -20,
             right: -20,
@@ -199,22 +186,21 @@ class _WeatherCardState extends State<WeatherCard>
             ),
           ),
 
-          // Main content
-// Main content con Material para InkWell funcionando bien
+          //* Main content con Material para InkWell funcionando bien
           Material(
             color: Colors.transparent,
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
-                  // 1) Zona clicable para detalles del clima
+                  //? 1) Zona clicable para detalles del clima
                   Expanded(
                     child: InkWell(
                       onTap: _showWeatherDetails,
                       borderRadius: BorderRadius.circular(24),
                       child: Row(
                         children: [
-                          // Icono animado
+                          //* Icono animado
                           AnimatedBuilder(
                             animation: _pulseAnimation,
                             builder: (context, child) {
@@ -266,7 +252,7 @@ class _WeatherCardState extends State<WeatherCard>
 
                           const SizedBox(width: 20),
 
-                          // Info del clima (temp, descripción, métricas rápidas)
+                          //? Info del clima (temp, descripción, métricas rápidas)
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,7 +336,7 @@ class _WeatherCardState extends State<WeatherCard>
 
                   const SizedBox(width: 12),
 
-                  // 2) Zona clicable para pronóstico semanal
+                  //? 2) Zona clicable para pronóstico semanal
                   InkWell(
                     onTap: _showWeeklyForecast,
                     borderRadius: BorderRadius.circular(16),
@@ -435,7 +421,7 @@ class _WeatherCardState extends State<WeatherCard>
   }
 }
 
-// Weather Details Modal
+//* Weather Details Modal
 class WeatherDetailsModal extends StatelessWidget {
   final WeatherData weatherData;
   final VoidCallback onRefresh;
@@ -469,7 +455,7 @@ class WeatherDetailsModal extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // Handle bar
+              //* Handle bar
               Container(
                 margin: const EdgeInsets.only(top: 16, bottom: 8),
                 width: 40,
@@ -512,13 +498,11 @@ class WeatherDetailsModal extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: [
-                      // Main weather info
-// Dentro de tu WeatherDetailsModal:
+                      //* Main weather info
                       Container(
-                        // 1) Le damos todo el ancho posible
+                        //? 1) Le damos todo el ancho posible
                         width: double.infinity,
-                        // opcional: para no pasarse de cierto máximo, podrías usar:
-                        // constraints: BoxConstraints(maxWidth: 400),
+
                         padding: const EdgeInsets.all(25),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.15),
@@ -528,7 +512,7 @@ class WeatherDetailsModal extends StatelessWidget {
                         ),
                         child: Column(
                           crossAxisAlignment:
-                              CrossAxisAlignment.center, // Centrar contenido
+                              CrossAxisAlignment.center, //* Centrar contenido
                           children: [
                             Icon(
                               weatherData.weatherIcon,
@@ -558,17 +542,17 @@ class WeatherDetailsModal extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // Weather metrics grid
+                      //* Weather metrics grid
                       LayoutBuilder(
                         builder: (context, constraints) {
                           const spacing = 12.0;
-                          // ancho total disponible menos espacios, dividido entre 2 columnas
+                          //* ancho total disponible menos espacios, dividido entre 2 columnas
                           final itemWidth =
                               (constraints.maxWidth - spacing) / 2;
-                          // altura calculada a partir del aspect ratio 1.5 (w/h = 1.5 → h = w / 1.5)
+                          //* altura calculada a partir del aspect ratio 1.5 (w/h = 1.5 → h = w / 1.5)
                           final itemHeight = itemWidth / 1.4;
 
-                          // lista de widgets métricos
+                          //* lista de widgets métricos
                           final metrics = <Widget>[
                             _buildDetailMetric(Icons.opacity, 'Humedad',
                                 '${weatherData.humidity}%'),
@@ -657,7 +641,7 @@ class WeatherDetailsModal extends StatelessWidget {
   }
 }
 
-// Weekly Forecast Modal
+//* Weekly Forecast Modal
 class WeeklyForecastModal extends StatefulWidget {
   final double latitude;
   final double longitude;
@@ -721,8 +705,8 @@ class _WeeklyForecastModalState extends State<WeeklyForecastModal> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF4facfe),
-                Color.fromARGB(255, 1, 59, 62),
+                Color(0xFF0B3B60),
+                Color.fromARGB(255, 5, 165, 174),
               ],
             ),
             borderRadius: BorderRadius.only(
@@ -732,7 +716,7 @@ class _WeeklyForecastModalState extends State<WeeklyForecastModal> {
           ),
           child: Column(
             children: [
-              // Handle bar
+              //* Handle bar
               Container(
                 margin: const EdgeInsets.only(top: 16, bottom: 8),
                 width: 40,
@@ -743,7 +727,7 @@ class _WeeklyForecastModalState extends State<WeeklyForecastModal> {
                 ),
               ),
 
-              // Header
+              //* Header
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -818,7 +802,7 @@ class _WeeklyForecastModalState extends State<WeeklyForecastModal> {
   }
 
   Widget _buildForecastDay(dynamic dayData, int index) {
-    // 1) Parseo de la fecha
+    //? 1) Parseo de la fecha
     final disp = dayData['displayDate'] as Map<String, dynamic>;
     final date = DateTime(
       disp['year'] as int,
@@ -826,24 +810,36 @@ class _WeeklyForecastModalState extends State<WeeklyForecastModal> {
       disp['day'] as int,
     );
     final dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    final dayName = index == 0 ? 'Hoy' : dayNames[date.weekday % 7];
+    final dayName = index == 0
+        ? 'Hoy'
+        : dayNames[date.weekday % 7];
 
-    // 2) Temperaturas
+    //? 2) Temperaturas
     final maxTemp =
         (dayData['maxTemperature']?['degrees'] as num?)?.round() ?? 0;
     final minTemp =
         (dayData['minTemperature']?['degrees'] as num?)?.round() ?? 0;
 
-    // 3) Condición diurna
+    //? 3) Condición diurna
     final daytime = dayData['daytimeForecast'] as Map<String, dynamic>;
     final cond = daytime['weatherCondition'] as Map<String, dynamic>;
     final description =
         (cond['description'] as Map<String, dynamic>)['text'] as String? ?? '…';
-    final type = cond['type'] as String?;
+    final type = cond['type'] as String? ?? '';
+
+    //? 4) Icono según tu modelo
+    final iconData = WeatherData(
+      city: '',
+      temperature: 0,
+      description: '',
+      conditionCode: type,
+      humidity: 0,
+      windSpeed: 0,
+    ).weatherIcon;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.15),
         borderRadius: BorderRadius.circular(20),
@@ -852,29 +848,59 @@ class _WeeklyForecastModalState extends State<WeeklyForecastModal> {
       child: Row(
         children: [
           SizedBox(
-              width: 60,
-              child: Text(dayName,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold))),
-          const SizedBox(width: 16),
-          Icon(_getWeatherIcon(type), color: Colors.white, size: 32),
-          const SizedBox(width: 16),
+            width: 50,
+            child: Text(
+              dayName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Icon(iconData, color: Colors.white, size: 28),
+          const SizedBox(width: 12),
           Expanded(
-              child: Text(description,
-                  style: const TextStyle(color: Colors.white, fontSize: 14))),
+            child: Text(
+              description,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+            ),
+          ),
+
+          //* Aquí mostramos max/min con iconos y grados
           Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('$maxTemp°',
-                  style: const TextStyle(
+              Row(
+                children: [
+                  const Icon(Icons.arrow_upward, size: 16, color: Colors.white),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$maxTemp°',
+                    style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold)),
-              Text('$minTemp°',
-                  style: TextStyle(
-                      color: Colors.white.withOpacity(0.7), fontSize: 14)),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.arrow_downward, size: 16, color: Colors.white70),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$minTemp°',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ],
@@ -882,28 +908,4 @@ class _WeeklyForecastModalState extends State<WeeklyForecastModal> {
     );
   }
 
-  IconData _getWeatherIcon(String? weatherType) {
-    switch (weatherType?.toLowerCase()) {
-      case 'sunny':
-      case 'clear':
-        return Icons.wb_sunny_rounded;
-      case 'cloudy':
-      case 'partly_cloudy':
-        return Icons.wb_cloudy_rounded;
-      case 'rainy':
-      case 'rain':
-        return Icons.grain_rounded;
-      case 'stormy':
-      case 'thunderstorm':
-        return Icons.thunderstorm_rounded;
-      case 'snowy':
-      case 'snow':
-        return Icons.ac_unit_rounded;
-      case 'foggy':
-      case 'fog':
-        return Icons.foggy;
-      default:
-        return Icons.wb_sunny_rounded;
-    }
-  }
 }
