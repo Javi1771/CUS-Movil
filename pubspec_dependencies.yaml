@@ -1,0 +1,36 @@
+# Dependencias necesarias para la funcionalidad de Secretarías
+# Agregar estas dependencias a pubspec.yaml si no las tienes
+
+dependencies:
+  # Para mapas interactivos
+  google_maps_flutter: ^2.5.0
+  
+  # Para abrir enlaces externos (teléfono, email, mapas)
+  url_launcher: ^6.2.1
+  
+  # Para obtener ubicación del usuario
+  geolocator: ^10.1.0
+  
+  # Para geocodificación (convertir direcciones a coordenadas)
+  geocoding: ^2.1.1
+  
+  # Para efectos visuales y animaciones (si no las tienes)
+  flutter_animate: ^4.2.0
+  
+  # Para feedback háptico
+  flutter/services.dart # (ya incluido en Flutter)
+
+# Permisos necesarios en android/app/src/main/AndroidManifest.xml:
+# <uses-permission android:name="android.permission.INTERNET" />
+# <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+# <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+# Configuración necesaria en android/app/build.gradle:
+# android {
+#     compileSdkVersion 34
+#     ...
+# }
+
+# API Key de Google Maps necesaria en:
+# - android/app/src/main/AndroidManifest.xml
+# - ios/Runner/AppDelegate.swift

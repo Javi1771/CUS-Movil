@@ -40,10 +40,6 @@ import '../screens/home_screen.dart';
 import '../screens/perfil_usuario_screen.dart';
 import '../screens/tramites_screen.dart';
 
-// Secretarías
-import '../screens/secretarias_screen.dart';
-import '../screens/secretaria_detalle_screen.dart';
-
 // Perfiles específicos
 import '../screens/perfiles/perfil_ciudadano_screen.dart';
 import '../screens/perfiles/perfil_trabajador_screen.dart';
@@ -85,10 +81,7 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/mis-documentos': (_) => const MisDocumentosScreen(),
   '/perfil-usuario': (_) => const PerfilUsuarioScreen(),
   '/tramites': (_) => const TramitesScreen(),
-
-  // Secretarías
-  '/secretarias': (_) => const SecretariasScreen(),
-
+  
   // Perfiles específicos
   '/perfil-ciudadano': (_) => const PerfilCiudadanoScreen(),
   '/perfil-trabajador': (_) => const PerfilTrabajadorScreen(),

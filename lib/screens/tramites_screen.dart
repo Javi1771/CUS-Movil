@@ -310,7 +310,10 @@ class _TramitesScreenState extends State<TramitesScreen>
         _buildNotificacionesImportantes(),
         Expanded(
           child: _tramitesFiltrados.isEmpty
-              ? _buildEmptyState()
+              ? SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+                  child: _buildEmptyState(),
+                )
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
                   itemCount: _tramitesFiltrados.length,

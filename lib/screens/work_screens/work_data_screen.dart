@@ -352,8 +352,8 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
                     ),
 
                     _sectionHeader(
-                      Icons.folder_shared,
-                      'Datos del representante legal',
+                      Icons.person,
+                      'Datos Personales',
                     ),
                     _sectionCard(
                       children: [

@@ -85,10 +85,10 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/mis-documentos': (_) => const MisDocumentosScreen(),
   '/perfil-usuario': (_) => const PerfilUsuarioScreen(),
   '/tramites': (_) => const TramitesScreen(),
-
+  
   // Secretarías
   '/secretarias': (_) => const SecretariasScreen(),
-
+  
   // Perfiles específicos
   '/perfil-ciudadano': (_) => const PerfilCiudadanoScreen(),
   '/perfil-trabajador': (_) => const PerfilTrabajadorScreen(),

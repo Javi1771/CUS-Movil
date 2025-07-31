@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'routes/routes.dart';
@@ -7,56 +6,102 @@ import 'utils/performance_monitor.dart';
 import 'utils/performance_config.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Configurar rendimiento antes de cargar la app
-  PerformanceConfig.initialize();
-
-  // Cargar variables de entorno
   try {
-    await dotenv.load(fileName: ".env");
-  } catch (e) {
-    debugPrint('⚠️ Error cargando .env: $e');
-  }
+    WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializar formateo de fechas
-  await initializeDateFormatting('es', null);
+    // Configurar rendimiento antes de cargar la app
+    PerformanceConfig.initialize();
 
-  // Configurar manejo de errores optimizado
-  FlutterError.onError = (FlutterErrorDetails details) {
-    final exceptionString = details.exception.toString();
-
-    // Ignorar errores comunes de overflow que no afectan funcionalidad
-    if (exceptionString.contains('RenderFlex overflowed') ||
-        exceptionString.contains('overflowed by') ||
-        exceptionString.contains('pixels on the')) {
-      debugPrint('Overflow detectado y manejado: ${details.exception}');
-      return;
+    // Cargar variables de entorno
+    try {
+      await dotenv.load(fileName: ".env");
+    } catch (e) {
+      debugPrint('⚠️ Error cargando .env: $e');
     }
 
-    // Ignorar errores de layout menores
-    if (exceptionString.contains('RenderBox') ||
-        exceptionString.contains('constraints') ||
-        exceptionString.contains('layout')) {
-      debugPrint('Error de layout detectado: ${details.exception}');
-      return;
+    // Inicializar formateo de fechas
+    await initializeDateFormatting('es', null);
+
+    // Configurar manejo de errores optimizado
+    FlutterError.onError = (FlutterErrorDetails details) {
+      final exceptionString = details.exception.toString();
+
+      // Manejar errores específicos de Surface
+      if (exceptionString.contains('nativeSurfaceCreated') ||
+          exceptionString.contains('FlutterJNI') ||
+          exceptionString.contains('SurfaceView') ||
+          exceptionString.contains('ViewConfiguration') ||
+          exceptionString.contains('size')) {
+        debugPrint('🔧 Error de Surface/ViewConfiguration detectado y manejado: ${details.exception}');
+        return;
+      }
+
+      // Ignorar errores comunes de overflow que no afectan funcionalidad
+      if (exceptionString.contains('RenderFlex overflowed') ||
+          exceptionString.contains('overflowed by') ||
+          exceptionString.contains('pixels on the')) {
+        debugPrint('Overflow detectado y manejado: ${details.exception}');
+        return;
+      }
+
+      // Ignorar errores de layout menores
+      if (exceptionString.contains('RenderBox') ||
+          exceptionString.contains('constraints') ||
+          exceptionString.contains('layout')) {
+        debugPrint('Error de layout detectado: ${details.exception}');
+        return;
+      }
+
+      // Ignorar errores de performance warnings
+      if (exceptionString.contains('Performance Warning') ||
+          exceptionString.contains('FPS dropped')) {
+        return;
+      }
+
+      // Solo mostrar errores críticos
+      FlutterError.presentError(details);
+    };
+
+    runApp(const CusApp());
+
+    // Iniciar monitoreo de rendimiento en debug mode
+    if (const bool.fromEnvironment('dart.vm.product') == false) {
+      PerformanceMonitor().startMonitoring();
     }
-
-    // Ignorar errores de performance warnings
-    if (exceptionString.contains('Performance Warning') ||
-        exceptionString.contains('FPS dropped')) {
-      return;
-    }
-
-    // Solo mostrar errores críticos
-    FlutterError.presentError(details);
-  };
-
-  runApp(const CusApp());
-
-  // Iniciar monitoreo de rendimiento en debug mode
-  if (const bool.fromEnvironment('dart.vm.product') == false) {
-    PerformanceMonitor().startMonitoring();
+  } catch (e, stackTrace) {
+    debugPrint('💥 Error crítico en main(): $e');
+    debugPrint('Stack trace: $stackTrace');
+    
+    // Ejecutar la app con configuración mínima
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  'Error de inicialización',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text('$e'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    // Reintentar inicialización
+                    main();
+                  },
+                  child: const Text('Reintentar'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

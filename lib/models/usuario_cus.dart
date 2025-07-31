@@ -2,12 +2,55 @@
 
 // ignore_for_file: avoid_print
 
-// Enum para definir los tipos de perfil
+/// Enum para definir los tipos de perfil en el sistema CUS
 enum TipoPerfilCUS {
+  /// Perfil para ciudadanos con folio CUS
   ciudadano,
+  
+  /// Perfil para trabajadores del gobierno con nómina
   trabajador,
+  
+  /// Perfil para personas morales/organizaciones con RFC de 12 dígitos
   personaMoral,
-  usuario, // Tipo genérico o de fallback
+  
+  /// Perfil genérico para usuarios sin clasificación específica
+  usuario,
+  
+  /// Alias para personaMoral (mantener compatibilidad)
+  organizacion,
+}
+
+/// Extensión para obtener descripciones legibles de los tipos de perfil
+extension TipoPerfilCUSExtension on TipoPerfilCUS {
+  /// Obtiene la descripción en español del tipo de perfil
+  String get descripcion {
+    switch (this) {
+      case TipoPerfilCUS.ciudadano:
+        return 'Ciudadano';
+      case TipoPerfilCUS.trabajador:
+        return 'Trabajador del Gobierno';
+      case TipoPerfilCUS.personaMoral:
+      case TipoPerfilCUS.organizacion:
+        return 'Organización/Empresa';
+      case TipoPerfilCUS.usuario:
+        return 'Usuario General';
+    }
+  }
+
+  /// Indica si el perfil requiere folio CUS
+  bool get requiereFolio {
+    return this == TipoPerfilCUS.ciudadano;
+  }
+
+  /// Indica si el perfil requiere número de nómina
+  bool get requiereNomina {
+    return this == TipoPerfilCUS.trabajador;
+  }
+
+  /// Indica si el perfil requiere RFC
+  bool get requiereRFC {
+    return this == TipoPerfilCUS.personaMoral || this == TipoPerfilCUS.organizacion;
+  }
 }
 
 class DocumentoCUS {
@@ -22,21 +65,76 @@ class DocumentoCUS {
   });
 
   factory DocumentoCUS.fromJson(Map<String, dynamic> json) {
-    return DocumentoCUS(
-      nombreDocumento: json['nombreDocumento']?.toString() ??
-          json['nombre_documento']?.toString() ??
-          json['name']?.toString() ??
-          json['documento']?.toString() ??
-          'Documento sin nombre',
-      urlDocumento: json['urlDocumento']?.toString() ??
-          json['url_documento']?.toString() ??
-          json['url']?.toString() ??
-          json['link']?.toString() ??
-          '',
-      uploadDate: json['uploadDate']?.toString() ??
-          json['upload_date']?.toString() ??
-          json['fecha_subida']?.toString(),
+    print('[DocumentoCUS] 🔍 PROCESANDO DOCUMENTO: $json');
+    
+    // Buscar el nombre del documento en múltiples campos posibles
+    String nombreDoc = json['nombre_documento']?.toString() ?? 
+                      json['nombreDocumento']?.toString() ?? 
+                      json['nombre']?.toString() ?? 
+                      json['name']?.toString() ?? 
+                      json['title']?.toString() ?? 
+                      json['filename']?.toString() ?? 
+                      json['original_filename']?.toString() ?? 
+                      json['display_name']?.toString() ?? 
+                      'Documento sin nombre';
+
+    // Buscar la URL del documento en múltiples campos posibles
+    String urlDoc = json['url_documento']?.toString() ?? 
+                   json['urlDocumento']?.toString() ?? 
+                   json['url']?.toString() ?? 
+                   json['secure_url']?.toString() ?? 
+                   json['public_url']?.toString() ?? 
+                   json['link']?.toString() ?? 
+                   json['file_url']?.toString() ?? 
+                   json['cloudinary_url']?.toString() ?? 
+                   json['path']?.toString() ?? 
+                   '';
+
+    // Buscar la fecha en múltiples campos posibles
+    String? fechaDoc = json['upload_date']?.toString() ?? 
+                      json['uploadDate']?.toString() ?? 
+                      json['fecha']?.toString() ?? 
+                      json['created_at']?.toString() ?? 
+                      json['fechaSubida']?.toString() ?? 
+                      json['timestamp']?.toString() ?? 
+                      json['date']?.toString();
+
+    print('[DocumentoCUS] 📄 Nombre extraído: $nombreDoc');
+    print('[DocumentoCUS] 🔗 URL extraída: $urlDoc');
+    print('[DocumentoCUS] 📅 Fecha extraída: $fechaDoc');
+
+    // Validar y procesar la URL de Cloudinary
+    if (urlDoc.isNotEmpty) {
+      // Si la URL ya es completa y válida, usarla tal como está
+      if (urlDoc.startsWith('https://res.cloudinary.com/')) {
+        print('[DocumentoCUS] ✅ URL de Cloudinary válida detectada');
+      } 
+      // Si no es completa pero contiene elementos de Cloudinary, intentar construirla
+      else if (!urlDoc.startsWith('http') && (urlDoc.contains('/') || urlDoc.length > 10)) {
+        print('[DocumentoCUS] 🔧 Intentando construir URL de Cloudinary...');
+        // Formato típico de Cloudinary: https://res.cloudinary.com/cloud-name/image/upload/v1234567890/path/file.pdf
+        urlDoc = 'https://res.cloudinary.com/dsngx5ckc/raw/upload/$urlDoc';
+        print('[DocumentoCUS] 🔧 URL construida: $urlDoc');
+      }
+      
+      // Validación final de URL
+      if (urlDoc.startsWith('http')) {
+        print('[DocumentoCUS] ✅ URL final válida: $urlDoc');
+      } else {
+        print('[DocumentoCUS] ⚠️ URL no válida después del procesamiento: $urlDoc');
+      }
+    } else {
+      print('[DocumentoCUS] ❌ URL de documento vacía para $nombreDoc');
+    }
+
+    final documento = DocumentoCUS(
+      nombreDocumento: nombreDoc,
+      urlDocumento: urlDoc,
+      uploadDate: fechaDoc,
     );
+    
+    print('[DocumentoCUS] 🎯 Documento creado: ${documento.nombreDocumento} -> ${documento.urlDocumento}');
+    return documento;
   }
 
   Map<String, dynamic> toJson() {
@@ -52,34 +150,35 @@ class UsuarioCUS {
   // Tipo de perfil
   final TipoPerfilCUS tipoPerfil;
 
-  // Identificadores específicos por tipo
-  final String? folio; // Solo para ciudadanos
-  final String? nomina; // Solo para trabajadores
-  final String? idCiudadano; // ID del ciudadano
-
-  // Información básica común
+  // Identificadores
   final String? usuarioId;
+  final String? folio; // Para ciudadanos
+  final String? nomina; // Para trabajadores
+  final String? idCiudadano;
+  final String? rfc; // CORRECIÓN: Campo RFC agregado
+
+  // Información básica
   final String nombre;
   final String? nombreCompleto;
+  final String? razonSocial; // Para organizaciones
 
-  // Información Personal común
+  // Información Personal (puede ser del representante legal)
   final String curp;
   final String? fechaNacimiento;
   final String? nacionalidad;
+  final String? estadoCivil;
 
-  // Información de Contacto común
+  // Información de Contacto
   final String email;
   final String? telefono;
   final String? calle;
   final String? asentamiento;
+  final String? estado;
   final String? codigoPostal;
   final String? direccion;
 
-  // Información Laboral
+  // Información Laboral (para trabajadores o info de la empresa)
   final String? ocupacion;
-  final String? razonSocial;
-  final String? estado;
-  final String? estadoCivil;
   final String? departamento;
   final String? puesto;
 
@@ -112,168 +211,266 @@ class UsuarioCUS {
     this.puesto,
     this.documentos,
     this.foto,
+    this.rfc, // CORRECIÓN: Agregado al constructor
   });
 
   factory UsuarioCUS.fromJson(Map<String, dynamic> json) {
-    // Función helper para obtener valores de múltiples claves posibles
+    print('[UsuarioCUS] ========== INICIANDO PARSEO DE DATOS ==========');
+
     String? getStringValue(List<String> keys) {
       for (final key in keys) {
         final value = json[key];
         if (value != null &&
             value.toString().trim().isNotEmpty &&
             value.toString() != 'null') {
+          print('[UsuarioCUS] ✅ Encontrado $key: $value');
           return value.toString().trim();
         }
       }
       return null;
     }
 
-    // Obtener identificadores para determinar el tipo de perfil
-    final folio = getStringValue(['folio', 'folioCUS', 'folio_cus']);
-    final nomina = getStringValue(['no_nomina', 'nomina', 'nómina', 'numeroNomina']);
-    final idCiudadano = getStringValue([
-      'id_ciudadano', 
-      'idCiudadano', 
-      'ciudadano_id',
-      'id_usuario_general',
-      'idUsuarioGeneral',
-      'usuario_general_id',
-      'subGeneral',
-      'sub'
-    ]);
+    // --- Extracción de Datos ---
+    final folio = getStringValue(['folio', 'folioCUS']);
+    final nomina = getStringValue(['no_nomina', 'nomina']);
+    final idCiudadano = getStringValue(['id_ciudadano', 'idCiudadano', 'sub']);
+    final razonSocial = getStringValue(
+        ['razonSocial', 'razon_social', 'nombreEmpresa', 'businessName']);
 
-    // Debug logging para nómina
-    print('[UsuarioCUS] 🎯 Nómina obtenida en modelo: $nomina');
-    if (nomina != null) {
-      print('[UsuarioCUS] ✅ Nómina encontrada, será asignada al usuario');
-    }
+    // CORRECIÓN: Se usa una variable dedicada para el RFC y se busca en múltiples claves
+    final rfcValue = getStringValue(
+        ['rfc', 'RFC', 'rfcOrganizacion', 'rfc_organizacion', 'rfcEmpresa']);
 
-    // Obtener el tipo de perfil explícito si viene en los datos
-    final tipoPerfilExplicito = getStringValue([
-      'tipoPerfil', 
-      'tipo_perfil', 
-      'tipoUsuario', 
-      'tipo_usuario',
-      'userType',
-      'user_type'
-    ]);
-
-    // Debug logging
-    print('[UsuarioCUS] Determinando tipo de perfil...');
-    print('[UsuarioCUS] Folio: $folio');
-    print('[UsuarioCUS] Nómina: $nomina');
-    print('[UsuarioCUS] ID Ciudadano: $idCiudadano');
-    print('[UsuarioCUS] Tipo perfil explícito: $tipoPerfilExplicito');
-
-    // Determinar tipo de perfil basado en identificadores y datos disponibles
-    TipoPerfilCUS tipoPerfil;
+    final tipoPerfilExplicito =
+        getStringValue(['tipoPerfil', 'tipo_perfil', 'userType']);
+    final curp = getStringValue(['curp', 'CURP']);
+    final nombre = getStringValue(['nombre', 'name', 'firstName']) ?? '';
+    final email = getStringValue(['email', 'correo', 'mail']) ?? '';
     
-    // Primero verificar si viene explícitamente en los datos
+    // DIAGNÓSTICO: Buscar fecha de nacimiento en múltiples campos
+    final fechaNacimiento = getStringValue([
+      'fechaNacimiento', 
+      'fecha_nacimiento', 
+      'birthDate', 
+      'birth_date', 
+      'dateOfBirth', 
+      'date_of_birth',
+      'nacimiento',
+      'birthday',
+      'fecha'
+    ]);
+    print('[UsuarioCUS] 🎂 Fecha de nacimiento encontrada: $fechaNacimiento');
+
+    // --- Lógica de Detección de Perfil ---
+    TipoPerfilCUS tipoPerfil;
+
     if (tipoPerfilExplicito != null) {
-      print('[UsuarioCUS] Usando tipo de perfil explícito: $tipoPerfilExplicito');
+      print('[UsuarioCUS] ✅ Usando tipo explícito: $tipoPerfilExplicito');
       switch (tipoPerfilExplicito.toLowerCase()) {
         case 'ciudadano':
         case 'persona_fisica':
-        case 'fisica':
-        case 'citizen':
           tipoPerfil = TipoPerfilCUS.ciudadano;
           break;
         case 'trabajador':
-        case 'employee':
-        case 'worker':
           tipoPerfil = TipoPerfilCUS.trabajador;
           break;
         case 'persona_moral':
-        case 'moral':
+        case 'organizacion':
         case 'empresa':
-        case 'company':
           tipoPerfil = TipoPerfilCUS.personaMoral;
           break;
         default:
           tipoPerfil = TipoPerfilCUS.usuario;
       }
-    }
-    // Si no viene explícito, determinar por identificadores
-    else if (folio != null && folio.isNotEmpty) {
-      print('[UsuarioCUS] Tipo determinado por folio: ciudadano');
-      tipoPerfil = TipoPerfilCUS.ciudadano;
+    } else if (razonSocial != null && razonSocial.isNotEmpty) {
+      print(
+          '[UsuarioCUS] ✅ ORGANIZACIÓN detectada por Razón Social: $razonSocial');
+      tipoPerfil = TipoPerfilCUS.personaMoral;
+    } else if (rfcValue != null && rfcValue.length == 12) {
+      print(
+          '[UsuarioCUS] ✅ ORGANIZACIÓN detectada por RFC de 12 caracteres: $rfcValue');
+      tipoPerfil = TipoPerfilCUS.personaMoral;
     } else if (nomina != null && nomina.isNotEmpty) {
-      print('[UsuarioCUS] Tipo determinado por nómina: trabajador');
+      print('[UsuarioCUS] ✅ TRABAJADOR detectado por nómina: $nomina');
       tipoPerfil = TipoPerfilCUS.trabajador;
-    } else if (idCiudadano != null && idCiudadano.isNotEmpty) {
-      // Si tiene ID ciudadano, es una persona física (ciudadano)
-      print('[UsuarioCUS] Tipo determinado por ID ciudadano: ciudadano');
+    } else if (folio != null && folio.isNotEmpty) {
+      print('[UsuarioCUS] ✅ CIUDADANO detectado por folio: $folio');
       tipoPerfil = TipoPerfilCUS.ciudadano;
     } else {
-      // Verificar otros indicadores de persona física vs moral
-      final razonSocial = getStringValue(['razonSocial', 'razon_social', 'empresa']);
-      final curp = getStringValue(['curp', 'CURP']);
-      getStringValue(['rfc', 'RFC']);
-      
-      print('[UsuarioCUS] Verificando otros indicadores...');
-      print('[UsuarioCUS] Razón social: $razonSocial');
-      print('[UsuarioCUS] CURP: $curp');
-      
-      if (razonSocial != null && razonSocial.isNotEmpty) {
-        print('[UsuarioCUS] Tipo determinado por razón social: persona moral');
-        tipoPerfil = TipoPerfilCUS.personaMoral;
-      } else if (curp != null && curp.isNotEmpty && curp != 'Sin CURP') {
-        // Si tiene CURP, es persona física
-        print('[UsuarioCUS] Tipo determinado por CURP: ciudadano');
-        tipoPerfil = TipoPerfilCUS.ciudadano;
-      } else {
-        // Por defecto, asumir ciudadano si no hay indicadores claros de persona moral
-        print('[UsuarioCUS] Tipo determinado por defecto: ciudadano');
-        tipoPerfil = TipoPerfilCUS.ciudadano;
-      }
+      print('[UsuarioCUS] ⚠️ Tipo determinado por defecto: USUARIO (Fallback)');
+      tipoPerfil = (curp != null && curp.length == 18)
+          ? TipoPerfilCUS.ciudadano
+          : TipoPerfilCUS.usuario;
     }
 
-    print('[UsuarioCUS] Tipo de perfil final: $tipoPerfil');
+    print('[UsuarioCUS] 🎯 TIPO DE PERFIL FINAL: $tipoPerfil');
+    print('[UsuarioCUS] ==================================================');
 
-    // Extraer documentos si existen
     List<DocumentoCUS>? documentosList;
     final documentosData = json['documentos'] ?? json['documents'];
     if (documentosData != null && documentosData is List) {
       documentosList = documentosData
-          .map((doc) =>
-              DocumentoCUS.fromJson(doc is Map<String, dynamic> ? doc : {}))
+          .map((doc) => DocumentoCUS.fromJson(doc as Map<String, dynamic>))
           .toList();
+      print('[UsuarioCUS] ✅ Documentos parseados: ${documentosList.length}');
+      for (final doc in documentosList) {
+        print('[UsuarioCUS] 📄 Documento: ${doc.nombreDocumento} -> ${doc.urlDocumento}');
+      }
     }
 
     return UsuarioCUS(
       tipoPerfil: tipoPerfil,
-      usuarioId: getStringValue(
-          ['usuarioId', 'usuario_id', 'userId', 'id', 'user_id']),
+      usuarioId: getStringValue(['usuarioId', 'usuario_id', 'userId', 'id']),
       folio: folio,
       nomina: nomina,
       idCiudadano: idCiudadano,
-      nombre: getStringValue(['nombre', 'name', 'firstName', 'first_name']) ??
-          'Usuario Sin Nombre',
-      nombreCompleto: getStringValue(
-          ['nombreCompleto', 'nombre_completo', 'fullName', 'full_name']),
-      curp: getStringValue(['curp', 'CURP', 'rfc', 'RFC']) ?? 'Sin CURP',
-      fechaNacimiento: getStringValue(
-          ['fechaNacimiento', 'fecha_nacimiento', 'birthDate', 'birth_date']),
+      nombre: nombre.isNotEmpty ? nombre : 'Usuario Sin Nombre',
+      nombreCompleto: getStringValue(['nombreCompleto', 'fullName']),
+      curp: curp ?? 'Sin CURP',
+      fechaNacimiento: fechaNacimiento,
       nacionalidad:
           getStringValue(['nacionalidad', 'nationality']) ?? 'Mexicana',
-      email: getStringValue(['email', 'correo', 'mail']) ??
-          'sin-email@ejemplo.com',
-      telefono: getStringValue(['telefono', 'phone', 'celular']),
+      email: email.isNotEmpty ? email : 'sin-email@ejemplo.com',
+      telefono: getStringValue(['telefono', 'phone']),
       calle: getStringValue(['calle', 'street']),
       asentamiento: getStringValue(['asentamiento', 'colonia']),
-      codigoPostal: getStringValue(['codigoPostal', 'codigo_postal', 'cp']),
+      codigoPostal: getStringValue(['codigoPostal', 'cp']),
       direccion: getStringValue(['direccion', 'address']),
-      ocupacion: getStringValue(['ocupacion', 'job', 'position']),
-      razonSocial: getStringValue(['razonSocial', 'razon_social', 'empresa']),
-      estado: getStringValue(['estado', 'status', 'state']),
-      estadoCivil: getStringValue(['estadoCivil', 'estado_civil']),
-      departamento: getStringValue(['departamento', 'department', 'area', 'secretaria']),
-      puesto: getStringValue(['puesto', 'position', 'cargo', 'job_title']),
+      ocupacion: getStringValue(['ocupacion', 'job']),
+      razonSocial: razonSocial,
+      estado: getStringValue(['estado', 'state']),
+      estadoCivil: getStringValue(['estadoCivil']),
+      departamento: getStringValue(['departamento', 'area']),
+      puesto: getStringValue(['puesto', 'position']),
       documentos: documentosList,
-      foto: getStringValue(['foto', 'photo', 'avatar', 'profilePicture']),
+      foto: getStringValue(['foto', 'photo', 'avatar']),
+      rfc: rfcValue, // CORRECIÓN: Asignando el valor de RFC parseado
     );
   }
 
+  // --- GETTERS PARA LA UI (Mejorados) ---
+
+  /// Obtiene el nombre a mostrar según el tipo de perfil
+  String get nombreDisplay {
+    if (tipoPerfil == TipoPerfilCUS.personaMoral || tipoPerfil == TipoPerfilCUS.organizacion) {
+      return razonSocial ?? nombre; // Prioriza razón social para organizaciones
+    }
+    return nombreCompleto ?? nombre;
+  }
+
+  /// Obtiene la nacionalidad con valor por defecto
+  String get nacionalidadDisplay {
+    return nacionalidad ?? 'Mexicana';
+  }
+
+  /// Obtiene la descripción del tipo de perfil
+  String get tipoPerfilDescripcion {
+    return tipoPerfil.descripcion;
+  }
+
+  /// Obtiene el identificador principal según el tipo de perfil
+  String? get identificadorPrincipal {
+    switch (tipoPerfil) {
+      case TipoPerfilCUS.ciudadano:
+        return folio ?? idCiudadano;
+      case TipoPerfilCUS.trabajador:
+        return nomina;
+      case TipoPerfilCUS.personaMoral:
+      case TipoPerfilCUS.organizacion:
+        return rfc;
+      case TipoPerfilCUS.usuario:
+        return usuarioId ?? idCiudadano;
+    }
+  }
+
+  /// Obtiene la etiqueta del identificador principal
+  String get etiquetaIdentificador {
+    switch (tipoPerfil) {
+      case TipoPerfilCUS.ciudadano:
+        return folio != null ? 'Folio CUS' : 'ID Ciudadano';
+      case TipoPerfilCUS.trabajador:
+        return 'Número de Nómina';
+      case TipoPerfilCUS.personaMoral:
+      case TipoPerfilCUS.organizacion:
+        return 'RFC';
+      case TipoPerfilCUS.usuario:
+        return 'ID Usuario';
+    }
+  }
+
+  /// Construye la dirección completa
+  String get direccionCompleta {
+    final partes = <String>[];
+    
+    if (calle?.isNotEmpty == true) partes.add(calle!);
+    if (asentamiento?.isNotEmpty == true) partes.add(asentamiento!);
+    if (estado?.isNotEmpty == true) partes.add(estado!);
+    if (codigoPostal?.isNotEmpty == true) partes.add('CP $codigoPostal');
+    
+    return partes.isNotEmpty ? partes.join(', ') : 'Sin dirección registrada';
+  }
+
+  /// Verifica si el perfil está completo según su tipo
+  bool get perfilCompleto {
+    // Validaciones básicas para todos los perfiles
+    if (nombre.isEmpty || email.isEmpty || curp.isEmpty) {
+      return false;
+    }
+
+    // Validaciones específicas por tipo de perfil
+    switch (tipoPerfil) {
+      case TipoPerfilCUS.ciudadano:
+        return folio?.isNotEmpty == true || idCiudadano?.isNotEmpty == true;
+      case TipoPerfilCUS.trabajador:
+        return nomina?.isNotEmpty == true;
+      case TipoPerfilCUS.personaMoral:
+      case TipoPerfilCUS.organizacion:
+        return rfc?.isNotEmpty == true && razonSocial?.isNotEmpty == true;
+      case TipoPerfilCUS.usuario:
+        return true; // Usuario genérico no requiere campos específicos
+    }
+  }
+
+  /// Obtiene una lista de campos faltantes para completar el perfil
+  List<String> get camposFaltantes {
+    final faltantes = <String>[];
+
+    if (nombre.isEmpty) faltantes.add('Nombre');
+    if (email.isEmpty) faltantes.add('Correo electrónico');
+    if (curp.isEmpty) faltantes.add('CURP');
+
+    switch (tipoPerfil) {
+      case TipoPerfilCUS.ciudadano:
+        if (folio?.isEmpty != false && idCiudadano?.isEmpty != false) {
+          faltantes.add('Folio CUS o ID Ciudadano');
+        }
+        break;
+      case TipoPerfilCUS.trabajador:
+        if (nomina?.isEmpty != false) faltantes.add('Número de Nómina');
+        break;
+      case TipoPerfilCUS.personaMoral:
+      case TipoPerfilCUS.organizacion:
+        if (rfc?.isEmpty != false) faltantes.add('RFC');
+        if (razonSocial?.isEmpty != false) faltantes.add('Razón Social');
+        break;
+      case TipoPerfilCUS.usuario:
+        break; // No requiere campos adicionales
+    }
+
+    return faltantes;
+  }
+
+  /// Verifica si tiene documentos cargados
+  bool get tieneDocumentos {
+    return documentos?.isNotEmpty == true;
+  }
+
+  /// Obtiene el número de documentos cargados
+  int get numeroDocumentos {
+    return documentos?.length ?? 0;
+  }
+
+  // Método toJson para serializar el objeto a JSON
   Map<String, dynamic> toJson() {
     return {
       'tipoPerfil': tipoPerfil.toString().split('.').last,
@@ -281,161 +478,28 @@ class UsuarioCUS {
       'folio': folio,
       'nomina': nomina,
       'idCiudadano': idCiudadano,
+      'rfc': rfc,
       'nombre': nombre,
       'nombreCompleto': nombreCompleto,
+      'razonSocial': razonSocial,
       'curp': curp,
       'fechaNacimiento': fechaNacimiento,
       'nacionalidad': nacionalidad,
+      'estadoCivil': estadoCivil,
       'email': email,
       'telefono': telefono,
       'calle': calle,
       'asentamiento': asentamiento,
+      'estado': estado,
       'codigoPostal': codigoPostal,
       'direccion': direccion,
       'ocupacion': ocupacion,
-      'razonSocial': razonSocial,
-      'estado': estado,
-      'estadoCivil': estadoCivil,
       'departamento': departamento,
       'puesto': puesto,
-      'foto': foto,
       'documentos': documentos?.map((doc) => doc.toJson()).toList(),
+      'foto': foto,
     };
   }
 
-  // --- GETTERS PARA LA UI ---
-
-  // Obtener el identificador principal según el tipo de perfil
-  String? get identificadorPrincipal {
-    switch (tipoPerfil) {
-      case TipoPerfilCUS.ciudadano:
-        return folio;
-      case TipoPerfilCUS.trabajador:
-        return nomina;
-      case TipoPerfilCUS.personaMoral:
-      case TipoPerfilCUS.usuario:
-        return null;
-    }
-  }
-
-  // Obtener la etiqueta del identificador
-  String get etiquetaIdentificador {
-    switch (tipoPerfil) {
-      case TipoPerfilCUS.ciudadano:
-        return 'Folio';
-      case TipoPerfilCUS.trabajador:
-        return 'Nómina';
-      case TipoPerfilCUS.personaMoral:
-      case TipoPerfilCUS.usuario:
-        return 'Sin identificador';
-    }
-  }
-
-  // Validar si el perfil tiene los campos requeridos
-  bool get esPerfilValido {
-    if (nombre.isEmpty || curp.isEmpty || email.isEmpty) return false;
-
-    switch (tipoPerfil) {
-      case TipoPerfilCUS.ciudadano:
-        return folio != null && folio!.isNotEmpty;
-      case TipoPerfilCUS.trabajador:
-        return nomina != null && nomina!.isNotEmpty;
-      case TipoPerfilCUS.personaMoral:
-      case TipoPerfilCUS.usuario:
-        return true; // No requieren identificador específico
-    }
-  }
-
-  // Getters de display para usar en la UI y evitar lógica en la vista
-  String get nombreDisplay => nombreCompleto ?? nombre;
-
-  String get curpDisplay =>
-      (curp.isEmpty || curp == 'Sin CURP') ? 'No especificado' : curp;
-
-  String get fechaNacimientoDisplay => fechaNacimiento ?? 'No especificada';
-
-  String get nacionalidadDisplay => nacionalidad ?? 'Mexicana';
-
-  String get emailDisplay => (email.isEmpty || email == 'sin-email@ejemplo.com')
-      ? 'No especificado'
-      : email;
-
-  String get telefonoDisplay => telefono ?? 'No especificado';
-
-  String get direccionCompleta {
-    final partes = [calle, asentamiento, codigoPostal]
-        .where((p) => p != null && p.isNotEmpty)
-        .toList();
-    if (partes.isNotEmpty) return partes.join(', ');
-    return direccion ?? 'No especificada';
-  }
-
-  String get departamentoDisplay => departamento ?? 'SECRETARIA DE ADMINISTRACION';
-
-  String get puestoDisplay => puesto ?? 'PROGRAMADOR DE SISTEMAS';
-
-  // Genera la lista de campos para la sección "Información Personal"
-  List<Map<String, String>> get camposEspecificos {
-    final campos = <Map<String, String>>[];
-
-    // Agrega el identificador principal (Folio o Nómina) solo si existe
-    if (identificadorPrincipal != null) {
-      campos.add({
-        'etiqueta': etiquetaIdentificador,
-        'valor': identificadorPrincipal!,
-        'icono': 'badge', // Ícono genérico para identificadores
-      });
-    }
-
-    campos.addAll([
-      {'etiqueta': 'CURP', 'valor': curpDisplay, 'icono': 'badge'},
-      {
-        'etiqueta': 'Fecha de Nacimiento',
-        'valor': fechaNacimientoDisplay,
-        'icono': 'cake'
-      },
-      {
-        'etiqueta': 'Nacionalidad',
-        'valor': nacionalidadDisplay,
-        'icono': 'flag'
-      },
-    ]);
-
-    return campos;
-  }
-
-  // Genera la lista de campos para la sección "Información de Contacto"
-  List<Map<String, String>> get camposContacto {
-    return [
-      {
-        'etiqueta': 'Correo Electrónico',
-        'valor': emailDisplay,
-        'icono': 'email'
-      },
-      {'etiqueta': 'Teléfono', 'valor': telefonoDisplay, 'icono': 'phone'},
-      {'etiqueta': 'Dirección', 'valor': direccionCompleta, 'icono': 'home'},
-    ];
-  }
-
-  // Getter para mostrar el tipo de perfil como String legible
-  String get tipoPerfilDisplay {
-    switch (tipoPerfil) {
-      case TipoPerfilCUS.ciudadano:
-        return 'Ciudadano';
-      case TipoPerfilCUS.trabajador:
-        return 'Trabajador';
-      case TipoPerfilCUS.personaMoral:
-        return 'Persona Moral';
-      case TipoPerfilCUS.usuario:
-        return 'Usuario';
-    }
-  }
-
-  get rfc => null;
-
-  get apellidoPaterno => null;
-
-  get primerApellido => null;
-
-  get segundoApellido => null;
+  // CORRECIÓN: Eliminado el getter `rfc` que devolvía null. Ahora es un campo de la clase.
 }
