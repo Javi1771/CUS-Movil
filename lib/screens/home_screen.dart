@@ -841,10 +841,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       children: [
         Container(
           width: double.infinity,
-          height: statusBarHeight + 100,
+          height: 80 + statusBarHeight, //* Altura de la barra de estado
           //* Padding para desplazar el contenido debajo de la barra de estado
-          padding: EdgeInsets.only(
-            top: statusBarHeight,
+          padding: const EdgeInsets.only(
+            top: 10,
             left: 20,
             right: 20,
             bottom: 16,

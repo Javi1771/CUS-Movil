@@ -1,5 +1,7 @@
 // screens/perfiles/perfil_ciudadano_screen.dart
 
+// ignore_for_file: avoid_print, use_build_context_synchronously
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -792,7 +794,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
   }
 
   Widget _buildLogoutButton(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: () => _showLogoutDialog(context),
