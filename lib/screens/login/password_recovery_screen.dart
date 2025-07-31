@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use, library_private_types_in_public_api, use_super_parameters
 
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 
 class PasswordRecoveryScreen extends StatefulWidget {
@@ -196,12 +197,9 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen>
                             child: ElevatedButton(
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Solicitud enviada'),
-                                      backgroundColor: regal700,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
+                                  AlertHelper.showAlert(
+                                    'Solicitud enviada',
+                                    type: AlertType.success,
                                   );
                                 }
                               },

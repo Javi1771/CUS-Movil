@@ -1,6 +1,7 @@
 // lib/screens/privacy_policy_screen.dart
 // ignore_for_file: library_private_types_in_public_api
 
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
@@ -73,7 +74,8 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
           Expanded(
             child: Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               elevation: 6,
               clipBehavior: Clip.antiAlias,
               child: Stack(
@@ -84,11 +86,9 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                     onDocumentLoaded: (_) => setState(() => _isLoading = false),
                     onDocumentLoadFailed: (details) {
                       setState(() => _isLoading = false);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Error al cargar PDF: ${details.error}'),
-                          backgroundColor: govBlue,
-                        ),
+                      AlertHelper.showAlert(
+                        'Error al cargar PDF: ${details.error}',
+                        type: AlertType.error,
                       );
                     },
                   ),
@@ -106,7 +106,8 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
               icon: const Icon(Icons.close, size: 20, color: govBlue),
               label: const Text('Cerrar', style: TextStyle(color: govBlue)),
               style: TextButton.styleFrom(
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                textStyle:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               onPressed: () => Navigator.pop(context),
             ),

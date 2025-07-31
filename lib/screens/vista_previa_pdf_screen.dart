@@ -1,3 +1,4 @@
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 
@@ -25,8 +26,9 @@ class VistaPreviaPDFScreen extends StatelessWidget {
         autoSpacing: true,
         pageFling: true,
         onError: (error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al cargar PDF: $error')),
+          AlertHelper.showAlert(
+            'Error al cargar PDF: $error',
+            type: AlertType.error,
           );
         },
         onRender: (pages) {

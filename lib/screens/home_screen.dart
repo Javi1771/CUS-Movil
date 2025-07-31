@@ -1,3 +1,4 @@
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:cus_movil/screens/perfil_usuario_screen.dart';
@@ -304,13 +305,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
       //! Crear datos simulados en caso de error
       setState(() => _weatherData = null);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Usando datos climáticos simulados'),
-          backgroundColor: Colors.orange,
-        ));
-      }
     } finally {
       if (mounted) setState(() => _isLoadingWeather = false);
     }
@@ -420,12 +414,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (permission != LocationPermission.always &&
           permission != LocationPermission.whileInUse) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                  'Por favor, otorga permisos de ubicación para actualizar el clima.'),
-              backgroundColor: Colors.redAccent,
-            ),
+          AlertHelper.showAlert(
+            'Por favor, otorga permisos de ubicación para actualizar el clima.',
+            type: AlertType.error,
           );
         }
         return;

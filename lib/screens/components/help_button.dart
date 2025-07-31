@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -69,8 +70,9 @@ class _HelpButtonState extends State<HelpButton>
       //* Usamos externalApplication para forzar app nativa de correo
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo abrir la aplicación de correo')),
+      AlertHelper.showAlert(
+        'No se pudo abrir la aplicación de correo',
+        type: AlertType.error,
       );
     }
   }
@@ -78,8 +80,9 @@ class _HelpButtonState extends State<HelpButton>
   void _copyEmail() {
     Clipboard.setData(ClipboardData(text: widget.supportEmail));
     Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Email copiado al portapapeles')),
+    AlertHelper.showAlert(
+      'Email copiado al portapapeles',
+      type: AlertType.success,
     );
   }
 

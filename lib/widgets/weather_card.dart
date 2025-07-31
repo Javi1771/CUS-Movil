@@ -1,3 +1,4 @@
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:cus_movil/models/weather_data.dart';
 import 'package:cus_movil/services/weather_service.dart';
@@ -76,9 +77,9 @@ class _WeatherCardState extends State<WeatherCard>
     debugPrint(
         '[WeatherCard] _showWeeklyForecast lat=${widget.latitude} lon=${widget.longitude}');
     if (widget.latitude == null || widget.longitude == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Esperando ubicación para pronóstico semanal')),
+      AlertHelper.showAlert(
+        'Esperando ubicación para pronóstico semanal',
+        type: AlertType.warning,
       );
       return;
     }
@@ -125,7 +126,20 @@ class _WeatherCardState extends State<WeatherCard>
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final monthNames = [ 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC' ];
+    final monthNames = [
+      'ENE',
+      'FEB',
+      'MAR',
+      'ABR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AGO',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DIC'
+    ];
 
     final color = widget.weatherData?.weatherColor ?? const Color(0xFF667eea);
     final gradient = widget.weatherData?.weatherGradient ??
@@ -810,9 +824,7 @@ class _WeeklyForecastModalState extends State<WeeklyForecastModal> {
       disp['day'] as int,
     );
     final dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    final dayName = index == 0
-        ? 'Hoy'
-        : dayNames[date.weekday % 7];
+    final dayName = index == 0 ? 'Hoy' : dayNames[date.weekday % 7];
 
     //? 2) Temperaturas
     final maxTemp =
@@ -890,7 +902,8 @@ class _WeeklyForecastModalState extends State<WeeklyForecastModal> {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.arrow_downward, size: 16, color: Colors.white70),
+                  const Icon(Icons.arrow_downward,
+                      size: 16, color: Colors.white70),
                   const SizedBox(width: 4),
                   Text(
                     '$minTemp°',
@@ -907,5 +920,4 @@ class _WeeklyForecastModalState extends State<WeeklyForecastModal> {
       ),
     );
   }
-
 }

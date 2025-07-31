@@ -4,6 +4,7 @@
 import 'package:cus_movil/screens/widgets/navigation_buttons.dart';
 import 'package:cus_movil/screens/widgets/steap_header.dart';
 import 'package:cus_movil/utils/codigos_postales_loader.dart';
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
@@ -45,8 +46,9 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
 
     _loader.cargarDesdeXML().catchError((e) {
       debugPrint('Error cargando CP XML: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error cargando datos de CP')),
+      AlertHelper.showAlert(
+        'Error al cargar PDF: $e',
+        type: AlertType.error,
       );
     });
 
@@ -178,8 +180,9 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
 
   Future<void> _useCurrentLocation() async {
     if (!await Geolocator.isLocationServiceEnabled()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Activa tu GPS para continuar')),
+      AlertHelper.showAlert(
+        'Activa tu GPS para continuar',
+        type: AlertType.warning,
       );
       return;
     }
@@ -190,8 +193,9 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
       perm = await Geolocator.requestPermission();
       if (perm != LocationPermission.always &&
           perm != LocationPermission.whileInUse) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Permiso de ubicación denegado')),
+        AlertHelper.showAlert(
+          'Permiso de ubicación denegado',
+          type: AlertType.error,
         );
         return;
       }

@@ -1,3 +1,4 @@
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -32,7 +33,8 @@ Future<void> main() async {
           exceptionString.contains('SurfaceView') ||
           exceptionString.contains('ViewConfiguration') ||
           exceptionString.contains('size')) {
-        debugPrint('🔧 Error de Surface/ViewConfiguration detectado y manejado: ${details.exception}');
+        debugPrint(
+            '🔧 Error de Surface/ViewConfiguration detectado y manejado: ${details.exception}');
         return;
       }
 
@@ -71,7 +73,7 @@ Future<void> main() async {
   } catch (e, stackTrace) {
     debugPrint('💥 Error crítico en main(): $e');
     debugPrint('Stack trace: $stackTrace');
-    
+
     // Ejecutar la app con configuración mínima
     runApp(
       MaterialApp(
@@ -111,6 +113,8 @@ class CusApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scaffoldMessengerKey: AlertHelper.messengerKey,
+
       title: 'Clave Única Sanjuanense',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -151,9 +155,11 @@ class CusApp extends StatelessWidget {
         if (pageBuilder != null) {
           return PageRouteBuilder(
             settings: settings,
-            pageBuilder: (context, animation, secondaryAnimation) => pageBuilder(context),
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                pageBuilder(context),
             transitionDuration: const Duration(milliseconds: 200),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return FadeTransition(
                 opacity: animation,
                 child: child,

@@ -1,6 +1,7 @@
 // screens/perfiles/perfil_trabajador_screen.dart
 
 import 'dart:io';
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/usuario_cus.dart';
@@ -75,7 +76,8 @@ class _PerfilTrabajadorScreenState extends State<PerfilTrabajadorScreen> {
   Future<void> _pickImage() async {
     try {
       final picker = ImagePicker();
-      final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+      final picked =
+          await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
       if (picked != null) {
         setState(() {
           _imageFile = File(picked.path);
@@ -83,15 +85,16 @@ class _PerfilTrabajadorScreenState extends State<PerfilTrabajadorScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Error al seleccionar imagen: ${e.toString()}')),
+        AlertHelper.showAlert(
+          'Error al seleccionar imagen: ${e.toString()}',
+          type: AlertType.error,
         );
       }
     }
   }
 
-  String _getDisplayValue(dynamic value, {String defaultValue = 'No especificado'}) {
+  String _getDisplayValue(dynamic value,
+      {String defaultValue = 'No especificado'}) {
     if (value == null || (value is String && value.trim().isEmpty)) {
       return defaultValue;
     }
@@ -111,12 +114,15 @@ class _PerfilTrabajadorScreenState extends State<PerfilTrabajadorScreen> {
 
   String _getIdGeneral() {
     if (usuario == null) return 'Sin ID';
-    if (usuario!.nomina != null && usuario!.nomina!.isNotEmpty)
+    if (usuario!.nomina != null && usuario!.nomina!.isNotEmpty) {
       return usuario!.nomina!;
-    if (usuario!.usuarioId != null && usuario!.usuarioId!.isNotEmpty)
+    }
+    if (usuario!.usuarioId != null && usuario!.usuarioId!.isNotEmpty) {
       return usuario!.usuarioId!;
-    if (usuario!.folio != null && usuario!.folio!.isNotEmpty)
+    }
+    if (usuario!.folio != null && usuario!.folio!.isNotEmpty) {
       return usuario!.folio!;
+    }
     return 'Sin ID';
   }
 
@@ -179,7 +185,7 @@ class _PerfilTrabajadorScreenState extends State<PerfilTrabajadorScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: 20),
-                                  
+
                                   // Información Laboral
                                   _buildSection(
                                     title: 'Información Laboral',
@@ -187,7 +193,8 @@ class _PerfilTrabajadorScreenState extends State<PerfilTrabajadorScreen> {
                                     children: [
                                       _buildInfoCard(
                                           'Departamento',
-                                          _getDisplayValue(usuario!.departamento),
+                                          _getDisplayValue(
+                                              usuario!.departamento),
                                           imagenesIconos['department']!,
                                           Icons.business),
                                       _buildInfoCard(
@@ -197,13 +204,14 @@ class _PerfilTrabajadorScreenState extends State<PerfilTrabajadorScreen> {
                                           Icons.work),
                                       _buildInfoCard(
                                           'Razón Social',
-                                          _getDisplayValue(usuario!.razonSocial),
+                                          _getDisplayValue(
+                                              usuario!.razonSocial),
                                           imagenesIconos['work']!,
                                           Icons.business),
                                     ],
                                   ),
                                   const SizedBox(height: 20),
-                                  
+
                                   // Información de Contacto
                                   _buildSection(
                                     title: 'Información de Contacto',

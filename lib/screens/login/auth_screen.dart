@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:cus_movil/services/auth_service.dart';
 import 'package:cus_movil/utils/rfc_test_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cus_movil/widgets/alert_helper.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -154,13 +155,11 @@ class _AuthScreenState extends State<AuthScreen> {
       if (result == true) {
         debugPrint('✅ Login exitoso, navegando a home');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('¡Bienvenido!'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
+          AlertHelper.showAlert(
+            '¡Bienvenido!',
+            type: AlertType.success,
           );
+
           Navigator.pushReplacementNamed(context, '/home');
         }
       } else {
@@ -221,13 +220,9 @@ class _AuthScreenState extends State<AuthScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'No se pudo abrir el enlace. Verifica tu conexión a internet.'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-          ),
+        AlertHelper.showAlert(
+          'No se pudo abrir el enlace. Verifica tu conexión a internet.',
+          type: AlertType.error,
         );
       }
     }

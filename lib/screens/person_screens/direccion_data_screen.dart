@@ -1,5 +1,6 @@
 // ignore_for_file: unused_local_variable, use_build_context_synchronously, deprecated_member_use
 
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -113,8 +114,9 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
       _loader.cargarDesdeXML().catchError((e) {
         debugPrint('Error cargando CP XML: $e');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error cargando datos de CP')),
+          AlertHelper.showAlert(
+            'Error cargando datos de CP',
+            type: AlertType.error,
           );
         }
       });
@@ -244,11 +246,10 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
         if (permission != LocationPermission.always &&
             permission != LocationPermission.whileInUse) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Activa tu GPS y otorga permisos para continuar'),
-                duration: Duration(seconds: 3),
-              ),
+            AlertHelper.showAlert(
+              'Activa tu GPS y otorga permisos para continuar',
+              type: AlertType.warning,
+              duration: const Duration(seconds: 3),
             );
           }
           return;
@@ -263,22 +264,19 @@ class _DireccionDataScreenState extends State<DireccionDataScreen> {
       if (latLng != null && mounted) {
         await _populateFromCoordinates(latLng);
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text('No se pudo obtener la ubicación. Intenta nuevamente.'),
-            duration: Duration(seconds: 3),
-          ),
+        AlertHelper.showAlert(
+          'No se pudo obtener la ubicación. Intenta nuevamente.',
+          type: AlertType.error,
+          duration: const Duration(seconds: 3),
         );
       }
     } catch (e) {
       debugPrint('Error obteniendo ubicación: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error obteniendo ubicación. Verifica tu conexión.'),
-            duration: Duration(seconds: 3),
-          ),
+        AlertHelper.showAlert(
+          'Error obteniendo ubicación. Verifica tu conexión.',
+          type: AlertType.error,
+          duration: const Duration(seconds: 3),
         );
       }
     } finally {

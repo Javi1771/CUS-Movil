@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:io';
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/usuario_cus.dart';
@@ -89,9 +90,9 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Error al seleccionar imagen: ${e.toString()}')),
+        AlertHelper.showAlert(
+          'Error al seleccionar imagen: ${e.toString()}',
+          type: AlertType.error,
         );
       }
     }

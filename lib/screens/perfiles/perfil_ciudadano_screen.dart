@@ -1,6 +1,9 @@
 // screens/perfiles/perfil_ciudadano_screen.dart
 
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,7 +25,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
   File? _imageFile;
   bool _isLoading = true;
   String? _error;
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -53,7 +56,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -61,7 +64,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
       parent: _animationController,
       curve: Curves.easeOut,
     ));
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -105,7 +108,8 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
       _animationController.forward();
 
       // DIAGNÓSTICO: Verificar datos del usuario
-      print('[PerfilCiudadano] 🎂 Fecha de nacimiento: ${user.fechaNacimiento}');
+      print(
+          '[PerfilCiudadano] 🎂 Fecha de nacimiento: ${user.fechaNacimiento}');
       print('[PerfilCiudadano] 👤 Nombre: ${user.nombre}');
       print('[PerfilCiudadano] 👤 Nombre completo: ${user.nombreCompleto}');
       print('[PerfilCiudadano] 🆔 Folio: ${user.folio}');
@@ -131,25 +135,21 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
         setState(() {
           _imageFile = File(picked.path);
         });
-        
+
         // Feedback háptico
         HapticFeedback.lightImpact();
-        
+
         // Mostrar confirmación
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Foto de perfil actualizada'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
+        AlertHelper.showAlert(
+          'Foto de perfil actualizada',
+          type: AlertType.success,
+          duration: const Duration(seconds: 2),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al seleccionar imagen: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
+      AlertHelper.showAlert(
+        'Error al seleccionar imagen: ${e.toString()}',
+        type: AlertType.error,
       );
     }
   }
@@ -171,22 +171,25 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
     // 1. Priorizar nombreCompleto si existe y es diferente al nombre básico
     if (usuario!.nombreCompleto != null &&
         usuario!.nombreCompleto!.isNotEmpty &&
-        usuario!.nombreCompleto!.trim().length > usuario!.nombre.trim().length) {
-      print('[PerfilCiudadano] ✅ Usando nombreCompleto: ${usuario!.nombreCompleto}');
+        usuario!.nombreCompleto!.trim().length >
+            usuario!.nombre.trim().length) {
+      print(
+          '[PerfilCiudadano] ✅ Usando nombreCompleto: ${usuario!.nombreCompleto}');
       return usuario!.nombreCompleto!;
     }
 
     // 2. Si solo tenemos el nombre básico, verificar si parece incompleto
     String nombreFinal = usuario!.nombre;
-    
+
     if (nombreFinal.isNotEmpty && nombreFinal != 'Usuario Sin Nombre') {
       // Si el nombre no contiene espacios, probablemente solo es el primer nombre
       if (!nombreFinal.contains(' ')) {
-        print('[PerfilCiudadano] ⚠️ Nombre parece incompleto (sin apellidos): $nombreFinal');
+        print(
+            '[PerfilCiudadano] ⚠️ Nombre parece incompleto (sin apellidos): $nombreFinal');
         // Mostrar advertencia de que faltan apellidos
         return '$nombreFinal [Apellidos no disponibles]';
       }
-      
+
       // Si ya contiene espacios, probablemente es completo
       print('[PerfilCiudadano] ✅ Nombre parece completo: $nombreFinal');
       return nombreFinal;
@@ -228,14 +231,14 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
 
   String _getEtiquetaIdentificador() {
     if (usuario == null) return 'ID';
-    
+
     // Usar el getter del modelo que ya tiene la lógica correcta
     return usuario!.etiquetaIdentificador;
   }
 
   String _formatearFecha(String? fecha) {
     if (fecha == null || fecha.isEmpty) return 'Sin fecha';
-    
+
     try {
       final fechaDateTime = DateTime.parse(fecha);
       return '${fechaDateTime.day}/${fechaDateTime.month}/${fechaDateTime.year}';
@@ -361,7 +364,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                           imagenesIconos['person']!,
                           Icons.person,
                         ),
-                        
+
                         // Identificador principal (Folio o ID)
                         if (_getIdentificadorPrincipal().isNotEmpty &&
                             _getIdentificadorPrincipal() != 'Sin identificador')
@@ -371,7 +374,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                             imagenesIconos['badge']!,
                             Icons.confirmation_number,
                           ),
-                        
+
                         // CURP
                         _buildInfoCard(
                           'CURP',
@@ -379,7 +382,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                           imagenesIconos['badge']!,
                           Icons.badge,
                         ),
-                        
+
                         // Fecha de Nacimiento
                         _buildInfoCard(
                           'Fecha de Nacimiento',
@@ -387,7 +390,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                           imagenesIconos['cake']!,
                           Icons.cake,
                         ),
-                        
+
                         // Nacionalidad
                         _buildInfoCard(
                           'Nacionalidad',
@@ -395,23 +398,25 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                           imagenesIconos['flag']!,
                           Icons.flag,
                         ),
-                        
+
                         // Estado Civil (solo si existe)
                         if (usuario!.estadoCivil != null &&
                             usuario!.estadoCivil!.isNotEmpty)
                           _buildInfoCard(
                             'Estado Civil',
-                            _getDisplayValue(usuario!.estadoCivil, 'Sin estado civil'),
+                            _getDisplayValue(
+                                usuario!.estadoCivil, 'Sin estado civil'),
                             imagenesIconos['civil']!,
                             Icons.favorite,
                           ),
-                        
+
                         // Ocupación (solo si existe)
                         if (usuario!.ocupacion != null &&
                             usuario!.ocupacion!.isNotEmpty)
                           _buildInfoCard(
                             'Ocupación',
-                            _getDisplayValue(usuario!.ocupacion, 'Sin ocupación'),
+                            _getDisplayValue(
+                                usuario!.ocupacion, 'Sin ocupación'),
                             imagenesIconos['occupation']!,
                             Icons.work_outline,
                           ),
@@ -444,12 +449,12 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Estado del perfil
                     _buildPerfilStatus(),
-                    
+
                     const SizedBox(height: 30),
                     _buildLogoutButton(context),
                     const SizedBox(height: 50),
@@ -466,14 +471,16 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
   Widget _buildPerfilStatus() {
     final isCompleto = usuario!.perfilCompleto;
     final camposFaltantes = usuario!.camposFaltantes;
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isCompleto ? Colors.green.withOpacity(0.3) : Colors.orange.withOpacity(0.3),
+          color: isCompleto
+              ? Colors.green.withOpacity(0.3)
+              : Colors.orange.withOpacity(0.3),
           width: 1,
         ),
         boxShadow: [
@@ -507,9 +514,9 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
           ),
           const SizedBox(height: 12),
           Text(
-            isCompleto 
-              ? 'Tu perfil está completo y verificado.'
-              : 'Faltan algunos datos para completar tu perfil.',
+            isCompleto
+                ? 'Tu perfil está completo y verificado.'
+                : 'Faltan algunos datos para completar tu perfil.',
             style: const TextStyle(
               fontSize: 14,
               color: Color(0xFF64748B),
@@ -531,7 +538,8 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
               runSpacing: 4,
               children: camposFaltantes.map((campo) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.orange.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -595,7 +603,8 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -698,8 +707,8 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
         Row(
           children: [
             Image.asset(
-              iconPath, 
-              width: 28, 
+              iconPath,
+              width: 28,
               height: 28,
               errorBuilder: (_, __, ___) => const Icon(
                 Icons.info,
@@ -801,7 +810,8 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.red[600],
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           elevation: 2,
         ),
@@ -814,7 +824,8 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
               Icon(Icons.logout, color: Colors.red),
@@ -836,7 +847,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
               child: const Text("Cerrar sesión"),
               onPressed: () async {
                 Navigator.of(context).pop();
-                
+
                 // Mostrar indicador de carga
                 showDialog(
                   context: context,
@@ -845,7 +856,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                     child: CircularProgressIndicator(),
                   ),
                 );
-                
+
                 try {
                   await AuthService('temp').logout();
                   if (mounted) {
@@ -855,11 +866,9 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                 } catch (e) {
                   if (mounted) {
                     Navigator.of(context).pop(); // Cerrar loading
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error al cerrar sesión: $e'),
-                        backgroundColor: Colors.red,
-                      ),
+                    AlertHelper.showAlert(
+                      'Error al cerrar sesión: $e',
+                      type: AlertType.error,
                     );
                   }
                 }

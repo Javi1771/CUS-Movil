@@ -1,3 +1,4 @@
+import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/tramites_service.dart';
@@ -115,7 +116,6 @@ class _TramitesScreenState extends State<TramitesScreen>
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: Column(
@@ -859,8 +859,7 @@ class _TramitesScreenState extends State<TramitesScreen>
                       fontWeight: FontWeight.w500,
                     ),
                     child: Text(
-                      _formatTextWithCapitalization(
-                          tramite.descripcionEstado),
+                      _formatTextWithCapitalization(tramite.descripcionEstado),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade700,
@@ -1576,8 +1575,8 @@ class _TramitesScreenState extends State<TramitesScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Tooltip(
-                      message: _formatTextWithCapitalization(
-                          tramite.nombreTramite),
+                      message:
+                          _formatTextWithCapitalization(tramite.nombreTramite),
                       decoration: BoxDecoration(
                         color: tramite.colorEstado,
                         borderRadius: BorderRadius.circular(8),
@@ -1588,8 +1587,7 @@ class _TramitesScreenState extends State<TramitesScreen>
                         fontWeight: FontWeight.w500,
                       ),
                       child: Text(
-                        _formatTextWithCapitalization(
-                            tramite.nombreTramite),
+                        _formatTextWithCapitalization(tramite.nombreTramite),
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -1629,8 +1627,7 @@ class _TramitesScreenState extends State<TramitesScreen>
           ),
           const SizedBox(height: 12),
           Tooltip(
-            message: _formatTextWithCapitalization(
-                tramite.descripcionEstado),
+            message: _formatTextWithCapitalization(tramite.descripcionEstado),
             decoration: BoxDecoration(
               color: tramite.colorEstado,
               borderRadius: BorderRadius.circular(8),
@@ -1641,8 +1638,7 @@ class _TramitesScreenState extends State<TramitesScreen>
               fontWeight: FontWeight.w500,
             ),
             child: Text(
-              _formatTextWithCapitalization(
-                  tramite.descripcionEstado),
+              _formatTextWithCapitalization(tramite.descripcionEstado),
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey.shade700,
@@ -2019,11 +2015,9 @@ class _TramitesScreenState extends State<TramitesScreen>
       if (mounted) {
         Navigator.of(context).pop(); // Cerrar el diálogo de carga
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al obtener diagnóstico: $e'),
-            backgroundColor: const Color(0xFFCE1D81),
-          ),
+        AlertHelper.showAlert(
+          'Error al obtener diagnóstico: $e',
+          type: AlertType.error,
         );
       }
     }
