@@ -8,9 +8,20 @@ import 'package:cus_movil/services/location_service.dart';
 import 'package:cus_movil/services/user_data_service.dart';
 import 'package:cus_movil/services/tramites_service.dart';
 import 'package:cus_movil/models/usuario_cus.dart';
-import 'dart:async';                          
-import 'package:geolocator/geolocator.dart';  
+import 'dart:async';
+import 'package:geolocator/geolocator.dart';
 import 'package:cus_movil/models/weather_data.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:cus_movil/widgets/weather_card.dart';
+
+//* Configuración global de caché para imágenes
+final imageCacheManager = CacheManager(
+  Config(
+    'customCacheKey',
+    stalePeriod: const Duration(days: 7),
+    maxNrOfCacheObjects: 100,
+  ),
+);
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -62,8 +73,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isLoadingStats = false;
   bool _isLoadingActivity = false;
 
-  StreamSubscription<Position>? _posSub;   
-  Timer? _weatherDebounce;                 
+  StreamSubscription<Position>? _posSub;
+  Timer? _weatherDebounce;
 
   EstadisticasActividad? _estadisticas;
   List<ActividadReciente> _actividadReciente = [];
@@ -71,6 +82,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Animation<double>? _pulseAnimation;
   Animation<Offset>? _slideAnimation;
   Animation<double>? _fadeAnimation;
+
+  double? _currentLat;
+  double? _currentLon;
 
   @override
   void initState() {
@@ -151,7 +165,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
+  Future<bool> solicitarPermisosUbicacion() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    // !Si el permiso está denegado, lo solicitamos
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    //! Si fue denegado para siempre, mostramos una alerta
+    if (permission == LocationPermission.deniedForever) {
+      return false;
+    }
+
+    //* Permitido
+    return permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
+  }
+
   Future<void> _loadResumenGeneral() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoadingStats = true;
       _isLoadingActivity = true;
@@ -209,6 +243,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         _fadeController.forward();
       }
     } catch (e) {
+      debugPrint('[HomeScreen] Error cargando resumen general: $e');
       if (mounted) {
         setState(() {
           _estadisticas = EstadisticasActividad(
@@ -239,25 +274,67 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _fetchWeather(double lat, double lon) async {
+    // ← Si ya estamos cargando, no hacemos nada
+    if (_isLoadingWeather || !mounted) return;
+
+    _currentLat = lat;
+    _currentLon = lon;
+
+    setState(() => _isLoadingWeather = true);
+
     try {
-      setState(() => _isLoadingWeather = true);
+      debugPrint('[HomeScreen] Obteniendo clima para: $lat,$lon');
       final data = await WeatherService.getByCoords(lat: lat, lon: lon);
+
       if (!mounted) return;
+
+      debugPrint(
+          '[HomeScreen] Datos climáticos recibidos: ${data.temperature}°C, ${data.description}');
       setState(() => _weatherData = data);
     } catch (e) {
-      debugPrint('Error al obtener el clima: $e');
+      debugPrint('[HomeScreen] Error al obtener el clima: $e');
+
+      // Crear datos simulados en caso de error
+      setState(() => _weatherData = null);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Usando datos climáticos simulados'),
+          backgroundColor: Colors.orange,
+        ));
+      }
     } finally {
       if (mounted) setState(() => _isLoadingWeather = false);
     }
   }
 
   Future<void> _initWeather() async {
-    if (_isLoadingWeather) return;
-    setState(() => _isLoadingWeather = true);
+    if (_isLoadingWeather || !mounted) return;
 
     try {
+      debugPrint('[HomeScreen] Inicializando servicio de ubicación');
+
+      //* Verificamos permisos primero
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        debugPrint(
+            '[HomeScreen] Permisos denegados. Usando ubicación por defecto.');
+        await _fetchWeather(20.389487, -99.996695); //* San Juan del Río
+        return;
+      }
+
       await _locationService.initialize();
       final isReady = await _locationService.isReady();
+      debugPrint('[HomeScreen] Servicio de ubicación listo: $isReady');
+
+      double lat = 20.389487; //* Ubicación por defecto
+      double lon = -99.996695;
 
       if (isReady) {
         final currentLocation = await _locationService.getCurrentLocation(
@@ -265,48 +342,118 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         );
 
         if (currentLocation != null) {
-          await _fetchWeather(
-            currentLocation.latitude, 
-            currentLocation.longitude
-          );
+          lat = currentLocation.latitude;
+          lon = currentLocation.longitude;
+          debugPrint('[HomeScreen] Ubicación obtenida: $lat, $lon');
         }
+      }
 
+      await _fetchWeather(lat, lon);
+
+      //* Iniciar stream si está listo
+      if (isReady && mounted) {
         _posSub?.cancel();
-        _posSub = _locationService.getPositionStream(
-          distanceFilter: 300,
-        ).listen(
-          (pos) => _fetchWeather(pos.latitude, pos.longitude),
-          onError: (e) => debugPrint('Error en stream de ubicación: $e'),
-        );
+        _posSub = _locationService
+            .getPositionStream(distanceFilter: 300)
+            .listen((pos) {
+          if (!mounted) return;
+          // Cada vez que llegue una nueva posición, reinicia el timer
+          _weatherDebounce?.cancel();
+          _weatherDebounce = Timer(const Duration(seconds: 5), () {
+            _fetchWeather(pos.latitude, pos.longitude);
+          });
+        });
       }
     } catch (e) {
-      debugPrint('Error inicializando clima: $e');
-    } finally {
-      if (mounted) setState(() => _isLoadingWeather = false);
+      debugPrint('[HomeScreen] Error al inicializar clima: $e');
+      await _fetchWeather(20.389487, -99.996695);
     }
   }
 
   Future<void> _refreshWeather() async {
     try {
-      setState(() => _isLoadingWeather = true);
+      debugPrint('[HomeScreen] Verificando permisos de ubicación');
+
+      LocationPermission permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Permisos requeridos'),
+              content: const Text(
+                'Los permisos de ubicación están permanentemente bloqueados. '
+                'Por favor actívalos manualmente desde Configuración.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Geolocator.openAppSettings();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Abrir Configuración'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar'),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
+
+      if (permission != LocationPermission.always &&
+          permission != LocationPermission.whileInUse) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Por favor, otorga permisos de ubicación para actualizar el clima.'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+        return;
+      }
+
       final currentLocation = await _locationService.getCurrentLocation(
         timeout: const Duration(seconds: 8),
       );
 
+      //* NUEVA UBICACIÓN POR DEFECTO: San Juan del Río
+      double lat = 20.389487;
+      double lon = -99.996695;
+
       if (currentLocation != null) {
-        await _fetchWeather(
-          currentLocation.latitude, 
-          currentLocation.longitude
+        debugPrint(
+          '[HomeScreen] Ubicación obtenida: ${currentLocation.latitude}, ${currentLocation.longitude}',
         );
+        lat = currentLocation.latitude;
+        lon = currentLocation.longitude;
+      } else {
+        debugPrint(
+            '[HomeScreen] Ubicación nula. Usando ubicación por defecto (San Juan del Río).');
       }
+
+      await _fetchWeather(lat, lon);
     } catch (e) {
-      debugPrint('Error refrescando clima: $e');
-    } finally {
-      if (mounted) setState(() => _isLoadingWeather = false);
+      debugPrint('[HomeScreen] Error al refrescar clima: $e');
+      await _fetchWeather(
+          20.389487, -99.996695); //* ← nueva ubicación por defecto
     }
   }
 
   Future<void> _refreshData() async {
+    if (!mounted) return;
+
+    debugPrint('[HomeScreen] Refrescando todos los datos');
     _slideController.reset();
     _fadeController.reset();
 
@@ -314,6 +461,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       _refreshWeather(),
       _loadResumenGeneral(),
     ]);
+
+    if (!mounted) return;
 
     _slideController.forward();
     _fadeController.forward();
@@ -379,12 +528,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildNewHeader() {
-    final now = DateTime.now();
-    final monthNames = [
-      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-    ];
-
     return Column(
       children: [
         Container(
@@ -456,109 +599,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         ),
         const SizedBox(height: 30),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          height: 110,
-          padding: const EdgeInsets.all(15),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0B3B60),
-            borderRadius: BorderRadius.circular(19),
-          ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 48,
-                height: 48,
-                child: _isLoadingWeather
-                    ? const CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      )
-                    : Icon(
-                        _weatherData?.weatherIcon ?? Icons.wb_sunny_rounded,
-                        color: _weatherData?.weatherColor ?? Colors.white,
-                        size: 48,
-                      ),
-              ),
-              const SizedBox(width: 18),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _weatherData?.temperatureString ?? '--°C',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      _weatherData?.capitalizedDescription ?? 'Cargando...',
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                    ),
-                    Text(
-                      'Humedad: ${_weatherData?.humidity ?? '--'}%',
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                    ),
-                    Text(
-                      'Viento: ${_weatherData != null ? (_weatherData!.windSpeed * 3.6).round() : '--'} km/h',
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 18),
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      height: 16,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF0B3B60),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                          topRight: Radius.circular(10),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          monthNames[now.month - 1].substring(0, 3),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          '${now.day}',
-                          style: const TextStyle(
-                            color: Color(0xFF0B3B60),
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+        WeatherCard(
+          weatherData: _weatherData,
+          isLoading: _isLoadingWeather,
+          onRefresh: _refreshWeather,
+          latitude: _currentLat,
+          longitude: _currentLon,
         ),
+        const SizedBox(height: 16),
         const SizedBox(height: 16),
       ],
     );
@@ -829,6 +877,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _showStatDetails(String label, String value) {
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -933,7 +983,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0B3B60)),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Color(0xFF0B3B60)),
                       ),
                     ),
                   ),
@@ -1334,6 +1385,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _showActivityDetails(ActividadReciente actividad) {
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => Dialog(

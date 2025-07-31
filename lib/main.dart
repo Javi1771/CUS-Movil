@@ -100,7 +100,7 @@ class CusApp extends StatelessWidget {
           child: child!,
         );
       },
-      initialRoute: '/home',
+      initialRoute: '/',
       onGenerateRoute: (settings) {
         final pageBuilder = appRoutes[settings.name];
         if (pageBuilder != null) {

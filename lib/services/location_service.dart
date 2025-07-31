@@ -8,11 +8,6 @@ class LocationService {
   factory LocationService() => _instance;
   LocationService._internal();
 
-  // Banderas para evitar llamadas duplicadas
-  bool _isInitializing = false;
-  bool _isGettingLocation = false;
-  bool _isPermissionChecked = false;
-  
   // Cache de permisos y estado del servicio
   LocationPermission? _cachedPermission;
   bool? _cachedServiceEnabled;
@@ -21,54 +16,12 @@ class LocationService {
   
   // Duración del cache (5 minutos)
   static const Duration _cacheTimeout = Duration(minutes: 5);
-  
-  // Completer para evitar múltiples inicializaciones
-  Completer<bool>? _initCompleter;
 
-  /// Inicializa el servicio de ubicación de manera optimizada
+  /// Inicializa el servicio de ubicación
   Future<bool> initialize() async {
-    if (_isInitializing) {
-      // Si ya se está inicializando, esperar a que termine
-      return _initCompleter?.future ?? false;
-    }
-
-    _isInitializing = true;
-    _initCompleter = Completer<bool>();
-
     try {
-      // Usar addPostFrameCallback para ejecutar después del render inicial
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        try {
-          final result = await _performInitialization();
-          _initCompleter?.complete(result);
-        } catch (e) {
-          debugPrint('[LocationService] Error en inicialización: $e');
-          _initCompleter?.complete(false);
-        } finally {
-          _isInitializing = false;
-        }
-      });
-
-      return await _initCompleter!.future;
-    } catch (e) {
-      debugPrint('[LocationService] Error en initialize: $e');
-      _isInitializing = false;
-      _initCompleter?.complete(false);
-      return false;
-    }
-  }
-
-  Future<bool> _performInitialization() async {
-    try {
-      // EMERGENCY FIX: Deshabilitar temporalmente para evitar ANR
-      debugPrint('[LocationService] ⚠️ EMERGENCY: Geolocator deshabilitado para evitar ANR');
-      debugPrint('[LocationService] ⚠️ Retornando false para usar ubicación por defecto');
-      return false;
-      
-      /* CÓDIGO ORIGINAL COMENTADO PARA EVITAR BLOQUEOS ANR
       // Verificar servicios de ubicación con timeout
-      final serviceEnabled = await _isLocationServiceEnabledCached()
-          .timeout(const Duration(seconds: 3));
+      final serviceEnabled = await _isLocationServiceEnabledCached();
       
       if (!serviceEnabled) {
         debugPrint('[LocationService] Servicios de ubicación deshabilitados');
@@ -76,8 +29,7 @@ class LocationService {
       }
 
       // Verificar permisos con timeout
-      final permission = await _checkPermissionCached()
-          .timeout(const Duration(seconds: 3));
+      final permission = await _checkPermissionCached();
       
       if (permission == LocationPermission.denied || 
           permission == LocationPermission.deniedForever) {
@@ -87,9 +39,8 @@ class LocationService {
 
       debugPrint('[LocationService] Inicialización exitosa');
       return true;
-      */
     } catch (e) {
-      debugPrint('[LocationService] Error en _performInitialization: $e');
+      debugPrint('[LocationService] Error en inicialización: $e');
       return false;
     }
   }
@@ -129,7 +80,6 @@ class LocationService {
     try {
       _cachedPermission = await Geolocator.checkPermission();
       _lastPermissionCheck = now;
-      _isPermissionChecked = true;
       return _cachedPermission!;
     } catch (e) {
       debugPrint('[LocationService] Error verificando permisos: $e');
@@ -137,7 +87,7 @@ class LocationService {
     }
   }
 
-  /// Solicita permisos de ubicación de manera optimizada
+  /// Solicita permisos de ubicación
   Future<LocationPermission> requestPermission() async {
     try {
       final permission = await Geolocator.requestPermission()
@@ -146,7 +96,6 @@ class LocationService {
       // Actualizar cache
       _cachedPermission = permission;
       _lastPermissionCheck = DateTime.now();
-      _isPermissionChecked = true;
       
       return permission;
     } catch (e) {
@@ -155,47 +104,41 @@ class LocationService {
     }
   }
 
-  /// Obtiene la ubicación actual de manera optimizada
+  /// Obtiene la ubicación actual con fallback
   Future<LatLng?> getCurrentLocation({
-    LocationAccuracy accuracy = LocationAccuracy.high,
+    LocationAccuracy accuracy = LocationAccuracy.best,
     Duration? timeout,
   }) async {
-    // Evitar llamadas duplicadas
-    if (_isGettingLocation) {
-      debugPrint('[LocationService] Ya se está obteniendo ubicación, ignorando llamada duplicada');
-      return null;
-    }
-
-    _isGettingLocation = true;
-
     try {
       // Verificar servicios y permisos primero
       final serviceEnabled = await _isLocationServiceEnabledCached();
       if (!serviceEnabled) {
         debugPrint('[LocationService] Servicios de ubicación no disponibles');
-        return null;
+        return _getDefaultLocation();
       }
 
       final permission = await _checkPermissionCached();
       if (permission == LocationPermission.denied || 
           permission == LocationPermission.deniedForever) {
         debugPrint('[LocationService] Permisos insuficientes');
-        return null;
+        return _getDefaultLocation();
       }
 
       // Obtener posición con timeout reducido para evitar ANR
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: accuracy,
-        timeLimit: timeout ?? const Duration(seconds: 8), // Timeout reducido
-      ).timeout(const Duration(seconds: 10)); // Timeout adicional
+      ).timeout(timeout ?? const Duration(seconds: 10));
 
       return LatLng(position.latitude, position.longitude);
     } catch (e) {
-      debugPrint('[LocationService] Error obteniendo ubicación: $e');
-      return null;
-    } finally {
-      _isGettingLocation = false;
+      debugPrint('[LocationService] Error obteniendo ubicación, usando fallback: $e');
+      return _getDefaultLocation();
     }
+  }
+
+  /// Ubicación por defecto (Ciudad de México)
+  LatLng _getDefaultLocation() {
+    return const LatLng(19.4326, -99.1332);
   }
 
   /// Verifica si el servicio está listo para usar
@@ -213,44 +156,24 @@ class LocationService {
     }
   }
 
-  /// Limpia el cache (útil para forzar verificación)
+  /// Limpia el cache
   void clearCache() {
     _cachedPermission = null;
     _cachedServiceEnabled = null;
     _lastPermissionCheck = null;
     _lastServiceCheck = null;
-    _isPermissionChecked = false;
   }
 
-  /// Obtiene el estado actual de permisos sin hacer llamadas al sistema
-  LocationPermission? getCachedPermission() => _cachedPermission;
-
-  /// Obtiene el estado actual de servicios sin hacer llamadas al sistema
-  bool? getCachedServiceEnabled() => _cachedServiceEnabled;
-
-  /// Verifica si los permisos ya fueron verificados
-  bool get isPermissionChecked => _isPermissionChecked;
-
-  /// Stream para monitorear cambios en la posición (uso opcional)
-  Stream<Position>? _positionStream;
-  
+  /// Stream para monitorear cambios en la posición
   Stream<Position> getPositionStream({
-    LocationAccuracy accuracy = LocationAccuracy.high,
-    int distanceFilter = 10,
+    LocationAccuracy accuracy = LocationAccuracy.best,
+    int distanceFilter = 100,
   }) {
-    _positionStream ??= Geolocator.getPositionStream(
+    return Geolocator.getPositionStream(
       locationSettings: LocationSettings(
         accuracy: accuracy,
         distanceFilter: distanceFilter,
-        timeLimit: const Duration(seconds: 10),
       ),
     );
-    
-    return _positionStream!;
-  }
-
-  /// Detiene el stream de posición para liberar recursos
-  void stopPositionStream() {
-    _positionStream = null;
   }
 }
