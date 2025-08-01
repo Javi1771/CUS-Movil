@@ -1,7 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:cus_movil/screens/widgets/navigation_buttons.dart';
-import 'package:cus_movil/screens/widgets/steap_header.dart';
+import '../../widgets/navigation_buttons.dart';
+import '../../widgets/steap_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

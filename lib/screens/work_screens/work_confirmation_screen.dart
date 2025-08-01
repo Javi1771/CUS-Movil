@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../services/worker_registration_service.dart';
-import '../widgets/steap_header.dart';
+import '../../widgets/steap_header.dart';
 
 class WorkConfirmationScreen extends StatefulWidget {
   const WorkConfirmationScreen({super.key});

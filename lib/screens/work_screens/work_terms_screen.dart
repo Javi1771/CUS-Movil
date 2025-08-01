@@ -2,8 +2,8 @@
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import '../widgets/steap_header.dart';
-import '../widgets/navigation_buttons.dart';
+import '../../widgets/steap_header.dart';
+import '../../widgets/navigation_buttons.dart';
 
 class TermsAndConditionsWorkScreen extends StatefulWidget {
   const TermsAndConditionsWorkScreen({super.key});

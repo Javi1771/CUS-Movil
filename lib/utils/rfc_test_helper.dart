@@ -88,8 +88,9 @@ class RFCValidator {
         if (kDebugMode) debugPrint('📏 Longitud 13: ${isValid ? '✅' : '❌'}');
         return isValid;
       default:
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint('❌ Longitud no reconocida: ${cleanRFC.length}');
+        }
         return false;
     }
   }
@@ -202,7 +203,7 @@ class RFCValidator {
     }
 
     // Prueba explícita del RFC de excepción
-    final excepcionRFC = 'ORG1213456789';
+    const excepcionRFC = 'ORG1213456789';
     final resultExcepcion = analyze(excepcionRFC);
     debugPrint('\n--- PRUEBA EXPLÍCITA DE EXCEPCIÓN ---');
     debugPrint('$excepcionRFC: '

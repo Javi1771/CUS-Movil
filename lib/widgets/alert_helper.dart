@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 enum AlertType { success, error, warning }
 
 class AlertHelper {
-  // 1) Key global para acceder siempre al ScaffoldMessenger
+  //? 1) Key global para acceder siempre al ScaffoldMessenger
   static final GlobalKey<ScaffoldMessengerState> messengerKey =
       GlobalKey<ScaffoldMessengerState>();
 
@@ -53,13 +53,13 @@ class AlertHelper {
       action: SnackBarAction(
         label: 'Cerrar',
         textColor: Colors.white,
-        // 2) Aquí no usamos `context`, sino el messengerKey
+        //? 2) Aquí no usamos `context`, sino el messengerKey
         onPressed: () =>
             messengerKey.currentState?.hideCurrentSnackBar(),
       ),
     );
 
-    // 3) Mostrar usando el GlobalKey
+    //? 3) Mostrar usando el GlobalKey
     messengerKey.currentState
       ?..hideCurrentSnackBar()
       ..showSnackBar(snackBar);

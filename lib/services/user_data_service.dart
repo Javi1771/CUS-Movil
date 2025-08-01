@@ -182,8 +182,8 @@ class UserDataService {
           'sin-email@ejemplo.com',
       curp: _getField(data, ['curp', 'CURP'], 'Sin CURP') ?? 'Sin CURP',
       usuarioId: _getField(data, ['id', 'usuario_id', 'userId'], 'temp-id'),
-      nombreCompleto:
-          _getField(data, ['nombreCompleto', 'nombre_completo', 'fullName']),
+      nombre_completo:
+          _getField(data, ['nombre_completo', 'nombre_completo', 'fullName']),
       telefono: _getField(data, ['telefono', 'phone', 'celular']),
       fechaNacimiento:
           _getField(data, ['fechaNacimiento', 'fecha_nacimiento', 'birthDate']),

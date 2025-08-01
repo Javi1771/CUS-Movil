@@ -8,9 +8,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import '../../utils/codigos_postales_loader.dart';
 import '../../services/location_service.dart';
-import '../widgets/steap_header.dart';
-import '../widgets/navigation_buttons.dart';
-import '../widgets/map_selector.dart';
+import '../../widgets/steap_header.dart';
+import '../../widgets/navigation_buttons.dart';
+import '../../widgets/map_selector.dart';
 
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override

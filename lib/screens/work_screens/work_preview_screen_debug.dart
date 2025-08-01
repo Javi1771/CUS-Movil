@@ -1,8 +1,8 @@
 // DEBUG VERSION - Vista previa con logs detallados
 
 import 'package:flutter/material.dart';
-import '../widgets/steap_header.dart';
-import '../widgets/navigation_buttons.dart';
+import '../../widgets/steap_header.dart';
+import '../../widgets/navigation_buttons.dart';
 
 class PreviewWorkScreenDebug extends StatelessWidget {
   static const govBlue = Color(0xFF0B3B60);
@@ -46,7 +46,7 @@ class PreviewWorkScreenDebug extends StatelessWidget {
         case 22: expectedLabel = 'TELÉFONO'; break;
         case 23: expectedLabel = 'PHONE_VERIFY'; break;
         case 24: expectedLabel = 'SMS_CODE'; break;
-        default: expectedLabel = 'EXTRA_${i}'; break;
+        default: expectedLabel = 'EXTRA_$i'; break;
       }
       debugPrint('[$i] $expectedLabel: "${datosFinales[i]}"');
     }
@@ -127,7 +127,7 @@ class PreviewWorkScreenDebug extends StatelessWidget {
                               ),
                               child: Row(
                                 children: [
-                                  Container(
+                                  SizedBox(
                                     width: 40,
                                     child: Text(
                                       '[${entry.key}]',
@@ -137,7 +137,7 @@ class PreviewWorkScreenDebug extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  Container(
+                                  SizedBox(
                                     width: 120,
                                     child: Text(
                                       expectedLabel,
@@ -159,7 +159,7 @@ class PreviewWorkScreenDebug extends StatelessWidget {
                                 ],
                               ),
                             );
-                          }).toList(),
+                          }),
                           
                           const SizedBox(height: 16),
                           const Text(

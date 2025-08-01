@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../widgets/steap_header.dart';
-import '../widgets/navigation_buttons.dart';
+import '../../widgets/steap_header.dart';
+import '../../widgets/navigation_buttons.dart';
 
 class ContactMoralScreen extends StatefulWidget {
   final Map<String, dynamic> userData;

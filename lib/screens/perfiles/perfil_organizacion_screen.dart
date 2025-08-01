@@ -153,8 +153,8 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
     const bgGray = Color(0xFFF5F7FA);
 
     final bool tieneDatosRepresentante = usuario != null &&
-        ((usuario!.nombreCompleto != null &&
-                usuario!.nombreCompleto!.isNotEmpty) ||
+        ((usuario!.nombre_completo != null &&
+                usuario!.nombre_completo!.isNotEmpty) ||
             (usuario!.nombre.isNotEmpty &&
                 usuario!.nombre != 'Usuario Sin Nombre') ||
             (usuario!.curp.isNotEmpty && usuario!.curp != 'Sin CURP'));
@@ -232,7 +232,7 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
                                         _buildInfoCard(
                                           'Nombre del Representante',
                                           _getDisplayValue(
-                                              usuario!.nombreCompleto ??
+                                              usuario!.nombre_completo ??
                                                   usuario!.nombre),
                                           imagenesIconos['person']!,
                                           Icons.person,
@@ -274,7 +274,7 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
                                   ),
                                   const SizedBox(height: 30),
                                   _buildLogoutButton(context),
-                                  const SizedBox(height: 50),
+                                  const SizedBox(height: 100),
                                 ],
                               ),
                             ),
@@ -493,15 +493,32 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
   }
 
   Widget _buildLogoutButton(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: () => _showLogoutDialog(context),
-      icon: const Icon(Icons.logout, color: Colors.white),
-      label: const Text("Cerrar sesión", style: TextStyle(color: Colors.white)),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.red[700],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
-        elevation: 2,
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () => _showLogoutDialog(context),
+        icon: const Icon(Icons.logout_rounded, size: 20),
+        label: const Text(
+          "Cerrar sesión",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color.fromARGB(255, 159, 7, 7),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          elevation: 6,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          shadowColor: Colors.black.withOpacity(0.25),
+        ).copyWith(
+          overlayColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.pressed)) {
+              return Colors.red.shade800.withOpacity(0.2);
+            }
+            return null;
+          }),
+        ),
       ),
     );
   }
@@ -509,28 +526,199 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Cerrar sesión"),
-          content: const Text("¿Estás seguro de que deseas cerrar sesión?"),
-          actions: [
-            TextButton(
-              child: const Text("Cancelar"),
-              onPressed: () => Navigator.of(context).pop(),
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 340),
+            margin: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0b3b60).withOpacity(0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: const Color(0xFF0b3b60).withOpacity(0.08),
+                  blurRadius: 40,
+                  offset: const Offset(0, 15),
+                  spreadRadius: 5,
+                ),
+              ],
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text("Cerrar sesión",
-                  style: TextStyle(color: Colors.white)),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await AuthService('temp').logout();
-                if (mounted) {
-                  Navigator.pushReplacementNamed(context, '/auth');
-                }
-              },
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  //? Icono principal
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0b3b60).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFF0b3b60).withOpacity(0.2),
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.power_settings_new_rounded,
+                      color: Color(0xFF0b3b60),
+                      size: 28,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  //? Título
+                  const Text(
+                    "Cerrar Sesión",
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0b3b60),
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  //* Contenido
+                  Text(
+                    "¿Estás seguro de que deseas cerrar sesión?\nPerderás el acceso hasta volver a iniciar sesión.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.4,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  //* Botones
+                  Row(
+                    children: [
+                      //! Cancelar
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: OutlinedButton.icon(
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            icon: Icon(Icons.close_rounded,
+                                size: 16, color: Colors.grey[600]),
+                            label: Text(
+                              "Cancelar",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              side: BorderSide(
+                                  color: Colors.grey[300]!, width: 1.5),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              minimumSize: const Size.fromHeight(44),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      //? Confirmar
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF0B3B60), Color(0xFF0B3B60)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                Navigator.of(dialogContext).pop();
+                                //? Loading
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) => const Center(
+                                      child: CircularProgressIndicator()),
+                                );
+                                try {
+                                  await AuthService('temp').logout();
+                                  if (mounted) {
+                                    Navigator.of(context)
+                                        .pop(); //! cierra loading
+                                    AlertHelper.showAlert(
+                                      'Sesión cerrada',
+                                      type: AlertType.success,
+                                    );
+                                    //* Dale un pequeño delay para que la alerta se muestre
+                                    await Future.delayed(
+                                        const Duration(milliseconds: 500));
+                                    Navigator.pushReplacementNamed(
+                                        context, '/auth');
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
+                                    AlertHelper.showAlert(
+                                      'Error al cerrar sesión: $e',
+                                      type: AlertType.error,
+                                    );
+                                  }
+                                }
+                              },
+                              icon: const Icon(Icons.logout_rounded,
+                                  size: 16, color: Colors.white),
+                              label: const Text(
+                                "Confirmar",
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                minimumSize: const Size.fromHeight(44),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         );
       },
     );

@@ -5,7 +5,7 @@ import '../../routes/slide_up_route.dart';
 import '../moral_screens/moral_data_screen.dart';
 import '../person_screens/fisica_data_screen.dart';
 import '../work_screens/work_data_screen.dart';
-import '../widgets/steap_header.dart';
+import '../../widgets/steap_header.dart';
 
 const Color govBlue = Color(0xFF0B3B60);
 

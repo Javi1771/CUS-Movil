@@ -159,7 +159,7 @@ class UsuarioCUS {
 
   // Información básica
   final String nombre;
-  final String? nombreCompleto;
+  final String? nombre_completo;
   final String? razonSocial; // Para organizaciones
 
   // Información Personal (puede ser del representante legal)
@@ -193,7 +193,7 @@ class UsuarioCUS {
     this.nomina,
     this.idCiudadano,
     required this.nombre,
-    this.nombreCompleto,
+    this.nombre_completo,
     required this.curp,
     this.fechaNacimiento,
     this.nacionalidad,
@@ -325,7 +325,7 @@ class UsuarioCUS {
       nomina: nomina,
       idCiudadano: idCiudadano,
       nombre: nombre.isNotEmpty ? nombre : 'Usuario Sin Nombre',
-      nombreCompleto: getStringValue(['nombreCompleto', 'fullName']),
+      nombre_completo: getStringValue(['nombre_completo', 'fullName']),
       curp: curp ?? 'Sin CURP',
       fechaNacimiento: fechaNacimiento,
       nacionalidad:
@@ -355,7 +355,7 @@ class UsuarioCUS {
     if (tipoPerfil == TipoPerfilCUS.personaMoral || tipoPerfil == TipoPerfilCUS.organizacion) {
       return razonSocial ?? nombre; // Prioriza razón social para organizaciones
     }
-    return nombreCompleto ?? nombre;
+    return nombre_completo ?? nombre;
   }
 
   /// Obtiene la nacionalidad con valor por defecto
@@ -480,7 +480,7 @@ class UsuarioCUS {
       'idCiudadano': idCiudadano,
       'rfc': rfc,
       'nombre': nombre,
-      'nombreCompleto': nombreCompleto,
+      'nombre_completo': nombre_completo,
       'razonSocial': razonSocial,
       'curp': curp,
       'fechaNacimiento': fechaNacimiento,

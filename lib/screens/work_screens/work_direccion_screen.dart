@@ -1,11 +1,10 @@
-// TODO Implement this library.
 // 📄 work_direccion_screen.dart
 // ignore_for_file: unused_local_variable, use_build_context_synchronously, deprecated_member_use
 
 import 'package:cus_movil/screens/moral_screens/moral_data_screen.dart';
-import 'package:cus_movil/screens/widgets/map_selector.dart';
-import 'package:cus_movil/screens/widgets/navigation_buttons.dart';
-import 'package:cus_movil/screens/widgets/steap_header.dart';
+import '/widgets/map_selector.dart';
+import '/widgets/navigation_buttons.dart';
+import '/widgets/steap_header.dart';
 import 'package:cus_movil/utils/codigos_postales_loader.dart';
 import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';

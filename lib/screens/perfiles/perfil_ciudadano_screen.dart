@@ -1,6 +1,6 @@
 // screens/perfiles/perfil_ciudadano_screen.dart
 
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: avoid_print, use_build_context_synchronously
 
 import 'dart:io';
 import 'package:cus_movil/widgets/alert_helper.dart';
@@ -111,7 +111,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
       print(
           '[PerfilCiudadano] 🎂 Fecha de nacimiento: ${user.fechaNacimiento}');
       print('[PerfilCiudadano] 👤 Nombre: ${user.nombre}');
-      print('[PerfilCiudadano] 👤 Nombre completo: ${user.nombreCompleto}');
+      print('[PerfilCiudadano] 👤 Nombre completo: ${user.nombre_completo}');
       print('[PerfilCiudadano] 🆔 Folio: ${user.folio}');
       print('[PerfilCiudadano] 🆔 ID Ciudadano: ${user.idCiudadano}');
     } catch (e) {
@@ -166,16 +166,16 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
 
     print('[PerfilCiudadano] 🔍 CONSTRUYENDO NOMBRE COMPLETO:');
     print('[PerfilCiudadano] - nombre: ${usuario!.nombre}');
-    print('[PerfilCiudadano] - nombreCompleto: ${usuario!.nombreCompleto}');
+    print('[PerfilCiudadano] - nombre_completo: ${usuario!.nombre_completo}');
 
-    // 1. Priorizar nombreCompleto si existe y es diferente al nombre básico
-    if (usuario!.nombreCompleto != null &&
-        usuario!.nombreCompleto!.isNotEmpty &&
-        usuario!.nombreCompleto!.trim().length >
+    // 1. Priorizar nombre_completo si existe y es diferente al nombre básico
+    if (usuario!.nombre_completo != null &&
+        usuario!.nombre_completo!.isNotEmpty &&
+        usuario!.nombre_completo!.trim().length >
             usuario!.nombre.trim().length) {
       print(
-          '[PerfilCiudadano] ✅ Usando nombreCompleto: ${usuario!.nombreCompleto}');
-      return usuario!.nombreCompleto!;
+          '[PerfilCiudadano] ✅ Usando nombre_completo: ${usuario!.nombre_completo}');
+      return usuario!.nombre_completo!;
     }
 
     // 2. Si solo tenemos el nombre básico, verificar si parece incompleto
@@ -457,7 +457,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
 
                     const SizedBox(height: 30),
                     _buildLogoutButton(context),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
@@ -801,19 +801,31 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
   }
 
   Widget _buildLogoutButton(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: () => _showLogoutDialog(context),
-        icon: const Icon(Icons.logout),
-        label: const Text("Cerrar sesión"),
+        icon: const Icon(Icons.logout_rounded, size: 20),
+        label: const Text(
+          "Cerrar sesión",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red[600],
+          backgroundColor: const Color.fromARGB(255, 159, 7, 7),
           foregroundColor: Colors.white,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          elevation: 2,
+          elevation: 6,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          shadowColor: Colors.black.withOpacity(0.25),
+        ).copyWith(
+          overlayColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.pressed)) {
+              return Colors.red.shade800.withOpacity(0.2);
+            }
+            return null;
+          }),
         ),
       ),
     );
@@ -822,59 +834,199 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
-            children: [
-              Icon(Icons.logout, color: Colors.red),
-              SizedBox(width: 8),
-              Text("Cerrar sesión"),
-            ],
-          ),
-          content: const Text("¿Estás seguro de que deseas cerrar sesión?"),
-          actions: [
-            TextButton(
-              child: const Text("Cancelar"),
-              onPressed: () => Navigator.of(context).pop(),
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 340),
+            margin: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0b3b60).withOpacity(0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: const Color(0xFF0b3b60).withOpacity(0.08),
+                  blurRadius: 40,
+                  offset: const Offset(0, 15),
+                  spreadRadius: 5,
+                ),
+              ],
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text("Cerrar sesión"),
-              onPressed: () async {
-                Navigator.of(context).pop();
-
-                // Mostrar indicador de carga
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => const Center(
-                    child: CircularProgressIndicator(),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  //? Icono principal
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0b3b60).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFF0b3b60).withOpacity(0.2),
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.power_settings_new_rounded,
+                      color: Color(0xFF0b3b60),
+                      size: 28,
+                    ),
                   ),
-                );
 
-                try {
-                  await AuthService('temp').logout();
-                  if (mounted) {
-                    Navigator.of(context).pop(); // Cerrar loading
-                    Navigator.pushReplacementNamed(context, '/auth');
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    Navigator.of(context).pop(); // Cerrar loading
-                    AlertHelper.showAlert(
-                      'Error al cerrar sesión: $e',
-                      type: AlertType.error,
-                    );
-                  }
-                }
-              },
+                  const SizedBox(height: 20),
+
+                  //? Título
+                  const Text(
+                    "Cerrar Sesión",
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0b3b60),
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  //* Contenido
+                  Text(
+                    "¿Estás seguro de que deseas cerrar sesión?\nPerderás el acceso hasta volver a iniciar sesión.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.4,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  //* Botones
+                  Row(
+                    children: [
+                      //! Cancelar
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: OutlinedButton.icon(
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            icon: Icon(Icons.close_rounded,
+                                size: 16, color: Colors.grey[600]),
+                            label: Text(
+                              "Cancelar",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              side: BorderSide(
+                                  color: Colors.grey[300]!, width: 1.5),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              minimumSize: const Size.fromHeight(44),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      //? Confirmar
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF0B3B60), Color(0xFF0B3B60)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                Navigator.of(dialogContext).pop();
+                                //? Loading
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) => const Center(
+                                      child: CircularProgressIndicator()),
+                                );
+                                try {
+                                  await AuthService('temp').logout();
+                                  if (mounted) {
+                                    Navigator.of(context)
+                                        .pop(); //! cierra loading
+                                    AlertHelper.showAlert(
+                                      'Sesión cerrada',
+                                      type: AlertType.success,
+                                    );
+                                    //* Dale un pequeño delay para que la alerta se muestre
+                                    await Future.delayed(
+                                        const Duration(milliseconds: 500));
+                                    Navigator.pushReplacementNamed(
+                                        context, '/auth');
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
+                                    AlertHelper.showAlert(
+                                      'Error al cerrar sesión: $e',
+                                      type: AlertType.error,
+                                    );
+                                  }
+                                }
+                              },
+                              icon: const Icon(Icons.logout_rounded,
+                                  size: 16, color: Colors.white),
+                              label: const Text(
+                                "Confirmar",
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                minimumSize: const Size.fromHeight(44),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         );
       },
     );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../utils/curp_utils.dart';
-import '../widgets/steap_header.dart';
-import '../widgets/navigation_buttons.dart';
+import '../../widgets/steap_header.dart';
+import '../../widgets/navigation_buttons.dart';
 
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
