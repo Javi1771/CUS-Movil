@@ -198,7 +198,7 @@ class _ContactWorkScreenState extends State<ContactWorkScreen> {
         children: [
           const PasoHeader(
             pasoActual: 4,
-            tituloPaso: 'Contacto Empresarial',
+            tituloPaso: 'Contacto del Trabajo',
             tituloSiguiente: 'Términos y Condiciones',
           ),
           Expanded(

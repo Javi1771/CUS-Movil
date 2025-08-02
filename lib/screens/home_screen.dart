@@ -872,29 +872,44 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
               ),
               Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Hola Ciudadano!',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      (_usuario?.nombre.toUpperCase() ?? 'USUARIO'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final w = constraints.maxWidth;
+                    final h = constraints.maxHeight;
+                    final titleFontSize = w * 0.05; //* 5% del ancho
+                    final nameFontSize = w * 0.06; //* 6% del ancho
+                    final verticalGap = h * 0.02; //* 2% de la altura
+
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Hola Ciudadano!',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: titleFontSize.clamp(
+                                12, 24), //* mínimo 12, máximo 24
+                            fontWeight: FontWeight.w400,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: verticalGap),
+                        Text(
+                          (_usuario?.nombre.toUpperCase() ?? 'USUARIO'),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: nameFontSize.clamp(
+                                14, 28), //* mínimo 14, máximo 28
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ],

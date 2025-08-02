@@ -74,7 +74,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen>
       //* Navegamos a la pantalla de "Vista Previa"
       Navigator.pushNamed(
         context,
-        '/preview-moral',
+        '/preview-data',
         arguments: datosFinales,
       );
     }

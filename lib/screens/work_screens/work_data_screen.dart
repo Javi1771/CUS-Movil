@@ -129,8 +129,8 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
   void _onCurpChanged(String v) {
     final curp = v.toUpperCase();
     if (curp.length == 18 && _validateCurp(curp) == null) {
-      _fechaNacCtrl.text = (obtenerFechaNacimientoDeCurp(curp) ?? '')
-          .toUpperCase();
+      _fechaNacCtrl.text =
+          (obtenerFechaNacimientoDeCurp(curp) ?? '').toUpperCase();
       _generoCtrl.text = (obtenerGeneroDeCurp(curp) ?? '').toUpperCase();
       _estadoNacCtrl.text = (obtenerEstadoDeCurp(curp) ?? '').toUpperCase();
       FocusScope.of(context).requestFocus(_focusCurpVerify);
@@ -329,6 +329,9 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
                           decoration: _inputDecoration('Nómina', Icons.badge),
                           validator: (v) => _validateRequired(v, 'Nómina'),
                           textCapitalization: TextCapitalization.characters,
+                          inputFormatters: [
+                            UpperCaseTextFormatter(),
+                          ],
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -336,6 +339,9 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
                           decoration: _inputDecoration('Puesto', Icons.work),
                           validator: (v) => _validateRequired(v, 'Puesto'),
                           textCapitalization: TextCapitalization.characters,
+                          inputFormatters: [
+                            UpperCaseTextFormatter(),
+                          ],
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -347,6 +353,9 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
                           validator: (v) =>
                               _validateRequired(v, 'Departamento'),
                           textCapitalization: TextCapitalization.characters,
+                          inputFormatters: [
+                            UpperCaseTextFormatter(),
+                          ],
                         ),
                       ],
                     ),
@@ -497,17 +506,17 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
                           ).requestFocus(_focusConfirmPass),
                           decoration: _inputDecoration('Contraseña', Icons.lock)
                               .copyWith(
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _showPass
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                    color: govBlue,
-                                  ),
-                                  onPressed: () =>
-                                      setState(() => _showPass = !_showPass),
-                                ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _showPass
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                color: govBlue,
                               ),
+                              onPressed: () =>
+                                  setState(() => _showPass = !_showPass),
+                            ),
+                          ),
                           validator: _validatePassword,
                         ),
                         const SizedBox(height: 12),

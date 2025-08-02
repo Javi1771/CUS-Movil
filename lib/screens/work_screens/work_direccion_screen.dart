@@ -344,7 +344,7 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
         children: [
           const PasoHeader(
             pasoActual: 3,
-            tituloPaso: 'Dirección Empresarial',
+            tituloPaso: 'Dirección del Lugar de Trabajo',
             tituloSiguiente: 'Contacto',
           ),
           Expanded(
