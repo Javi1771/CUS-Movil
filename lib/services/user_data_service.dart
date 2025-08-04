@@ -73,7 +73,7 @@ class UserDataService {
     debugPrint('[UserDataService] Folio: ${userData['folio']}');
     debugPrint('[UserDataService] ID Ciudadano: ${userData['id_ciudadano']}');
     debugPrint(
-        '[UserDataService] ID Usuario General: ${userData['id_usuario_general']}');
+        '[UserDataService] ID Usuario General: ${userData['id_general']}');
     debugPrint('[UserDataService] SubGeneral: ${userData['subGeneral']}');
     debugPrint('[UserDataService] Sub: ${userData['sub']}');
     debugPrint('[UserDataService] Nómina: ${userData['nomina']}');
@@ -98,7 +98,7 @@ class UserDataService {
       'id_ciudadano',
       'idCiudadano',
       'ciudadano_id',
-      'id_usuario_general',
+      'id_general',
       'idUsuarioGeneral',
       'usuario_general_id',
       'subGeneral',
@@ -205,7 +205,7 @@ class UserDataService {
         'id_ciudadano',
         'idCiudadano',
         'ciudadano_id',
-        'id_usuario_general',
+        'id_general',
         'idUsuarioGeneral',
         'usuario_general_id',
         'subGeneral',
@@ -263,7 +263,7 @@ class UserDataService {
       'id_ciudadano',
       'idCiudadano',
       'ciudadano_id',
-      'id_usuario_general',
+      'id_general',
       'idUsuarioGeneral',
       'usuario_general_id',
       'subGeneral',

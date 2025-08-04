@@ -116,6 +116,11 @@ class _PerfilTrabajadorScreenState extends State<PerfilTrabajadorScreen> {
 
   String _getIdGeneral() {
     if (usuario == null) return 'Sin ID';
+    // 1) Si idGeneral viene del JSON, úsalo
+    if (usuario!.idGeneral != null && usuario!.idGeneral!.isNotEmpty) {
+      return usuario!.idGeneral!;
+    }
+    // 2) Si no, caemos en las llaves anteriores
     if (usuario!.nomina != null && usuario!.nomina!.isNotEmpty) {
       return usuario!.nomina!;
     }
@@ -204,12 +209,6 @@ class _PerfilTrabajadorScreenState extends State<PerfilTrabajadorScreen> {
                                           _getDisplayValue(usuario!.puesto),
                                           imagenesIconos['position']!,
                                           Icons.work),
-                                      _buildInfoCard(
-                                          'Razón Social',
-                                          _getDisplayValue(
-                                              usuario!.razonSocial),
-                                          imagenesIconos['work']!,
-                                          Icons.business),
                                     ],
                                   ),
                                   const SizedBox(height: 20),

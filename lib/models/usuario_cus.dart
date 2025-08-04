@@ -6,16 +6,16 @@
 enum TipoPerfilCUS {
   /// Perfil para ciudadanos con folio CUS
   ciudadano,
-  
+
   /// Perfil para trabajadores del gobierno con nómina
   trabajador,
-  
+
   /// Perfil para personas morales/organizaciones con RFC de 12 dígitos
   personaMoral,
-  
+
   /// Perfil genérico para usuarios sin clasificación específica
   usuario,
-  
+
   /// Alias para personaMoral (mantener compatibilidad)
   organizacion,
 }
@@ -49,7 +49,8 @@ extension TipoPerfilCUSExtension on TipoPerfilCUS {
 
   /// Indica si el perfil requiere RFC
   bool get requiereRFC {
-    return this == TipoPerfilCUS.personaMoral || this == TipoPerfilCUS.organizacion;
+    return this == TipoPerfilCUS.personaMoral ||
+        this == TipoPerfilCUS.organizacion;
   }
 }
 
@@ -66,38 +67,38 @@ class DocumentoCUS {
 
   factory DocumentoCUS.fromJson(Map<String, dynamic> json) {
     print('[DocumentoCUS] 🔍 PROCESANDO DOCUMENTO: $json');
-    
+
     // Buscar el nombre del documento en múltiples campos posibles
-    String nombreDoc = json['nombre_documento']?.toString() ?? 
-                      json['nombreDocumento']?.toString() ?? 
-                      json['nombre']?.toString() ?? 
-                      json['name']?.toString() ?? 
-                      json['title']?.toString() ?? 
-                      json['filename']?.toString() ?? 
-                      json['original_filename']?.toString() ?? 
-                      json['display_name']?.toString() ?? 
-                      'Documento sin nombre';
+    String nombreDoc = json['nombre_documento']?.toString() ??
+        json['nombreDocumento']?.toString() ??
+        json['nombre']?.toString() ??
+        json['name']?.toString() ??
+        json['title']?.toString() ??
+        json['filename']?.toString() ??
+        json['original_filename']?.toString() ??
+        json['display_name']?.toString() ??
+        'Documento sin nombre';
 
     // Buscar la URL del documento en múltiples campos posibles
-    String urlDoc = json['url_documento']?.toString() ?? 
-                   json['urlDocumento']?.toString() ?? 
-                   json['url']?.toString() ?? 
-                   json['secure_url']?.toString() ?? 
-                   json['public_url']?.toString() ?? 
-                   json['link']?.toString() ?? 
-                   json['file_url']?.toString() ?? 
-                   json['cloudinary_url']?.toString() ?? 
-                   json['path']?.toString() ?? 
-                   '';
+    String urlDoc = json['url_documento']?.toString() ??
+        json['urlDocumento']?.toString() ??
+        json['url']?.toString() ??
+        json['secure_url']?.toString() ??
+        json['public_url']?.toString() ??
+        json['link']?.toString() ??
+        json['file_url']?.toString() ??
+        json['cloudinary_url']?.toString() ??
+        json['path']?.toString() ??
+        '';
 
     // Buscar la fecha en múltiples campos posibles
-    String? fechaDoc = json['upload_date']?.toString() ?? 
-                      json['uploadDate']?.toString() ?? 
-                      json['fecha']?.toString() ?? 
-                      json['created_at']?.toString() ?? 
-                      json['fechaSubida']?.toString() ?? 
-                      json['timestamp']?.toString() ?? 
-                      json['date']?.toString();
+    String? fechaDoc = json['upload_date']?.toString() ??
+        json['uploadDate']?.toString() ??
+        json['fecha']?.toString() ??
+        json['created_at']?.toString() ??
+        json['fechaSubida']?.toString() ??
+        json['timestamp']?.toString() ??
+        json['date']?.toString();
 
     print('[DocumentoCUS] 📄 Nombre extraído: $nombreDoc');
     print('[DocumentoCUS] 🔗 URL extraída: $urlDoc');
@@ -108,20 +109,22 @@ class DocumentoCUS {
       // Si la URL ya es completa y válida, usarla tal como está
       if (urlDoc.startsWith('https://res.cloudinary.com/')) {
         print('[DocumentoCUS] ✅ URL de Cloudinary válida detectada');
-      } 
+      }
       // Si no es completa pero contiene elementos de Cloudinary, intentar construirla
-      else if (!urlDoc.startsWith('http') && (urlDoc.contains('/') || urlDoc.length > 10)) {
+      else if (!urlDoc.startsWith('http') &&
+          (urlDoc.contains('/') || urlDoc.length > 10)) {
         print('[DocumentoCUS] 🔧 Intentando construir URL de Cloudinary...');
         // Formato típico de Cloudinary: https://res.cloudinary.com/cloud-name/image/upload/v1234567890/path/file.pdf
         urlDoc = 'https://res.cloudinary.com/dsngx5ckc/raw/upload/$urlDoc';
         print('[DocumentoCUS] 🔧 URL construida: $urlDoc');
       }
-      
+
       // Validación final de URL
       if (urlDoc.startsWith('http')) {
         print('[DocumentoCUS] ✅ URL final válida: $urlDoc');
       } else {
-        print('[DocumentoCUS] ⚠️ URL no válida después del procesamiento: $urlDoc');
+        print(
+            '[DocumentoCUS] ⚠️ URL no válida después del procesamiento: $urlDoc');
       }
     } else {
       print('[DocumentoCUS] ❌ URL de documento vacía para $nombreDoc');
@@ -132,8 +135,9 @@ class DocumentoCUS {
       urlDocumento: urlDoc,
       uploadDate: fechaDoc,
     );
-    
-    print('[DocumentoCUS] 🎯 Documento creado: ${documento.nombreDocumento} -> ${documento.urlDocumento}');
+
+    print(
+        '[DocumentoCUS] 🎯 Documento creado: ${documento.nombreDocumento} -> ${documento.urlDocumento}');
     return documento;
   }
 
@@ -176,6 +180,7 @@ class UsuarioCUS {
   final String? estado;
   final String? codigoPostal;
   final String? direccion;
+  final String? idGeneral;
 
   // Información Laboral (para trabajadores o info de la empresa)
   final String? ocupacion;
@@ -190,6 +195,7 @@ class UsuarioCUS {
     required this.tipoPerfil,
     this.usuarioId,
     this.folio,
+    this.idGeneral,  
     this.nomina,
     this.idCiudadano,
     required this.nombre,
@@ -199,6 +205,7 @@ class UsuarioCUS {
     this.nacionalidad,
     required this.email,
     this.telefono,
+    
     this.calle,
     this.asentamiento,
     this.codigoPostal,
@@ -233,7 +240,8 @@ class UsuarioCUS {
     // --- Extracción de Datos ---
     final folio = getStringValue(['folio', 'folioCUS']);
     final nomina = getStringValue(['no_nomina', 'nomina']);
-    final idCiudadano = getStringValue(['id_ciudadano', 'idCiudadano', 'sub']);
+    final idCiudadano =
+        getStringValue(['id_ciudadano', 'idCiudadano', 'id_general', 'sub']);
     final razonSocial = getStringValue(
         ['razonSocial', 'razon_social', 'nombreEmpresa', 'businessName']);
 
@@ -246,20 +254,20 @@ class UsuarioCUS {
     final curp = getStringValue(['curp', 'CURP']);
     final nombre = getStringValue(['nombre', 'name', 'firstName']) ?? '';
     final email = getStringValue(['email', 'correo', 'mail']) ?? '';
-    
+
     // DIAGNÓSTICO: Buscar fecha de nacimiento en múltiples campos
     final fechaNacimiento = getStringValue([
-      'fechaNacimiento', 
-      'fecha_nacimiento', 
-      'birthDate', 
-      'birth_date', 
-      'dateOfBirth', 
+      'fechaNacimiento',
+      'fecha_nacimiento',
+      'birthDate',
+      'birth_date',
+      'dateOfBirth',
       'date_of_birth',
       'nacimiento',
       'birthday',
       'fecha'
     ]);
-    print('[UsuarioCUS] 🎂 Fecha de nacimiento encontrada: $fechaNacimiento');
+    print('[UsuarioCUS] JSON recibido completo: $json');
 
     // --- Lógica de Detección de Perfil ---
     TipoPerfilCUS tipoPerfil;
@@ -314,7 +322,8 @@ class UsuarioCUS {
           .toList();
       print('[UsuarioCUS] ✅ Documentos parseados: ${documentosList.length}');
       for (final doc in documentosList) {
-        print('[UsuarioCUS] 📄 Documento: ${doc.nombreDocumento} -> ${doc.urlDocumento}');
+        print(
+            '[UsuarioCUS] 📄 Documento: ${doc.nombreDocumento} -> ${doc.urlDocumento}');
       }
     }
 
@@ -336,6 +345,7 @@ class UsuarioCUS {
       asentamiento: getStringValue(['asentamiento', 'colonia']),
       codigoPostal: getStringValue(['codigoPostal', 'cp']),
       direccion: getStringValue(['direccion', 'address']),
+      idGeneral:   getStringValue(['id_general','usuario_general_id']),
       ocupacion: getStringValue(['ocupacion', 'job']),
       razonSocial: razonSocial,
       estado: getStringValue(['estado', 'state']),
@@ -352,7 +362,8 @@ class UsuarioCUS {
 
   /// Obtiene el nombre a mostrar según el tipo de perfil
   String get nombreDisplay {
-    if (tipoPerfil == TipoPerfilCUS.personaMoral || tipoPerfil == TipoPerfilCUS.organizacion) {
+    if (tipoPerfil == TipoPerfilCUS.personaMoral ||
+        tipoPerfil == TipoPerfilCUS.organizacion) {
       return razonSocial ?? nombre; // Prioriza razón social para organizaciones
     }
     return nombre_completo ?? nombre;
@@ -401,12 +412,12 @@ class UsuarioCUS {
   /// Construye la dirección completa
   String get direccionCompleta {
     final partes = <String>[];
-    
+
     if (calle?.isNotEmpty == true) partes.add(calle!);
     if (asentamiento?.isNotEmpty == true) partes.add(asentamiento!);
     if (estado?.isNotEmpty == true) partes.add(estado!);
     if (codigoPostal?.isNotEmpty == true) partes.add('CP $codigoPostal');
-    
+
     return partes.isNotEmpty ? partes.join(', ') : 'Sin dirección registrada';
   }
 
