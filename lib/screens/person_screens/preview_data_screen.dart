@@ -65,6 +65,9 @@ class PreviewScreen extends StatelessWidget {
     final List<String> datosFinales =
         ModalRoute.of(context)!.settings.arguments as List<String>;
 
+                                      print('calle: ${datosFinales[12]}');
+
+
     return Scaffold(
       backgroundColor: const Color(0xFFF1F4F8),
       body: Column(

@@ -281,28 +281,41 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
 
   void _goNext() {
     setState(() => _submitted = true);
-    if (_isFormValid) {
-      final datosDireccion = [
-        _cpCtrl.text,
-        _selectedColonia == '__OTRA__'
-            ? _manualComunidadCtrl.text
-            : _selectedColonia ?? '',
-        _selectedCalle == '__OTRA__'
-            ? _manualCalleCtrl.text
-            : _selectedCalle ?? '',
-        _numExtCtrl.text,
-        _numIntCtrl.text,
-        _pickedLocation?.latitude.toString() ?? '',
-        _pickedLocation?.longitude.toString() ?? '',
-      ];
+    if (!_isFormValid) return;
 
-      final datosPersonales =
-          ModalRoute.of(context)!.settings.arguments as List<String>;
+    //* debug prints…
+    // debugPrint('──> _selectedCalle:      $_selectedCalle');
+    // debugPrint('──> _manualCalleCtrl.text: "${_manualCalleCtrl.text}"');
+    // debugPrint('──> isManualCalle:       $_isManualCalle');
 
-      final datosCompletos = [...datosPersonales, ...datosDireccion];
+    //* Usa el getter _isManualCalle en lugar de comparar con '__OTRA__'
+    final String calleFinal = _isManualCalle
+        ? _manualCalleCtrl.text.trim()
+        : (_selectedCalle!.trim());
 
-      Navigator.pushNamed(context, '/contact-moral', arguments: datosCompletos);
-    }
+    final datosDireccion = [
+      _cpCtrl.text.trim(),
+      _isManualColonia
+          ? _manualComunidadCtrl.text.trim()
+          : (_selectedColonia!.trim()),
+      calleFinal,
+      _numExtCtrl.text.trim(),
+      _numIntCtrl.text.trim(),
+      _pickedLocation?.latitude.toString() ?? '',
+      _pickedLocation?.longitude.toString() ?? '',
+    ];
+
+    debugPrint('→ calle a enviar (datosDireccion[2]): "$calleFinal"');
+
+    final datosPersonales =
+        ModalRoute.of(context)!.settings.arguments as List<String>;
+    final datosCompletos = [...datosPersonales, ...datosDireccion];
+
+    Navigator.pushNamed(
+      context,
+      '/contact-data',
+      arguments: datosCompletos,
+    );
   }
 
   InputDecoration _inputDecoration(String label, [IconData? icon]) {
