@@ -480,7 +480,7 @@ class WeatherDetailsModal extends StatelessWidget {
                 ),
               ),
 
-              // Header
+              //* Header
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -559,38 +559,26 @@ class WeatherDetailsModal extends StatelessWidget {
                       //* Weather metrics grid
                       LayoutBuilder(
                         builder: (context, constraints) {
-                          const spacing = 12.0;
-                          //* ancho total disponible menos espacios, dividido entre 2 columnas
-                          final itemWidth =
-                              (constraints.maxWidth - spacing) / 2;
-                          //* altura calculada a partir del aspect ratio 1.5 (w/h = 1.5 → h = w / 1.5)
-                          final itemHeight = itemWidth / 1.4;
+                          const spacing = 11.0;
+                          final availableWidth = constraints.maxWidth;
+                          //* Calcula ancho para dos columnas con espacio intermedio
+                          final itemWidth = (availableWidth - spacing) / 2;
+                          //* Relación ancho/alto = 1.3 
+                          const aspectRatio = 1.3;
 
-                          //* lista de widgets métricos
                           final metrics = <Widget>[
-                            _buildDetailMetric(Icons.opacity, 'Humedad',
-                                '${weatherData.humidity}%'),
-                            _buildDetailMetric(Icons.air, 'Viento',
-                                '${weatherData.windSpeed.round()} km/h'),
+                            _buildDetailMetric(Icons.opacity, 'Humedad', '${weatherData.humidity}%'),
+                            _buildDetailMetric(Icons.air, 'Viento', '${weatherData.windSpeed.round()} km/h'),
                             if (weatherData.feelsLike != null)
-                              _buildDetailMetric(
-                                  Icons.thermostat,
-                                  'Sensación Térmica',
-                                  '${weatherData.feelsLike!.round()}°C'),
+                              _buildDetailMetric(Icons.thermostat, 'Sensación Térmica', '${weatherData.feelsLike!.round()}°C'),
                             if (weatherData.pressure != null)
-                              _buildDetailMetric(Icons.speed, 'Presión',
-                                  '${weatherData.pressure!.round()} hPa'),
+                              _buildDetailMetric(Icons.speed, 'Presión', '${weatherData.pressure!.round()} hPa'),
                             if (weatherData.uvIndex != null)
-                              _buildDetailMetric(Icons.light_mode, 'Índice UV',
-                                  '${weatherData.uvIndex}'),
+                              _buildDetailMetric(Icons.light_mode, 'Índice UV', '${weatherData.uvIndex}'),
                             if (weatherData.cloudCover != null)
-                              _buildDetailMetric(Icons.cloud, 'Nubosidad',
-                                  '${weatherData.cloudCover}%'),
+                              _buildDetailMetric(Icons.cloud, 'Nubosidad', '${weatherData.cloudCover}%'),
                             if (weatherData.dewPoint != null)
-                              _buildDetailMetric(
-                                  Icons.water_drop,
-                                  'Punto de Rocío',
-                                  '${weatherData.dewPoint!.round()}°C'),
+                              _buildDetailMetric(Icons.water_drop, 'Punto de Rocío', '${weatherData.dewPoint!.round()}°C'),
                           ];
 
                           return Wrap(
@@ -599,13 +587,17 @@ class WeatherDetailsModal extends StatelessWidget {
                             children: metrics.map((metric) {
                               return SizedBox(
                                 width: itemWidth,
-                                height: itemHeight,
-                                child: metric,
+                                //* AspectRatio hace que la altura nunca exceda el cálculo
+                                child: AspectRatio(
+                                  aspectRatio: aspectRatio,
+                                  child: metric,
+                                ),
                               );
                             }).toList(),
                           );
                         },
                       ),
+
 
                       const SizedBox(height: 32),
                     ],
