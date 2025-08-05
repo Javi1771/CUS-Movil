@@ -26,7 +26,7 @@ class AlertHelper {
         icon = Icons.error_outline;
         break;
       case AlertType.warning:
-        backgroundColor = Colors.amber.shade700;
+        backgroundColor = Colors.amber.shade800;
         icon = Icons.warning_amber_rounded;
         break;
     }
