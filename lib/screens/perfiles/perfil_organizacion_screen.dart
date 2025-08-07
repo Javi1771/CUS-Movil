@@ -503,7 +503,7 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 159, 7, 7),
+          backgroundColor: const Color.fromARGB(255, 22, 44, 146),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           elevation: 6,
@@ -514,7 +514,7 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
         ).copyWith(
           overlayColor: MaterialStateProperty.resolveWith((states) {
             if (states.contains(MaterialState.pressed)) {
-              return Colors.red.shade800.withOpacity(0.2);
+              return const Color.fromARGB(255, 22, 44, 146);
             }
             return null;
           }),

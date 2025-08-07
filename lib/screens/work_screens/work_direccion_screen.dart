@@ -506,12 +506,10 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
                               DropdownButtonFormField<String>(
                                 decoration: _inputDecoration('Calle'),
                                 items: [
-                                  ..._calles.map(
-                                    (cal) => DropdownMenuItem(
-                                      value: cal,
-                                      child: Text(cal),
-                                    ),
-                                  ),
+                                  ..._calles.map((cal) => DropdownMenuItem(
+                                        value: cal,
+                                        child: Text(cal),
+                                      )),
                                   const DropdownMenuItem(
                                     value: '__OTRA__',
                                     child: Text('Otra...'),
@@ -538,9 +536,7 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
                                 TextFormField(
                                   controller: _manualCalleCtrl,
                                   decoration: _inputDecoration(
-                                    'Escribe tu calle',
-                                    Icons.edit_location,
-                                  ),
+                                      'Escribe tu calle', Icons.edit_location),
                                   inputFormatters: [UpperCaseTextFormatter()],
                                   validator: (v) =>
                                       v == null || v.trim().isEmpty
@@ -554,9 +550,7 @@ class _WorkDireccionScreenState extends State<WorkDireccionScreen> {
                           TextFormField(
                             controller: _manualCalleCtrl,
                             decoration: _inputDecoration(
-                              'Calle (escríbela)',
-                              Icons.streetview,
-                            ),
+                                'Calle (escríbela)', Icons.streetview),
                             inputFormatters: [UpperCaseTextFormatter()],
                             validator: (v) => v == null || v.trim().isEmpty
                                 ? 'Requerido'

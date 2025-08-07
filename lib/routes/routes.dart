@@ -33,8 +33,8 @@ import '../screens/work_screens/work_preview_screen.dart';
 import '../screens/work_screens/work_confirmation_screen.dart';
 
 // Generales
+// ✅ SE HA AÑADIDO LA IMPORTACIÓN
 import '../screens/home_screen.dart';
-// Make sure the class name in home_screen.dart matches 'HomeScreen' or update the route below to use the correct class name.
 
 // Importa la pantalla de perfil del usuario
 import '../screens/perfil_usuario_screen.dart';
@@ -80,7 +80,9 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/work-preview': (_) => const PreviewWorkScreen(),
   '/work-confirmation': (_) => const WorkConfirmationScreen(),
 
+  // ✅ ESTA LÍNEA AHORA FUNCIONARÁ CORRECTAMENTE
   '/home': (_) => const HomeScreen(),
+
   '/mis-documentos': (_) => const MisDocumentosScreen(),
   '/perfil-usuario': (_) => const PerfilUsuarioScreen(),
   '/tramites': (_) => const TramitesScreen(),

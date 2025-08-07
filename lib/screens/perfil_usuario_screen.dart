@@ -108,13 +108,13 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                       Icon(
                         Icons.error_outline,
                         size: 64,
-                        color: Colors.red[400],
+                        color: const Color.fromARGB(255, 0, 0, 0),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         _error!,
                         style: const TextStyle(
-                          color: Colors.red,
+                          color: Color.fromARGB(255, 5, 5, 5),
                           fontSize: 16,
                         ),
                         textAlign: TextAlign.center,

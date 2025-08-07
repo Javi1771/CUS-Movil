@@ -61,13 +61,13 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     'Acta de Concubinato': null,
   };
 
-  final Map<String, String> _imagenesDocumentos = {
-    'INE': 'assets/ine.png',
-    'Acta de Nacimiento': 'assets/Acta_nacimiento.png',
-    'CURP': 'assets/Curp.png',
-    'Comprobante Domicilio': 'assets/Comprobante_domicilio.png',
-    'Acta de Matrimonio': 'assets/Acta_matrimonio.png',
-    'Acta de Concubinato': 'assets/Acta_concubinato.png',
+  final Map<String, IconData> _iconosDocumentos = {
+    'INE': Icons.credit_card,
+    'Acta de Nacimiento': Icons.child_care,
+    'CURP': Icons.fingerprint,
+    'Comprobante Domicilio': Icons.home,
+    'Acta de Matrimonio': Icons.favorite,
+    'Acta de Concubinato': Icons.people,
   };
 
   bool _isLoading = false;
@@ -805,31 +805,14 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                 children: [
                   Row(
                     children: [
-                      // Imagen del documento
-                      Container(
+                      // Icono del documento
+                      SizedBox(
                         width: 44,
                         height: 44,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: statusColor.withOpacity(0.2),
-                            width: 1,
-                          ),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(11),
-                          child: Image.asset(
-                            _imagenesDocumentos[tipo] ?? 'assets/ine.png',
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: statusColor.withOpacity(0.1),
-                              child: Icon(
-                                Icons.description_rounded,
-                                color: statusColor,
-                                size: 22,
-                              ),
-                            ),
-                          ),
+                        child: Icon(
+                          _iconosDocumentos[tipo] ?? Icons.description_rounded,
+                          color: govBlue,
+                          size: 32,
                         ),
                       ),
 
@@ -1064,10 +1047,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     );
   }
 
-  // Banner header widget - EXACTAMENTE IGUAL AL DEL PERFIL
+  // Banner header widget - Sin círculo de progreso
   Widget _buildBannerHeader() {
-    const govBlue = Color(0xFF0B3B60);
-
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -1077,132 +1058,60 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           bottomRight: Radius.circular(50),
         ),
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Main content
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(0, 50, 0, 50),
-            child: const Column(
-              children: [
-                SizedBox(height: 0),
-                // Title
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    "Mis Documentos",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.10,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                SizedBox(height: 20),
-                // Subtitle
-                Text(
-                  "Gestiona tus documentos de forma segura",
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 0.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 40),
-              ],
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(20, 50, 20, 40),
+        child: Column(
+          children: [
+            // Title
+            const Text(
+              "Mis Documentos",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.10,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          // Progress indicator positioned at bottom (like profile picture)
-          Positioned(
-            bottom: -65,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                width: 130,
-                height: 130,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
+            const SizedBox(height: 8),
+
+            // Subtitle
+            const Text(
+              "Gestiona tus documentos de forma segura",
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                letterSpacing: 0.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+
+            const SizedBox(height: 20),
+
+            // Estadísticas de documentos
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1,
                 ),
-                child: Container(
-                  margin: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      width: 4,
-                      color: govBlue,
-                    ),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      LiquidCircularProgressIndicator(
-                        value: progreso,
-                        valueColor:
-                            const AlwaysStoppedAnimation<Color>(govBlue),
-                        backgroundColor: Colors.white,
-                        borderColor: Colors.transparent,
-                        borderWidth: 0.0,
-                        direction: Axis.vertical,
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "${(progreso * 100).toStringAsFixed(0)}%",
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              color: progreso > 0.3 ? Colors.white : govBlue,
-                              letterSpacing: -0.5,
-                              shadows: [
-                                Shadow(
-                                  offset: const Offset(0, 1),
-                                  blurRadius: 3,
-                                  color: progreso > 0.3
-                                      ? Colors.black.withOpacity(0.3)
-                                      : Colors.white.withOpacity(0.8),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            "Completado",
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: progreso > 0.3
-                                  ? Colors.white.withOpacity(0.9)
-                                  : textSecondary,
-                              letterSpacing: 0.3,
-                              shadows: [
-                                Shadow(
-                                  offset: const Offset(0, 1),
-                                  blurRadius: 2,
-                                  color: progreso > 0.3
-                                      ? Colors.black.withOpacity(0.2)
-                                      : Colors.white.withOpacity(0.6),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+              ),
+              child: Text(
+                "$documentosSubidos de $totalDocumentos documentos",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1261,7 +1170,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       children: [
-                        const SizedBox(height: 75),
+                        const SizedBox(height: 30),
                         if (documentosSubidos == 0)
                           Center(
                             child: Container(

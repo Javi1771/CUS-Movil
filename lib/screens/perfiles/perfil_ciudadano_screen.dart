@@ -440,6 +440,8 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                           _getDisplayValue(usuario!.telefono, 'Sin teléfono'),
                           imagenesIconos['phone']!,
                           Icons.phone,
+                          isEditable: true,
+                          onEdit: () => _showEditPhoneDialog(),
                         ),
                         _buildInfoCard(
                           'Dirección',
@@ -619,16 +621,6 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  "Perfil de Ciudadano",
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 0.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
                 const SizedBox(height: 40),
               ],
             ),
@@ -737,8 +729,10 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
     String label,
     String value,
     String imagePath,
-    IconData fallbackIcon,
-  ) {
+    IconData fallbackIcon, {
+    bool isEditable = false,
+    VoidCallback? onEdit,
+  }) {
     const govBlue = Color(0xFF0B3B60);
     const textGray = Color(0xFF475569);
 
@@ -795,6 +789,19 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
               ],
             ),
           ),
+          if (isEditable && onEdit != null)
+            IconButton(
+              onPressed: onEdit,
+              icon: const Icon(
+                Icons.edit,
+                color: govBlue,
+                size: 20,
+              ),
+              style: IconButton.styleFrom(
+                backgroundColor: govBlue.withOpacity(0.1),
+                padding: const EdgeInsets.all(8),
+              ),
+            ),
         ],
       ),
     );
@@ -811,7 +818,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 159, 7, 7),
+          backgroundColor: const Color.fromARGB(255, 22, 44, 146),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           elevation: 6,
@@ -822,7 +829,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
         ).copyWith(
           overlayColor: MaterialStateProperty.resolveWith((states) {
             if (states.contains(MaterialState.pressed)) {
-              return Colors.red.shade800.withOpacity(0.2);
+              return const Color.fromARGB(255, 22, 44, 146);
             }
             return null;
           }),
@@ -1032,3 +1039,4 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
     );
   }
 }
+  void _showEditPhoneDialog() { print('temp'); }

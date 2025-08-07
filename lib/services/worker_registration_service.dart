@@ -38,7 +38,7 @@ class WorkerRegistrationService {
     required bool tipoTelefono,
   }) async {
     try {
-      final url = Uri.parse('$_baseUrl/insert full trabajador data mobile');
+      final url = Uri.parse('$_baseUrl/insert_full_trabajador_data_mobile');
 
       // Construir el JSON según el formato requerido
       final requestBody = {
@@ -120,16 +120,6 @@ class WorkerRegistrationService {
 
   /// Convierte los datos del formulario al formato requerido por la API
   static Map<String, dynamic> formatDataForAPI(List<String> formData) {
-    // Mapear los datos del formulario según el orden REAL en que se capturan:
-    // WORK_DATA (13 elementos): [0-12]
-    //   [0] nomina, [1] puesto, [2] departamento, [3] curp, [4] curpVerify,
-    //   [5] nombre, [6] apellidoP, [7] apellidoM, [8] fechaNac, [9] genero,
-    //   [10] estadoNac, [11] password, [12] confirmPass
-    // WORK_DIRECCION (7 elementos): [13-19]
-    //   [13] cp, [14] colonia, [15] calle, [16] numExt, [17] numInt, [18] lat, [19] lng
-    // WORK_CONTACT (5 elementos): [20-24]
-    //   [20] email, [21] emailVerify, [22] phone, [23] phoneVerify, [24] smsCode
-
     if (kDebugMode) {
       print(
           '[WorkerRegistrationService] 🔍 Mapeando ${formData.length} elementos:');

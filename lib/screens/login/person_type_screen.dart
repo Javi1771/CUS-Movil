@@ -112,7 +112,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                       ),
                     ),
                     onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text('CANCELAR'),
+                    child: const Text('Cancelar'),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -128,7 +128,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                       setState(() => selectedType = type);
                       Navigator.of(ctx).pop();
                     },
-                    child: const Text('SELECCIONAR'),
+                    child: const Text('Seleccionar'),
                   ),
                 ],
               ),

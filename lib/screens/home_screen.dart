@@ -1,3 +1,4 @@
+// TODO Implement this library.
 import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
@@ -630,7 +631,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildSecretariaCard(Secretaria secretaria, int index) {
-    final color = Color(int.parse(secretaria.color.replaceFirst('#', '0xFF')));
+    // Color azul más bajo y suave
+    const primaryBlue = Color(0xFF4A90E2);
 
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 600 + (index * 150)),
@@ -647,35 +649,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       },
       child: Container(
         width: 180,
-        height: 160, // Altura fija para evitar overflow
+        height: 160,
         margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
+          color: primaryBlue, // Color azul sólido más bajo
           borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              color.withOpacity(0.02),
-            ],
-          ),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.15),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+              color: primaryBlue.withOpacity(0.25),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
               spreadRadius: 0,
             ),
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
-          border: Border.all(
-            color: color.withOpacity(0.1),
-            width: 1,
-          ),
         ),
         child: Material(
           color: Colors.transparent,
@@ -683,66 +674,45 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
             onTap: () => setState(() => _page = 3),
-            splashColor: color.withOpacity(0.1),
-            highlightColor: color.withOpacity(0.05),
+            splashColor: Colors.white.withOpacity(0.15),
+            highlightColor: Colors.white.withOpacity(0.08),
             child: Padding(
-              padding: const EdgeInsets.all(14), // Reducido de 16 a 14
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize:
-                    MainAxisSize.min, // Importante para evitar overflow
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Header con icono mejorado
+                  // Header con icono y número
                   Row(
                     children: [
                       Container(
-                        width: 42, // Reducido de 48 a 42
-                        height: 42, // Reducido de 48 a 42
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              color,
-                              color.withOpacity(0.8),
-                            ],
-                          ),
-                          borderRadius:
-                              BorderRadius.circular(12), // Reducido de 14 a 12
-                          boxShadow: [
-                            BoxShadow(
-                              color: color.withOpacity(0.3),
-                              blurRadius: 6, // Reducido de 8 a 6
-                              offset: const Offset(0, 3), // Reducido de 4 a 3
-                            ),
-                          ],
+                          color: Colors.white.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         child: const Icon(
                           Icons.account_balance,
                           color: Colors.white,
-                          size: 22, // Reducido de 24 a 22
+                          size: 24,
                         ),
                       ),
                       const Spacer(),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6, // Reducido de 8 a 6
-                          vertical: 3, // Reducido de 4 a 3
+                          horizontal: 8,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
-                          borderRadius:
-                              BorderRadius.circular(10), // Reducido de 12 a 10
-                          border: Border.all(
-                            color: color.withOpacity(0.2),
-                            width: 1,
-                          ),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           '${secretaria.servicios.length}',
-                          style: TextStyle(
-                            fontSize: 11, // Reducido de 12 a 11
-                            color: color,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: primaryBlue,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -750,67 +720,66 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ],
                   ),
 
-                  const SizedBox(height: 12), // Reducido de 16 a 12
+                  const SizedBox(height: 16),
 
-                  // Título mejorado con Flexible para evitar overflow
+                  // Nombre de la secretaría - VISIBLE Y PROMINENTE
                   Flexible(
                     child: Text(
                       secretaria.nombre,
                       style: const TextStyle(
-                        fontSize: 13, // Reducido de 14 a 13
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1E293B),
-                        height: 1.1, // Reducido de 1.2 a 1.1
-                        letterSpacing: -0.2,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
 
-                  const SizedBox(height: 6), // Reducido de 8 a 6
+                  const SizedBox(height: 8),
 
-                  // Descripción de servicios
+                  // Descripción sutil
                   Text(
-                    '${secretaria.servicios.length} servicios',
+                    '${secretaria.servicios.length} servicios disponibles',
                     style: TextStyle(
-                      fontSize: 11, // Reducido de 12 a 11
-                      color: Colors.grey.shade600,
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.85),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
 
                   const Spacer(),
 
-                  // Footer con indicador de acción
+                  // Botón "Ver detalles"
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 6), // Reducido de 8 a 6
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.05),
-                      borderRadius:
-                          BorderRadius.circular(8), // Reducido de 10 a 8
-                      border: Border.all(
-                        color: color.withOpacity(0.1),
-                        width: 1,
-                      ),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           Icons.arrow_forward_rounded,
-                          size: 12, // Reducido de 14 a 12
-                          color: color,
+                          size: 16,
+                          color: primaryBlue,
                         ),
-                        const SizedBox(width: 4), // Reducido de 6 a 4
+                        SizedBox(width: 8),
                         Text(
                           'Ver detalles',
                           style: TextStyle(
-                            fontSize: 10, // Reducido de 11 a 10
-                            color: color,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            color: primaryBlue,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -825,6 +794,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  // Resto de métodos sin cambios...
   Widget _buildNewHeader() {
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
@@ -889,7 +859,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: titleFontSize.clamp(
-                                12, 24), //* mínimo 12, máximo 24
+                                20, 45), //* mínimo 12, máximo 24
                             fontWeight: FontWeight.w400,
                           ),
                           maxLines: 1,
@@ -901,7 +871,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: nameFontSize.clamp(
-                                14, 28), //* mínimo 14, máximo 28
+                                14, 50), //* mínimo 14, máximo 28
                             fontWeight: FontWeight.bold,
                           ),
                           maxLines: 1,
