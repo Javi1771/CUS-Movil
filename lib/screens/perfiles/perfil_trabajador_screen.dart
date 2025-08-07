@@ -638,7 +638,7 @@ class _PerfilTrabajadorScreenState extends State<PerfilTrabajadorScreen> {
                               icon: const Icon(Icons.logout_rounded,
                                   size: 16, color: Colors.white),
                               label: const Text(
-                                "Confirmar",
+                                "Aceptar",
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
