@@ -44,8 +44,10 @@ String? obtenerEstadoDeCurp(String curp) {
 
 String? obtenerGeneroDeCurp(String curp) {
   if (curp.length < 11) return null;
-  String genero = curp[10].toUpperCase();
-  return genero == 'H' ? 'Hombre' : genero == 'M' ? 'Mujer' : null;
+  final genero = curp[10].toUpperCase();
+  if (genero == 'H') return 'H';
+  if (genero == 'M') return 'M';
+  return null;
 }
 
 String? obtenerFechaNacimientoDeCurp(String curp) {

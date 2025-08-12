@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'auth_service.dart';
 import '../models/usuario_cus.dart';
@@ -349,7 +350,90 @@ class UserDataService {
     }
   }
 
-  static Future uploadDocument(String tipo, String s) async {}
+  static Future<Map<String, dynamic>> uploadDocument(String tipo, String filePath) async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception('Usuario no autenticado');
+    }
+
+    final file = File(filePath);
+    if (!await file.exists()) {
+      throw Exception('Archivo no encontrado');
+    }
+    if (!filePath.toLowerCase().endsWith('.pdf')) {
+      throw Exception('Solo se permiten archivos PDF');
+    }
+
+    try {
+      final uri = Uri.parse(_apiUrl);
+      final request = http.MultipartRequest('POST', uri)
+        ..headers.addAll({
+          'Authorization': 'Bearer $token',
+          'X-API-KEY': _apiKey,
+        })
+        ..fields['action'] = 'uploadUserDocument'
+        ..fields['token'] = token
+        ..fields['tipo'] = tipo;
+
+      final multipartFile = await http.MultipartFile.fromPath(
+        'file',
+        filePath,
+        filename: file.uri.pathSegments.isNotEmpty
+            ? file.uri.pathSegments.last
+            : 'documento.pdf',
+        contentType: MediaType('application', 'pdf'),
+      );
+      request.files.add(multipartFile);
+
+      final streamed = await request.send().timeout(const Duration(seconds: 60));
+      final response = await http.Response.fromStream(streamed);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final success = data['success'] == true || data['status'] == 'success';
+        if (!success) {
+          throw Exception(data['message']?.toString() ?? 'Error al subir documento');
+        }
+
+        // Intentar obtener la URL del documento desde varias claves comunes
+        final url = (data['url']?.toString() ??
+                data['secure_url']?.toString() ??
+                data['urlDocumento']?.toString() ??
+                data['public_url']?.toString() ??
+                data['link']?.toString() ??
+                data['file_url']?.toString() ??
+                data['data']?['url']?.toString() ??
+                data['data']?['secure_url']?.toString() ??
+                '')
+            .trim();
+
+        if (url.isEmpty) {
+          throw Exception('La API no devolvió una URL del documento');
+        }
+
+        final defaultName = file.uri.pathSegments.isNotEmpty
+            ? file.uri.pathSegments.last
+            : 'documento.pdf';
+        final nombre = (data['nombre'] ??
+                data['fileName'] ??
+                data['original_filename'] ??
+                defaultName)
+            .toString();
+
+        return {'success': true, 'url': url, 'name': nombre};
+      } else if (response.statusCode == 401) {
+        await _clearInvalidToken();
+        throw Exception('Sesión expirada. Por favor inicia sesión nuevamente');
+      } else {
+        throw _handleErrorResponse(response);
+      }
+    } on TimeoutException {
+      throw Exception('Tiempo de espera agotado al subir el documento');
+    } catch (e) {
+      debugPrint('[UserDataService] Error en uploadDocument: $e');
+      rethrow;
+    }
+  }
 
   /// MÉTODO MEJORADO PARA CLOUDINARY: Obtiene los documentos del usuario
   static Future<List<DocumentoCUS>> getUserDocuments() async {

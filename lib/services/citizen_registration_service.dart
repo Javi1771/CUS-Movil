@@ -92,11 +92,46 @@ class CitizenRegistrationService {
           'message': 'Ciudadano registrado exitosamente',
         };
       } else {
+        // Detectar errores de duplicado de correo o contraseña y estandarizar respuesta
+        final body = response.body;
+        final lower = body.toLowerCase();
+        String? errorCode;
+        String message = 'No se pudo registrar el ciudadano';
+
+        // Detección heurística por código de estado o texto en la respuesta
+        final isDuplicateEmail =
+            response.statusCode == 409 && lower.contains('email') ||
+            lower.contains('ya existe') && (lower.contains('correo') || lower.contains('email')) ||
+            lower.contains('duplic') && (lower.contains('correo') || lower.contains('email'));
+
+        final isDuplicatePassword =
+            response.statusCode == 409 && (lower.contains('password') || lower.contains('contrase')) ||
+            lower.contains('ya existe') && (lower.contains('password') || lower.contains('contrase')) ||
+            lower.contains('duplic') && (lower.contains('password') || lower.contains('contrase'));
+
+        if (isDuplicateEmail) {
+          errorCode = 'duplicate_email';
+          message = 'El correo ya está registrado. Por favor usa otro correo.';
+        } else if (isDuplicatePassword) {
+          errorCode = 'duplicate_password';
+          message = 'La contraseña ya está en uso. Elige una diferente.';
+        } else {
+          // Intentar extraer mensaje del JSON si está disponible
+          try {
+            final data = jsonDecode(body);
+            if (data is Map && data['message'] is String) {
+              message = data['message'];
+            }
+          } catch (_) {}
+          errorCode = 'http_${response.statusCode}';
+        }
+
         return {
           'success': false,
-          'error': 'Error del servidor: ${response.statusCode}',
-          'message': 'No se pudo registrar el ciudadano',
-          'details': response.body,
+          'error': errorCode,
+          'message': message,
+          'details': body,
+          'statusCode': response.statusCode,
         };
       }
     } catch (e) {
