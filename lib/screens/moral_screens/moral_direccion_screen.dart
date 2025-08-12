@@ -313,7 +313,7 @@ class _DireccionMoralScreenState extends State<DireccionMoralScreen> {
 
     Navigator.pushNamed(
       context,
-      '/contact-data',
+      '/contact-moral',
       arguments: datosCompletos,
     );
   }

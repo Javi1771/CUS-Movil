@@ -1,4 +1,5 @@
 import 'package:cus_movil/screens/mis_documentos_screen.dart';
+import 'package:cus_movil/screens/moral_screens/organization_confirmation_screen.dart';
 import 'package:cus_movil/screens/person_screens/citizen_confirmation_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -73,6 +74,7 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/contact-moral': (_) => const ContactMoralScreen(),
   '/terms-moral': (_) => const TermsAndConditionsMoralScreen(),
   '/preview-moral': (_) => const PreviewMoralScreen(),
+  '/confirm-moral': (_) => const OrganizationConfirmationScreen(),
 
   // ------------------- Rutas trabajo -------------------
   '/work-data': (_) => const WorkDataScreen(),
