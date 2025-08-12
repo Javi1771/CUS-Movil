@@ -123,6 +123,8 @@ class CusApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSwatch()
             .copyWith(secondary: const Color(0xFF28A745)),
         fontFamily: 'Roboto',
+        // Fondo de Scaffold transparente para que se vea el gradient global
+        scaffoldBackgroundColor: Colors.transparent,
         // Configuración optimizada para rendimiento
         textTheme: const TextTheme().apply(
           fontSizeFactor: 1.0,
@@ -141,13 +143,32 @@ class CusApp extends StatelessWidget {
       ),
       // Configuración global optimizada
       builder: (context, child) {
-        return MediaQuery(
+        final mqChild = MediaQuery(
           data: MediaQuery.of(context).copyWith(
             // Limitar el factor de escala de texto para evitar overflow
             textScaleFactor:
                 MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.2),
           ),
           child: child!,
+        );
+
+        // Fondo con degradado sutil acorde a la paleta institucional
+        // Usamos un azul gobierno muy tenue en la esquina superior izquierda
+        // y degradado hacia blanco para no afectar la legibilidad.
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF0B3B60).withOpacity(0.045), // govBlue tenue
+                const Color(0xFFF7FAFD), // casi blanco azulado
+                const Color(0xFFFFFFFF),
+              ],
+              stops: const [0.0, 0.5, 1.0],
+            ),
+          ),
+          child: mqChild,
         );
       },
       initialRoute: '/',

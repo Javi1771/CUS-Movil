@@ -169,9 +169,14 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           throw Exception('Archivo demasiado grande (>10MB)');
         }
 
+        // Subir al servidor y obtener URL persistente
+        final uploadRes = await UserDataService.uploadDocument(tipo, file.path!);
+        final url = uploadRes['url'] as String;
+        final nombreSrv = (uploadRes['name'] as String?) ?? file.name;
+
         final documento = DocumentoItem(
-          nombre: file.name,
-          ruta: file.path!,
+          nombre: nombreSrv,
+          ruta: url, // Usar URL remota para persistencia
           fechaSubida: DateTime.now(),
           tamano: file.size,
           extension: file.extension?.toUpperCase() ?? "PDF",
@@ -181,6 +186,9 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
         if (progreso == 1.0) _confettiController.play();
 
         _mostrarAlertaExito(tipo, documento);
+
+        // Refrescar lista desde API para asegurar persistencia y estados
+        await _cargarDocumentosDesdeAPI();
       }
     } catch (e) {
       if (!mounted) return;

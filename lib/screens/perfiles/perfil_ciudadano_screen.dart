@@ -440,8 +440,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                           _getDisplayValue(usuario!.telefono, 'Sin teléfono'),
                           imagenesIconos['phone']!,
                           Icons.phone,
-                          isEditable: true,
-                          onEdit: () => _showEditPhoneDialog(),
+                          isEditable: false,
                         ),
                         _buildInfoCard(
                           'Dirección',
@@ -1039,4 +1038,4 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
     );
   }
 }
-  void _showEditPhoneDialog() { print('temp'); }
+  

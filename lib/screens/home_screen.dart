@@ -17,6 +17,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:cus_movil/widgets/weather_card.dart';
 import 'secretarias_screen.dart';
 import '../models/secretaria.dart';
+import 'components/help_button.dart';
 
 //* Configuración global de caché para imágenes
 final imageCacheManager = CacheManager(
@@ -519,6 +520,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     _buildSecretariasSection(),
                     const SizedBox(height: 24),
                     _buildAnimatedRecentActivity(),
+                    const SizedBox(height: 24),
+                    _buildHelpSection(),
                     const SizedBox(height: 80),
                   ],
                 ),
@@ -526,6 +529,60 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildHelpSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(Icons.support_agent, color: Color(0xFF0B3B60)),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '¿Necesitas ayuda?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Contáctanos o revisa las preguntas frecuentes.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          const HelpButton(
+            supportEmail: 'sistemas@sanjuandelrio.gob.mx',
+            emailSubject: 'Soporte CUS',
+            faqUrl: 'https://sanjuandelrio.gob.mx/faqs',
+          ),
+        ],
       ),
     );
   }
