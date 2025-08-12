@@ -546,7 +546,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Secretarías de Gobierno',
+                  'Secretarías de Municipio',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -568,7 +568,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
             const SizedBox(height: 12),
             SizedBox(
-              height: 160,
+              height: 180, // Aumentada para acomodar el contenido flexible
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -593,7 +593,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Secretarías de Gobierno',
+              'Secretarías de Municipio',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -649,10 +649,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       },
       child: Container(
         width: 180,
-        height: 160,
+        // REMOVIDA altura fija para evitar overflow
+        constraints: const BoxConstraints(
+          minHeight: 160,
+          maxHeight: 200, // Altura máxima flexible
+        ),
         margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
-          color: primaryBlue, // Color azul sólido más bajo
+          color: primaryBlue,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -677,86 +681,116 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             splashColor: Colors.white.withOpacity(0.15),
             highlightColor: Colors.white.withOpacity(0.08),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14), // Padding reducido
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+                mainAxisSize:
+                    MainAxisSize.min, // Importante para evitar overflow
                 children: [
-                  // Header con icono y número
-                  Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.25),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(
-                          Icons.account_balance,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${secretaria.servicios.length}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: primaryBlue,
-                            fontWeight: FontWeight.w700,
+                  // Header con icono y número - MEJORADO
+                  SizedBox(
+                    height: 36, // Altura fija para el header
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.25),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.account_balance,
+                            color: Colors.white,
+                            size: 18,
                           ),
                         ),
-                      ),
-                    ],
+                        const Spacer(),
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${secretaria.servicios.length}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: primaryBlue,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
 
-                  // Nombre de la secretaría - VISIBLE Y PROMINENTE
+                  // Nombre de la secretaría - ANTI-OVERFLOW
                   Flexible(
-                    child: Text(
-                      secretaria.nombre,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    flex: 3, // Toma la mayor parte del espacio disponible
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Título con FittedBox para ajuste automático
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth: 150, // Ancho máximo del texto
+                              ),
+                              child: Text(
+                                secretaria.nombre,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  height: 1.1,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 6),
+
+                        // Descripción sutil - PROTEGIDA CONTRA OVERFLOW
+                        Flexible(
+                          child: Text(
+                            '${secretaria.servicios.length} servicios',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white.withOpacity(0.85),
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
                   const SizedBox(height: 8),
 
-                  // Descripción sutil
-                  Text(
-                    '${secretaria.servicios.length} servicios disponibles',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.85),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  // Botón "Ver detalles"
+                  // Botón "Ver detalles" - SIEMPRE VISIBLE
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    height: 32, // Altura fija para consistencia
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.08),
@@ -765,21 +799,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.arrow_forward_rounded,
-                          size: 16,
+                          size: 12,
                           color: primaryBlue,
                         ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Ver detalles',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: primaryBlue,
-                            fontWeight: FontWeight.w700,
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            'Ver detalles',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: primaryBlue,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

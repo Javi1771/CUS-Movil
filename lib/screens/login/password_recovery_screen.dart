@@ -243,7 +243,7 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen>
             child: FadeTransition(
               opacity: _footerFade,
               child: const Text(
-                '© 2025 Gobierno de San Juan del Río',
+                '© 2025 Municipio de San Juan del Río',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: Colors.black45),
               ),

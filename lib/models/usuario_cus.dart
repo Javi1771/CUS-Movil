@@ -28,7 +28,7 @@ extension TipoPerfilCUSExtension on TipoPerfilCUS {
       case TipoPerfilCUS.ciudadano:
         return 'Ciudadano';
       case TipoPerfilCUS.trabajador:
-        return 'Trabajador del Gobierno';
+        return 'Trabajador del Municipio';
       case TipoPerfilCUS.personaMoral:
       case TipoPerfilCUS.organizacion:
         return 'Organización/Empresa';
@@ -195,7 +195,7 @@ class UsuarioCUS {
     required this.tipoPerfil,
     this.usuarioId,
     this.folio,
-    this.idGeneral,  
+    this.idGeneral,
     this.nomina,
     this.idCiudadano,
     required this.nombre,
@@ -205,7 +205,6 @@ class UsuarioCUS {
     this.nacionalidad,
     required this.email,
     this.telefono,
-    
     this.calle,
     this.asentamiento,
     this.codigoPostal,
@@ -345,7 +344,7 @@ class UsuarioCUS {
       asentamiento: getStringValue(['asentamiento', 'colonia']),
       codigoPostal: getStringValue(['codigoPostal', 'cp']),
       direccion: getStringValue(['direccion', 'address']),
-      idGeneral:   getStringValue(['id_general','usuario_general_id']),
+      idGeneral: getStringValue(['id_general', 'usuario_general_id']),
       ocupacion: getStringValue(['ocupacion', 'job']),
       razonSocial: razonSocial,
       estado: getStringValue(['estado', 'state']),

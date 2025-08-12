@@ -144,24 +144,26 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      body: Column(
-        children: [
-          _buildBannerHeader(),
-          Expanded(
-            child: Column(
-              children: [
-                _buildSearchBar(),
-                Expanded(
-                  child: isLoading
-                      ? _buildLoadingState()
-                      : secretariasFiltradas.isEmpty
-                          ? _buildEmptyState()
-                          : _buildColorfulGrid(),
-                ),
-              ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildBannerHeader(),
+            Expanded(
+              child: Column(
+                children: [
+                  _buildSearchBar(),
+                  Expanded(
+                    child: isLoading
+                        ? _buildLoadingState()
+                        : secretariasFiltradas.isEmpty
+                            ? _buildEmptyState()
+                            : _buildColorfulGrid(),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -172,15 +174,33 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
       decoration: const BoxDecoration(
         color: Color(0xFF0B3B60),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(50),
-          bottomRight: Radius.circular(50),
+          bottomLeft: Radius.circular(25),
+          bottomRight: Radius.circular(25),
         ),
       ),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(20, 50, 20, 40),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
         child: Column(
           children: [
+            // Botón de regreso (opcional)
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(
+                    Icons.arrow_back_ios,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+                const Spacer(),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
             // Title
             const Text(
               "Secretarías",
@@ -196,7 +216,7 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
 
             // Subtitle
             const Text(
-              "Gobierno Municipal de Cuernavaca",
+              "Municipio de San Juan del Río",
               style: TextStyle(
                 color: Colors.white70,
                 fontSize: 16,
@@ -254,7 +274,7 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Gobierno Municipal',
+                  'Municipio de San Juan del Río',
                   style: TextStyle(
                     fontSize: 16,
                     color: Color(0xFF64748B),

@@ -142,6 +142,7 @@ class _TramitesScreenState extends State<TramitesScreen>
           end: Alignment.bottomCenter,
           colors: [
             Color(0xFF0B3B60),
+            Color(0xFF0E4A75),
           ],
         ),
         borderRadius: BorderRadius.only(

@@ -1,4 +1,5 @@
 import 'package:cus_movil/screens/mis_documentos_screen.dart';
+import 'package:cus_movil/screens/person_screens/citizen_confirmation_screen.dart';
 import 'package:flutter/material.dart';
 
 // Pantallas iniciales y login
@@ -64,6 +65,7 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/contact-data': (_) => const ContactDataScreen(),
   '/terms-data': (_) => const TermsAndConditionsScreen(),
   '/preview-data': (_) => const PreviewScreen(),
+  '/confirm-data': (_) => const CitizenConfirmationScreen(),
 
   // ------------------- Rutas personas morales -------------------
   '/moral-data': (_) => const MoralDataScreen(),
