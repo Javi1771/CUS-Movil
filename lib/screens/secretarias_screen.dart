@@ -183,21 +183,6 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
         child: Column(
           children: [
             // Botón de regreso (opcional)
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(
-                    Icons.arrow_back_ios,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const Spacer(),
-              ],
-            ),
 
             const SizedBox(height: 10),
 

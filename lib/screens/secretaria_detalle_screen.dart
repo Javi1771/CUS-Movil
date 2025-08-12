@@ -17,20 +17,21 @@ class SecretariaDetalleScreen extends StatefulWidget {
   });
 
   @override
-  State<SecretariaDetalleScreen> createState() => _SecretariaDetalleScreenState();
+  State<SecretariaDetalleScreen> createState() =>
+      _SecretariaDetalleScreenState();
 }
 
 class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
     with TickerProviderStateMixin {
   // Color azul uniforme para todas las secretarías
   static const govBlue = Color(0xFF045ea0);
-  
+
   late AnimationController _animationController;
   late AnimationController _mapAnimationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _scaleAnimation;
-  
+
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
   bool _isMapReady = false;
@@ -48,12 +49,12 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _mapAnimationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -61,7 +62,7 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
       parent: _animationController,
       curve: Curves.easeOut,
     ));
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -69,7 +70,7 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
       parent: _animationController,
       curve: Curves.easeOutCubic,
     ));
-    
+
     _scaleAnimation = Tween<double>(
       begin: 0.8,
       end: 1.0,
@@ -423,7 +424,7 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
               ...widget.secretaria.direcciones.asMap().entries.map((entry) {
                 final index = entry.key;
                 final direccion = entry.value;
-                
+
                 return _DireccionExpandibleCard(
                   direccion: direccion,
                   index: index,
@@ -486,7 +487,8 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
                     ),
                     TextButton.icon(
                       onPressed: _launchMaps,
-                      icon: const Icon(Icons.open_in_new, size: 16, color: govBlue),
+                      icon: const Icon(Icons.open_in_new,
+                          size: 16, color: govBlue),
                       label: const Text(
                         'Abrir en Maps',
                         style: TextStyle(color: govBlue, fontSize: 12),
@@ -701,13 +703,6 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
                 onTap: _launchPhone,
               ),
               const SizedBox(height: 12),
-              _buildContactButton(
-                icon: Icons.directions,
-                label: 'Cómo Llegar',
-                value: 'Abrir en Google Maps',
-                color: govBlue,
-                onTap: _launchMaps,
-              ),
             ],
           ),
         ),
@@ -803,7 +798,8 @@ class _DireccionExpandibleCard extends StatefulWidget {
   });
 
   @override
-  State<_DireccionExpandibleCard> createState() => _DireccionExpandibleCardState();
+  State<_DireccionExpandibleCard> createState() =>
+      _DireccionExpandibleCardState();
 }
 
 class _DireccionExpandibleCardState extends State<_DireccionExpandibleCard>
@@ -1019,7 +1015,8 @@ class _DireccionExpandibleCardState extends State<_DireccionExpandibleCard>
                                   Container(
                                     width: 4,
                                     height: 4,
-                                    margin: const EdgeInsets.only(top: 6, right: 8),
+                                    margin:
+                                        const EdgeInsets.only(top: 6, right: 8),
                                     decoration: BoxDecoration(
                                       color: govBlue.withOpacity(0.6),
                                       shape: BoxShape.circle,

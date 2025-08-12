@@ -1039,4 +1039,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
     );
   }
 }
-  void _showEditPhoneDialog() { print('temp'); }
+
+void _showEditPhoneDialog() {
+  print('temp');
+}

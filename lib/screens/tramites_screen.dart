@@ -161,23 +161,6 @@ class _TramitesScreenState extends State<TramitesScreen>
                 height: 44,
                 child: Stack(
                   children: [
-                    // Botón atrás posicionado a la izquierda
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: SizedBox(
-                        width: 44,
-                        child: IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.arrow_back_ios,
-                              color: Colors.white, size: 18),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                      ),
-                    ),
-
                     // Botón refrescar posicionado a la derecha
                     Positioned(
                       right: 0,
