@@ -37,6 +37,7 @@ dependencies:
   flutter_cache_manager: ^3.4.1
   permission_handler_android: ^12.1.0
   shimmer: ^3.0.0
+  http_parser: ^4.1.2
 
 
 

@@ -1,6 +1,7 @@
 // screens/perfil_usuario_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:cus_movil/widgets/loading_overlay.dart';
 import '../models/usuario_cus.dart';
 import '../services/user_data_service.dart';
 import 'perfiles/perfil_ciudadano_screen.dart';
@@ -78,68 +79,51 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      body: _isLoading
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(Color(0xFF0B3B60)),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Cargando perfil...',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Color(0xFF64748B),
+    return LoadingOverlay(
+      isLoading: _isLoading,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F7FA),
+        body: _error != null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: const Color.fromARGB(255, 0, 0, 0),
                     ),
-                  ),
-                ],
-              ),
-            )
-          : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: const Color.fromARGB(255, 0, 0, 0),
+                    const SizedBox(height: 16),
+                    Text(
+                      _error!,
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 5, 5, 5),
+                        fontSize: 16,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _error!,
-                        style: const TextStyle(
-                          color: Color.fromARGB(255, 5, 5, 5),
-                          fontSize: 16,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: _fetchUserData,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Reintentar'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0B3B60),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: _fetchUserData,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Reintentar'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0B3B60),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
                         ),
                       ),
-                    ],
-                  ),
-                )
-              : _buildProfileBasedOnType(),
+                    ),
+                  ],
+                ),
+              )
+            : _buildProfileBasedOnType(),
+      ),
     );
   }
 }
