@@ -88,10 +88,10 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.error_outline,
                       size: 64,
-                      color: const Color.fromARGB(255, 0, 0, 0),
+                      color: Color.fromARGB(255, 0, 0, 0),
                     ),
                     const SizedBox(height: 16),
                     Text(

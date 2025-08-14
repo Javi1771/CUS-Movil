@@ -1,4 +1,3 @@
-// TODO Implement this library.
 import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
@@ -549,12 +548,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         ],
       ),
-      child: Row(
+      child: const Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(Icons.support_agent, color: Color(0xFF0B3B60)),
-          const SizedBox(width: 12),
-          const Expanded(
+          Icon(Icons.support_agent, color: Color(0xFF0B3B60)),
+          SizedBox(width: 12),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -577,8 +576,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          const HelpButton(
+          SizedBox(width: 12),
+          HelpButton(
             supportEmail: 'sistemas@sanjuandelrio.gob.mx',
             emailSubject: 'Soporte CUS',
             faqUrl: 'https://sanjuandelrio.gob.mx/faqs',
@@ -857,19 +856,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ],
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.arrow_forward_rounded,
                           size: 12,
                           color: primaryBlue,
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Flexible(
                           child: Text(
                             'Ver detalles',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
                               color: primaryBlue,
                               fontWeight: FontWeight.w700,
