@@ -470,7 +470,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   ),
                 ),
               ),
-
               //* Información del documento
               Container(
                 margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
@@ -1395,73 +1394,15 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                 child: Column(
                   children: [
                     const SizedBox(height: 30),
-                    if (docsSubidos == 0)
-                      Center(
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 16),
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
-                                blurRadius: 15,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  color: govBlue.withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.folder_open_rounded,
-                                  color: govBlue,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'No tienes documentos cargados',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: textPrimary,
-                                  letterSpacing: -0.3,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 6),
-                              const Text(
-                                'Agrega tus documentos tocando el botón + en cada sección.',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: textSecondary,
-                                  height: 1.4,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    else
-                      Column(
-                        children:
-                            _documentosRequeridos.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final doc = entry.value;
-                          final item = _documentos[doc];
-                          return _buildDocumentCard(doc, item, index);
-                        }).toList(),
-                      ),
+                    Column(
+                      children:
+                          _documentosRequeridos.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final doc = entry.value;
+                        final item = _documentos[doc];
+                        return _buildDocumentCard(doc, item, index);
+                      }).toList(),
+                    ),
                     const SizedBox(height: 50),
                   ],
                 ),

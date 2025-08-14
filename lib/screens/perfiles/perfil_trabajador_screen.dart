@@ -162,12 +162,7 @@ class _PerfilTrabajadorScreenState extends State<PerfilTrabajadorScreen> {
                                     title: 'Información Personal',
                                     iconPath: imagenesIconos['person']!,
                                     children: [
-                                      _buildInfoCard(
-                                          'ID General',
-                                          _getIdGeneral(),
-                                          imagenesIconos['badge']!,
-                                          Icons.person_pin),
-                                      _buildInfoCard(
+                                                                            _buildInfoCard(
                                           'Nómina',
                                           _getDisplayValue(usuario!.nomina),
                                           imagenesIconos['badge']!,
