@@ -1,7 +1,6 @@
 // screens/perfil_usuario_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:cus_movil/widgets/loading_overlay.dart';
 import '../models/usuario_cus.dart';
 import '../services/user_data_service.dart';
 import 'perfiles/perfil_ciudadano_screen.dart';
@@ -79,9 +78,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return LoadingOverlay(
-      isLoading: _isLoading,
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
         body: _error != null
             ? Center(
@@ -123,7 +120,6 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                 ),
               )
             : _buildProfileBasedOnType(),
-      ),
     );
   }
 }

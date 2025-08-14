@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:cus_movil/widgets/loading_overlay.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:confetti/confetti.dart';
 import '../services/user_data_service.dart';
@@ -1311,9 +1310,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     final totalDocs = calcularTotalEsperado(_documentos);
     final prog = totalDocs == 0 ? 0.0 : docsSubidos / totalDocs;
 
-    return LoadingOverlay(
-      isLoading: _isLoading,
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
         body: SingleChildScrollView(
           child: Column(
@@ -1420,7 +1417,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                 ),
               )
             : null,
-      ),
     );
   }
 }

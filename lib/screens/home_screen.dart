@@ -14,7 +14,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:cus_movil/models/weather_data.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:cus_movil/widgets/weather_card.dart';
-import 'package:cus_movil/widgets/loading_overlay.dart';
 import 'secretarias_screen.dart';
 import '../models/secretaria.dart';
 import 'components/help_button.dart';
@@ -2077,13 +2076,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final bool showOverlay = _page == 0 && (_isLoadingWeather || _isLoadingStats || _isLoadingActivity);
-    return LoadingOverlay(
-      isLoading: showOverlay,
-      child: Scaffold(
-        extendBody: true,
-        body: _getPageAtIndex(_page),
-        bottomNavigationBar: CurvedNavigationBar(
+    return Scaffold(
+      extendBody: true,
+      body: _getPageAtIndex(_page),
+      bottomNavigationBar: CurvedNavigationBar(
         index: _page,
         height: 60.0,
         items: const [
@@ -2098,7 +2094,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         backgroundColor: Colors.transparent,
         animationDuration: const Duration(milliseconds: 200),
         onTap: (index) => setState(() => _page = index),
-      ),
       ),
     );
   }

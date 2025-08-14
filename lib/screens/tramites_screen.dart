@@ -2,7 +2,6 @@ import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/tramites_service.dart';
-import 'package:cus_movil/widgets/loading_overlay.dart';
 
 class TramitesScreen extends StatefulWidget {
   const TramitesScreen({super.key});
@@ -117,18 +116,15 @@ class _TramitesScreenState extends State<TramitesScreen>
 
   @override
   Widget build(BuildContext context) {
-    return LoadingOverlay(
-      isLoading: _isLoading,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7FA),
-        body: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: _error != null ? _buildErrorView() : _buildContent(),
-            ),
-          ],
-        ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
+      body: Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child: _error != null ? _buildErrorView() : _buildContent(),
+          ),
+        ],
       ),
     );
   }
