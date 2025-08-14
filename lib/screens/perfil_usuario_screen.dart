@@ -55,7 +55,12 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
   Widget _buildProfileBasedOnType() {
     if (usuario == null) {
-      return const Center(child: Text('No hay datos para mostrar'));
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
     }
 
     // Determinar qué perfil mostrar basado en el tipo de usuario
@@ -80,46 +85,53 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
-        body: _error != null
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Color.fromARGB(255, 0, 0, 0),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _error!,
-                      style: const TextStyle(
-                        color: Color.fromARGB(255, 5, 5, 5),
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _fetchUserData,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Reintentar'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0B3B60),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
-                  ],
+        body: _isLoading
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               )
-            : _buildProfileBasedOnType(),
+            : (_error != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Color.fromARGB(255, 0, 0, 0),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _error!,
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 5, 5, 5),
+                            fontSize: 16,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _fetchUserData,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Reintentar'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0B3B60),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : _buildProfileBasedOnType()),
     );
   }
 }
