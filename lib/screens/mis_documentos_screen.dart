@@ -88,17 +88,24 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
   }
 
   Future<void> _cargarDocumentosDesdeAPI() async {
+    debugPrint('[MisDocumentosScreen] 📥 Iniciando carga de documentos desde API...');
     setState(() => _isLoading = true);
     try {
       final docs = await UserDataService.getUserDocuments();
+      debugPrint('[MisDocumentosScreen] 📥 Documentos obtenidos de la API: ${docs.length}');
 
       //* Limpiar mapa (para no dejar residuos de sesiones previas)
       for (final k in _documentos.keys.toList()) {
         _documentos[k] = null;
       }
+      debugPrint('[MisDocumentosScreen] 📥 Mapa de documentos limpiado');
 
+      int documentosProcesados = 0;
       for (final doc in docs) {
         final nombreApi = (doc.nombreDocumento).toLowerCase();
+        debugPrint('[MisDocumentosScreen] 📥 Procesando documento: ${doc.nombreDocumento}');
+        debugPrint('[MisDocumentosScreen] 📥 URL del documento: ${doc.urlDocumento}');
+        
         String? key;
         if (nombreApi.contains('ine')) {
           key = 'INE';
@@ -116,6 +123,14 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
         }
 
         if (key != null && _documentos.containsKey(key)) {
+          debugPrint('[MisDocumentosScreen] 📥 Documento mapeado a categoría: $key');
+          
+          // Validar que la URL no esté vacía
+          if (doc.urlDocumento.isEmpty) {
+            debugPrint('[MisDocumentosScreen] ⚠️ Documento sin URL válida, omitiendo: ${doc.nombreDocumento}');
+            continue;
+          }
+          
           //* Renderiza usando la URL que llegue (Cloudinary u otra)
           _documentos[key] = DocumentoItem(
             nombre: doc.nombreDocumento,
@@ -125,14 +140,30 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
             tamano: 0, //! Desconocido desde API
             extension: 'pdf',
           );
+          documentosProcesados++;
+          debugPrint('[MisDocumentosScreen] 📥 ✅ Documento procesado correctamente: $key');
+        } else {
+          debugPrint('[MisDocumentosScreen] 📥 ⚠️ Documento no reconocido o categoría no válida: ${doc.nombreDocumento}');
         }
       }
+      
+      debugPrint('[MisDocumentosScreen] 📥 Total documentos procesados: $documentosProcesados');
       setState(() {});
     } catch (e) {
-      //! Si falla, simplemente dejamos el estado como está
-      debugPrint('[MisDocumentosScreen] Error cargando docs: $e');
+      debugPrint('[MisDocumentosScreen] ❌ Error cargando documentos desde API: $e');
+      // Mostrar un mensaje de error al usuario si es necesario
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar documentos: ${e.toString()}'),
+            backgroundColor: errorColor,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+      debugPrint('[MisDocumentosScreen] 📥 Carga de documentos finalizada');
     }
   }
 
@@ -179,11 +210,24 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           throw Exception('Archivo demasiado grande (>10MB)');
         }
 
+        debugPrint('[MisDocumentosScreen] 📤 Iniciando subida de documento: $tipo');
+        debugPrint('[MisDocumentosScreen] 📤 Archivo: ${file.name} (${file.size} bytes)');
+
         //* Sube a la API (usa la URL pública de SJR configurada en UserDataService)
-        final uploadRes =
-            await UserDataService.uploadDocument(tipo, file.path!);
+        final uploadRes = await UserDataService.uploadDocument(tipo, file.path!);
+        
+        debugPrint('[MisDocumentosScreen] 📤 Respuesta de subida: $uploadRes');
+        
+        final success = uploadRes['success'] == true;
+        if (!success) {
+          throw Exception('Error en la subida: ${uploadRes['message'] ?? 'Error desconocido'}');
+        }
+
         final url = (uploadRes['url'] as String?) ?? '';
         final nombreSrv = (uploadRes['name'] as String?) ?? file.name;
+
+        debugPrint('[MisDocumentosScreen] 📤 URL obtenida: $url');
+        debugPrint('[MisDocumentosScreen] 📤 Nombre del servidor: $nombreSrv');
 
         final documento = DocumentoItem(
           nombre: nombreSrv,
@@ -198,14 +242,22 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
         );
 
         setState(() => _documentos[tipo] = documento);
+        
+        debugPrint('[MisDocumentosScreen] 📤 Documento guardado localmente');
+        
         if (progreso == 1.0) _confettiController.play();
 
         _mostrarAlertaExito(tipo, documento);
 
         //! Refrescar lista desde API para asegurar persistencia y estados
+        debugPrint('[MisDocumentosScreen] 📤 Refrescando documentos desde API...');
         await _cargarDocumentosDesdeAPI();
+        debugPrint('[MisDocumentosScreen] 📤 Proceso de subida completado');
+      } else {
+        debugPrint('[MisDocumentosScreen] ❌ Usuario canceló la selección de archivo');
       }
     } catch (e) {
+      debugPrint('[MisDocumentosScreen] ❌ Error en _seleccionarDocumento: $e');
       if (!mounted) return;
       _mostrarAlertaError(e.toString());
     } finally {

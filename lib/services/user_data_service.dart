@@ -357,23 +357,31 @@ class UserDataService {
   ///? - rol (1 admin, 2 trabajador, 3 ciudadano, 4 organización)
   static Future<Map<String, dynamic>> uploadDocument(
       String tipo, String filePath) async {
+    debugPrint('[UserDataService] 🚀 Iniciando subida de documento: $tipo');
+    debugPrint('[UserDataService] 🚀 Archivo: $filePath');
+    
     final token = await AuthService.getToken();
     if (token == null) {
+      debugPrint('[UserDataService] ❌ No hay token de autenticación');
       throw Exception('Usuario no autenticado');
     }
 
     final file = File(filePath);
     if (!await file.exists()) {
+      debugPrint('[UserDataService] ❌ Archivo no encontrado: $filePath');
       throw Exception('Archivo no encontrado');
     }
     if (!filePath.toLowerCase().endsWith('.pdf')) {
+      debugPrint('[UserDataService] ❌ Archivo no es PDF: $filePath');
       throw Exception('Solo se permiten archivos PDF');
     }
 
     try {
       //? 1) Traer datos del usuario para nomina/rol y preparar el sub (id_usuario)
+      debugPrint('[UserDataService] 🚀 Obteniendo datos del usuario...');
       final usuario = await getUserData();
       if (usuario == null) {
+        debugPrint('[UserDataService] ❌ No se pudieron obtener datos del usuario');
         throw Exception('No se pudieron obtener datos del usuario');
       }
 
@@ -382,6 +390,9 @@ class UserDataService {
           usuario.usuarioId ??
           usuario.idGeneral ??
           '';
+
+      debugPrint('[UserDataService] 🚀 Sub extraído: $sub');
+      debugPrint('[UserDataService] 🚀 Tipo de perfil: ${usuario.tipoPerfil}');
 
       //? 2) Calcular NOMINA:
       //*    - Si es trabajador y tiene nómina -> usarla
@@ -392,12 +403,17 @@ class UserDataService {
           ? usuario.nomina!
           : '${initials.isEmpty ? 'USR' : initials}-${sub.isEmpty ? '0' : sub}';
 
+      debugPrint('[UserDataService] 🚀 Nómina calculada: $nomina');
+
       //? 3) Rol numérico
       final rol = _roleToNumeric(usuario.tipoPerfil).toString();
+      debugPrint('[UserDataService] 🚀 Rol numérico: $rol');
 
       //? 4) Request al endpoint público
       final uri = Uri.parse(
           'https://sanjuandelrio.gob.mx/tramites-sjr/Api/principal/upload_document');
+      debugPrint('[UserDataService] 🚀 Endpoint: $uri');
+      
       final request = http.MultipartRequest('POST', uri)
         ..fields['nomina'] = nomina
         ..fields['id_usuario'] = sub
@@ -405,6 +421,11 @@ class UserDataService {
         ..headers.addAll({
           'Accept': 'application/json',
         });
+
+      debugPrint('[UserDataService] 🚀 Campos del request:');
+      debugPrint('[UserDataService] 🚀   - nomina: $nomina');
+      debugPrint('[UserDataService] 🚀   - id_usuario: $sub');
+      debugPrint('[UserDataService] 🚀   - rol: $rol');
 
       final multipartFile = await http.MultipartFile.fromPath(
         'file',
@@ -416,20 +437,29 @@ class UserDataService {
       );
       request.files.add(multipartFile);
 
+      debugPrint('[UserDataService] 🚀 Archivo agregado al request: ${multipartFile.filename}');
+      debugPrint('[UserDataService] 🚀 Enviando request...');
+
       final streamed =
           await request.send().timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamed);
 
+      debugPrint('[UserDataService] 🚀 Respuesta recibida - Status: ${response.statusCode}');
+      debugPrint('[UserDataService] 🚀 Respuesta body: ${response.body}');
+
       if (response.statusCode != 200) {
+        debugPrint('[UserDataService] ❌ Error HTTP: ${response.statusCode}');
         //* Intenta leer JSON de error; si no, regresar texto plano acortado
         try {
           final err = jsonDecode(response.body);
-          throw Exception(
-              err['message']?.toString() ?? 'Error ${response.statusCode}');
+          final errorMsg = err['message']?.toString() ?? 'Error ${response.statusCode}';
+          debugPrint('[UserDataService] ❌ Error del servidor: $errorMsg');
+          throw Exception(errorMsg);
         } catch (_) {
           final body = response.body.trim().replaceAll(RegExp(r'\s+'), ' ');
-          throw Exception(
-              body.length > 260 ? '${body.substring(0, 260)}…' : body);
+          final errorMsg = body.length > 260 ? '${body.substring(0, 260)}…' : body;
+          debugPrint('[UserDataService] ❌ Error sin formato JSON: $errorMsg');
+          throw Exception(errorMsg);
         }
       }
 
@@ -438,7 +468,9 @@ class UserDataService {
       Map<String, dynamic> data;
       try {
         data = jsonDecode(body) as Map<String, dynamic>;
-      } catch (_) {
+        debugPrint('[UserDataService] 🚀 Respuesta parseada como JSON: $data');
+      } catch (e) {
+        debugPrint('[UserDataService] ⚠️ Respuesta no es JSON válido: $e');
         // Respuesta no JSON
         return {
           'success': true,
@@ -453,9 +485,13 @@ class UserDataService {
       final success = data['success'] == true ||
           data['status'] == 'success' ||
           data['ok'] == true;
+      
+      debugPrint('[UserDataService] 🚀 Success flag: $success');
+      
       if (!success) {
-        throw Exception(
-            data['message']?.toString() ?? 'Error al subir documento');
+        final errorMsg = data['message']?.toString() ?? 'Error al subir documento';
+        debugPrint('[UserDataService] ❌ Subida no exitosa: $errorMsg');
+        throw Exception(errorMsg);
       }
 
       final url = (data['url_documento'] ??
@@ -471,9 +507,10 @@ class UserDataService {
           .toString()
           .trim();
 
+      debugPrint('[UserDataService] 🚀 URL extraída: $url');
+
       if (url.isEmpty) {
-        debugPrint(
-            '[UserDataService] Advertencia: la API no retornó URL del documento');
+        debugPrint('[UserDataService] ⚠️ Advertencia: la API no retornó URL del documento');
       }
 
       final defaultName = file.uri.pathSegments.isNotEmpty
@@ -485,11 +522,17 @@ class UserDataService {
               defaultName)
           .toString();
 
-      return {'success': true, 'url': url, 'name': nombre};
+      debugPrint('[UserDataService] 🚀 Nombre extraído: $nombre');
+
+      final result = {'success': true, 'url': url, 'name': nombre};
+      debugPrint('[UserDataService] 🚀 ✅ Subida completada exitosamente: $result');
+      
+      return result;
     } on TimeoutException {
+      debugPrint('[UserDataService] ❌ Timeout en la subida del documento');
       throw Exception('Tiempo de espera agotado al subir el documento');
     } catch (e) {
-      debugPrint('[UserDataService] Error en uploadDocument: $e');
+      debugPrint('[UserDataService] ❌ Error en uploadDocument: $e');
       rethrow;
     }
   }
