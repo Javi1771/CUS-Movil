@@ -36,14 +36,14 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
 
   // Degradados azules sutiles usando tu paleta
   final List<List<Color>> blueGradients = [
-    [Color(0xFF7ECBFB), Color(0xFF39B0F7)], // 300-400 (muy sutil)
-    [Color(0xFF39B0F7), Color(0xFF0F96E8)], // 400-500 (sutil)
-    [Color(0xFF0F96E8), Color(0xFF0377C6)], // 500-600 (principal)
-    [Color(0xFF0377C6), Color(0xFF045EA0)], // 600-700 (medio)
-    [Color(0xFF7ECBFB), Color(0xFF0F96E8)], // 300-500 (suave)
-    [Color(0xFF39B0F7), Color(0xFF0377C6)], // 400-600 (equilibrado)
-    [Color(0xFF0F96E8), Color(0xFF045EA0)], // 500-700 (elegante)
-    [Color(0xFF7ECBFB), Color(0xFF0377C6)], // 300-600 (amplio pero sutil)
+    [const Color(0xFF7ECBFB), const Color(0xFF39B0F7)], // 300-400 (muy sutil)
+    [const Color(0xFF39B0F7), const Color(0xFF0F96E8)], // 400-500 (sutil)
+    [const Color(0xFF0F96E8), const Color(0xFF0377C6)], // 500-600 (principal)
+    [const Color(0xFF0377C6), const Color(0xFF045EA0)], // 600-700 (medio)
+    [const Color(0xFF7ECBFB), const Color(0xFF0F96E8)], // 300-500 (suave)
+    [const Color(0xFF39B0F7), const Color(0xFF0377C6)], // 400-600 (equilibrado)
+    [const Color(0xFF0F96E8), const Color(0xFF045EA0)], // 500-700 (elegante)
+    [const Color(0xFF7ECBFB), const Color(0xFF0377C6)], // 300-600 (amplio pero sutil)
   ];
 
   // Lista de íconos únicos para asegurar variedad
@@ -135,7 +135,7 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
 
   List<Color> _getColorsForIndex(int index) {
     // Usar siempre los mismos colores que la Secretaría de Seguridad
-    return [Color(0xFF0F96E8), Color(0xFF0377C6)]; // 500-600 (principal)
+    return [const Color(0xFF0F96E8), const Color(0xFF0377C6)]; // 500-600 (principal)
   }
 
   @override
@@ -235,56 +235,6 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCleanHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-      child: Row(
-        children: [
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Secretarías',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF0F172A),
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Municipio de San Juan del Río',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF64748B),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F96E8).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              '${secretarias.length} disponibles',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF0F96E8),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
