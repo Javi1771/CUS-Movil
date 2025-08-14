@@ -60,6 +60,9 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     'Acta de Concubinato': null,
   };
 
+  // Mapa para recordar qué tipo de documento se subió con cada nombre
+  final Map<String, String> _documentoTipoMap = {};
+
   final Map<String, IconData> _iconosDocumentos = {
     'INE': Icons.credit_card,
     'Acta de Nacimiento': Icons.child_care,
@@ -107,19 +110,27 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
         debugPrint('[MisDocumentosScreen] 📥 URL del documento: ${doc.urlDocumento}');
         
         String? key;
-        if (nombreApi.contains('ine')) {
-          key = 'INE';
-        } else if (nombreApi.contains('nacimiento')) {
-          key = 'Acta de Nacimiento';
-        } else if (nombreApi.contains('curp')) {
-          key = 'CURP';
-        } else if (nombreApi.contains('domicilio') ||
-            nombreApi.contains('comprobante')) {
-          key = 'Comprobante Domicilio';
-        } else if (nombreApi.contains('matrimonio')) {
-          key = 'Acta de Matrimonio';
-        } else if (nombreApi.contains('concubinato')) {
-          key = 'Acta de Concubinato';
+        
+        // Primero, verificar si tenemos una relación guardada para este documento
+        if (_documentoTipoMap.containsKey(doc.nombreDocumento)) {
+          key = _documentoTipoMap[doc.nombreDocumento];
+          debugPrint('[MisDocumentosScreen] 📥 🎯 Usando relación guardada: ${doc.nombreDocumento} -> $key');
+        } else {
+          // Si no, usar el mapeo por nombre como antes
+          if (nombreApi.contains('ine')) {
+            key = 'INE';
+          } else if (nombreApi.contains('nacimiento')) {
+            key = 'Acta de Nacimiento';
+          } else if (nombreApi.contains('curp')) {
+            key = 'CURP';
+          } else if (nombreApi.contains('domicilio') ||
+              nombreApi.contains('comprobante')) {
+            key = 'Comprobante Domicilio';
+          } else if (nombreApi.contains('matrimonio')) {
+            key = 'Acta de Matrimonio';
+          } else if (nombreApi.contains('concubinato')) {
+            key = 'Acta de Concubinato';
+          }
         }
 
         if (key != null && _documentos.containsKey(key)) {
@@ -241,9 +252,14 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
               : "PDF",
         );
 
-        setState(() => _documentos[tipo] = documento);
+        setState(() {
+          _documentos[tipo] = documento;
+          // Guardar la relación nombre -> tipo para futuras cargas
+          _documentoTipoMap[nombreSrv] = tipo;
+        });
         
         debugPrint('[MisDocumentosScreen] 📤 Documento guardado localmente');
+        debugPrint('[MisDocumentosScreen] 📤 Relación guardada: $nombreSrv -> $tipo');
         
         if (progreso == 1.0) _confettiController.play();
 
