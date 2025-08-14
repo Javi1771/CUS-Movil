@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:liquid_progress_indicator_v2/liquid_progress_indicator.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:confetti/confetti.dart';
 import '../services/user_data_service.dart';
@@ -92,6 +91,12 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     setState(() => _isLoading = true);
     try {
       final docs = await UserDataService.getUserDocuments();
+
+      // Resetear todos los documentos a null primero
+      for (var key in _documentos.keys) {
+        _documentos[key] = null;
+      }
+
       for (final doc in docs) {
         String nombreApi = doc.nombreDocumento.toLowerCase();
         String? key;
@@ -114,8 +119,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
             ruta: doc.urlDocumento,
             fechaSubida:
                 DateTime.tryParse(doc.uploadDate ?? '') ?? DateTime.now(),
-            tamano: 0,
-            extension: 'pdf',
+            tamano: doc.tamano ?? 0,
+            extension: doc.extension ?? 'pdf',
           );
         }
       }
@@ -150,6 +155,11 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
 
       setState(() => _isLoading = true);
 
+      // Eliminar documento existente si hay uno
+      if (_documentos[tipo] != null) {
+        await UserDataService.deleteDocument(_documentos[tipo]!.ruta);
+      }
+
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
@@ -169,26 +179,23 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           throw Exception('Archivo demasiado grande (>10MB)');
         }
 
-        // Subir al servidor y obtener URL persistente
-        final uploadRes = await UserDataService.uploadDocument(tipo, file.path!);
+        final uploadRes =
+            await UserDataService.uploadDocument(tipo, file.path!);
         final url = uploadRes['url'] as String;
         final nombreSrv = (uploadRes['name'] as String?) ?? file.name;
 
         final documento = DocumentoItem(
           nombre: nombreSrv,
-          ruta: url, // Usar URL remota para persistencia
+          ruta: url,
           fechaSubida: DateTime.now(),
           tamano: file.size,
           extension: file.extension?.toUpperCase() ?? "PDF",
         );
 
-        setState(() => _documentos[tipo] = documento);
-        if (progreso == 1.0) _confettiController.play();
-
-        _mostrarAlertaExito(tipo, documento);
-
-        // Refrescar lista desde API para asegurar persistencia y estados
         await _cargarDocumentosDesdeAPI();
+
+        if (progreso == 1.0) _confettiController.play();
+        _mostrarAlertaExito(tipo, documento);
       }
     } catch (e) {
       if (!mounted) return;
@@ -198,9 +205,21 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     }
   }
 
-  void _eliminarDocumento(String tipo) {
-    setState(() => _documentos[tipo] = null);
-    _mostrarAlertaEliminacion(tipo);
+  Future<void> _eliminarDocumento(String tipo) async {
+    final documento = _documentos[tipo];
+    if (documento == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await UserDataService.deleteDocument(documento.ruta);
+      await _cargarDocumentosDesdeAPI();
+      _mostrarAlertaEliminacion(tipo);
+    } catch (e) {
+      _mostrarAlertaError("Error al eliminar: ${e.toString()}");
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   void _mostrarVistaPreviaDialog(DocumentoItem documento) {
@@ -233,7 +252,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header minimalista
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -307,8 +325,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   ],
                 ),
               ),
-
-              // Contenido del PDF
               Flexible(
                 child: Container(
                   margin: const EdgeInsets.all(20),
@@ -350,7 +366,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                                   canShowScrollStatus: false,
                                   canShowPaginationDialog: false,
                                 ),
-                          // Overlay sutil para indicar que es una vista previa
                           Positioned(
                             top: 8,
                             right: 8,
@@ -379,8 +394,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   ),
                 ),
               ),
-
-              // Información del documento (movida abajo)
               Container(
                 margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                 padding: const EdgeInsets.all(12),
@@ -414,8 +427,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   ],
                 ),
               ),
-
-              // Botón de cerrar
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                 child: SizedBox(
@@ -813,7 +824,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                 children: [
                   Row(
                     children: [
-                      // Icono del documento
                       SizedBox(
                         width: 44,
                         height: 44,
@@ -823,10 +833,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                           size: 32,
                         ),
                       ),
-
                       const SizedBox(width: 12),
-
-                      // Información del documento
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -845,10 +852,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-
                             const SizedBox(height: 6),
-
-                            // Estado
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -886,7 +890,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                                 ],
                               ),
                             ),
-
                             if (item != null) ...[
                               const SizedBox(height: 6),
                               Text(
@@ -901,8 +904,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                           ],
                         ),
                       ),
-
-                      // Botones de acción
                       if (item == null && !estaBloquedo)
                         _buildActionButton(
                           icon: Icons.add_rounded,
@@ -930,8 +931,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                         ),
                     ],
                   ),
-
-                  // Información adicional
                   if (item != null) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -971,8 +970,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                       ),
                     ),
                   ],
-
-                  // Mensaje de bloqueo
                   if (estaBloquedo && item == null) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -1055,7 +1052,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     );
   }
 
-  // Banner header widget - Sin círculo de progreso
   Widget _buildBannerHeader() {
     return Container(
       width: double.infinity,
@@ -1071,7 +1067,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
         padding: const EdgeInsets.fromLTRB(20, 50, 20, 40),
         child: Column(
           children: [
-            // Title
             const Text(
               "Mis Documentos",
               style: TextStyle(
@@ -1083,8 +1078,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-
-            // Subtitle
             const Text(
               "Gestiona tus documentos de forma segura",
               style: TextStyle(
@@ -1095,10 +1088,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
               ),
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 20),
-
-            // Estadísticas de documentos
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
@@ -1126,7 +1116,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Cálculo dinámico de documentos subidos
     int calcularDocumentosSubidos(Map<String, DocumentoItem?> docs) {
       int count = 0;
       bool matrimonioContado = false;
@@ -1147,7 +1136,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       return count;
     }
 
-    // Cálculo del total necesario
     int calcularTotalEsperado(Map<String, DocumentoItem?> docs) {
       bool matrimonioSubido = docs['Acta de Matrimonio'] != null;
       bool concubinatoSubido = docs['Acta de Concubinato'] != null;
@@ -1166,8 +1154,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
         totalDocumentos == 0 ? 0.0 : documentosSubidos / totalDocumentos;
 
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFF5F7FA), // Mismo background que el perfil
+      backgroundColor: const Color(0xFFF5F7FA),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -1249,16 +1236,13 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                               return _buildDocumentCard(doc, item, index);
                             }).toList(),
                           ),
-                        const SizedBox(
-                            height: 50), // Más espacio en la parte de abajo
+                        const SizedBox(height: 50),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-
-      // Confetti effect
       floatingActionButton: progreso >= 1.0
           ? Align(
               alignment: Alignment.topCenter,
@@ -1283,7 +1267,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
   }
 }
 
-// Pantalla de visualización de PDF mejorada
 class _PDFViewerScreen extends StatefulWidget {
   final DocumentoItem documento;
 

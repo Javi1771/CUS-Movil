@@ -350,7 +350,8 @@ class UserDataService {
     }
   }
 
-  static Future<Map<String, dynamic>> uploadDocument(String tipo, String filePath) async {
+  static Future<Map<String, dynamic>> uploadDocument(
+      String tipo, String filePath) async {
     final token = await AuthService.getToken();
     if (token == null) {
       throw Exception('Usuario no autenticado');
@@ -385,14 +386,16 @@ class UserDataService {
       );
       request.files.add(multipartFile);
 
-      final streamed = await request.send().timeout(const Duration(seconds: 60));
+      final streamed =
+          await request.send().timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamed);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final success = data['success'] == true || data['status'] == 'success';
         if (!success) {
-          throw Exception(data['message']?.toString() ?? 'Error al subir documento');
+          throw Exception(
+              data['message']?.toString() ?? 'Error al subir documento');
         }
 
         // Intentar obtener la URL del documento desde varias claves comunes
@@ -688,4 +691,6 @@ class UserDataService {
       throw Exception('Error al obtener resumen general: $e');
     }
   }
+
+  static Future<void> deleteDocument(String tipo, {String? id}) async {}
 }
