@@ -187,7 +187,9 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
 
         final documento = DocumentoItem(
           nombre: nombreSrv,
-          ruta: url.isNotEmpty ? url : file.path!, //* fallback local si no hay URL
+          ruta: url.isNotEmpty
+              ? url
+              : file.path!, //* fallback local si no hay URL
           fechaSubida: DateTime.now(),
           tamano: file.size,
           extension: (file.extension?.isNotEmpty ?? false)
@@ -454,7 +456,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                       child: _buildMinimalButton(
                         onPressed: () async {
                           Navigator.of(context).pop();
-                          await _editarDocumento(_tipoDesdeNombre(documento.nombre));
+                          await _editarDocumento(
+                              _tipoDesdeNombre(documento.nombre));
                         },
                         icon: Icons.edit_outlined,
                         label: 'Reemplazar',
@@ -514,7 +517,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                 ),
                 const SizedBox(height: 12),
                 ListTile(
-                  leading: const Icon(Icons.visibility_outlined, color: govBlue),
+                  leading:
+                      const Icon(Icons.visibility_outlined, color: govBlue),
                   title: const Text('Ver documento'),
                   onTap: () {
                     Navigator.of(context).pop();
@@ -530,8 +534,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   },
                 ),
                 ListTile(
-                  leading:
-                      const Icon(Icons.delete_outline_rounded, color: errorColor),
+                  leading: const Icon(Icons.delete_outline_rounded,
+                      color: errorColor),
                   title: const Text('Eliminar'),
                   onTap: () async {
                     Navigator.of(context).pop();
@@ -909,8 +913,9 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           color: Colors.transparent,
           child: InkWell(
             onTap: item != null ? () => _mostrarVistaPreviaDialog(item) : null,
-            onLongPress:
-                item != null ? () => _mostrarOpcionesDocumento(tipo, item) : null,
+            onLongPress: item != null
+                ? () => _mostrarOpcionesDocumento(tipo, item)
+                : null,
             borderRadius: BorderRadius.circular(16),
             splashColor: govBlue.withOpacity(0.05),
             highlightColor: govBlue.withOpacity(0.02),
@@ -1059,7 +1064,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                             _buildActionButton(
                               icon: Icons.more_horiz_rounded,
                               color: govBlue,
-                              onPressed: () => _mostrarOpcionesDocumento(tipo, item),
+                              onPressed: () =>
+                                  _mostrarOpcionesDocumento(tipo, item),
                               size: 18,
                             ),
                             const SizedBox(width: 6),
@@ -1380,10 +1386,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                       )
                     else
                       Column(
-                        children: _documentosRequeridos
-                            .asMap()
-                            .entries
-                            .map((entry) {
+                        children:
+                            _documentosRequeridos.asMap().entries.map((entry) {
                           final index = entry.key;
                           final doc = entry.value;
                           final item = _documentos[doc];

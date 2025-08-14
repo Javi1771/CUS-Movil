@@ -26,6 +26,13 @@ class _AuthScreenState extends State<AuthScreen> {
   static const Color regal700 = Color(0xFF045EA0);
   static const Color regal900 = Color(0xFF0B3B60);
 
+  static final RegExp _emailRegex = RegExp(
+    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+  );
+  static final RegExp _curpRegex = RegExp(
+    r'^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[A-Z0-9][0-9]$',
+  );
+
   @override
   void initState() {
     super.initState();
@@ -38,16 +45,12 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _testRFCValidation() {
     debugPrint('\n=== INICIO DE PRUEBAS DE VALIDACIÓN ===');
-
-    // Prueba del RFC especial
     const specialRFC = 'ORG1213456789';
     final result = RFCTestHelper.analyzeRFC(specialRFC);
     debugPrint('RFC especial: $specialRFC');
     debugPrint('Válido: ${result['valid']}');
     debugPrint('Es excepción: ${result['isExcepcion']}');
     debugPrint('Tipo: ${result['type']}');
-
-    // Ejecutar pruebas del helper
     RFCTestHelper.testRFCValidation();
   }
 
@@ -57,63 +60,27 @@ class _AuthScreenState extends State<AuthScreen> {
     }
 
     final input = value.trim();
-    final inputUpper = input.toUpperCase();
+    final upper = input.toUpperCase();
 
-    if (kDebugMode) {
-      debugPrint('\n🔍 Validando input: "$input" (${input.length} chars)');
-    }
+    if (kDebugMode) debugPrint('🔍 Validando: "$upper"');
 
-    // Validación de email
     if (input.contains('@')) {
-      final emailRegex =
-          RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-      if (emailRegex.hasMatch(input)) {
-        if (kDebugMode) debugPrint('✅ Email válido detectado');
-        return null;
-      }
-      return 'Formato de email incorrecto';
+      return _emailRegex.hasMatch(input) ? null : 'Formato de email incorrecto';
     }
 
-    // Validación de CURP
-    if (inputUpper.length == 18) {
-      final curpRegex = RegExp(r'^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[A-Z0-9][0-9]$');
-      if (curpRegex.hasMatch(inputUpper)) {
-        if (kDebugMode) debugPrint('✅ CURP válido detectado');
-        return null;
-      }
-      return 'Formato de CURP incorrecto';
+    if (upper.length == 18) {
+      return _curpRegex.hasMatch(upper) ? null : 'Formato de CURP incorrecto';
     }
 
-    // Validación especial para RFC de excepción (comparación exacta)
-    if (inputUpper == 'ORG1213456789') {
-      debugPrint('✅ RFC de excepción aceptado exactamente');
-      return null;
+    if (upper == 'ORG1213456789') return null;
+
+    if (upper.length >= 9 && upper.length <= 13) {
+      final rfcAnalysis = RFCTestHelper.analyzeRFC(upper);
+      return rfcAnalysis['valid'] == true
+          ? null
+          : 'Formato de RFC incorrecto.\nEjemplos:\n- ABCD123456\n- ABCD123456EFG';
     }
 
-    // Validación estándar de RFC para otros casos
-    if (inputUpper.length >= 9 && inputUpper.length <= 13) {
-      final rfcAnalysis = RFCTestHelper.analyzeRFC(inputUpper);
-
-      if (kDebugMode) {
-        debugPrint('🔍 Análisis RFC:');
-        debugPrint('- Válido: ${rfcAnalysis['valid']}');
-        debugPrint('- Excepción: ${rfcAnalysis['isExcepcion']}');
-        debugPrint('- Tipo: ${rfcAnalysis['type']}');
-      }
-
-      if (rfcAnalysis['valid'] == true) {
-        if (kDebugMode) debugPrint('✅ RFC válido detectado');
-        return null;
-      }
-
-      return 'Formato de RFC incorrecto\n'
-          'Ejemplos válidos:\n'
-          '- Persona Física: ABCD123456 o ABCD123456EFG\n'
-          '- Persona Moral: ABC123456 o ABC123456789\n'
-          '- Caso especial exacto: ORG1213456789';
-    }
-
-    if (kDebugMode) debugPrint('❌ Formato no reconocido');
     return 'Ingresa un correo, CURP (18 chars) o RFC (9-13 chars) válido';
   }
 
@@ -138,90 +105,60 @@ class _AuthScreenState extends State<AuthScreen> {
     String user = userCtrl.text.trim();
     final pass = passCtrl.text;
 
-    // Convertir a mayúsculas si es CURP/RFC
     if (!user.contains('@')) {
       user = user.toUpperCase();
     }
 
-    debugPrint('🚀 Iniciando proceso de login...');
-    debugPrint('🚀 Usuario: "$user" (${user.length} chars)');
-    debugPrint('🚀 Password length: ${pass.length}');
-    debugPrint('🔐 Tipo de credencial detectado: ${_getCredentialType(user)}');
+    debugPrint('🚀 Intentando login con usuario: "$user"');
 
     try {
       final authService = AuthService(user);
       final result = await authService.login(user, pass);
 
-      if (result == true) {
-        debugPrint('✅ Login exitoso, navegando a home');
-        if (mounted) {
-          AlertHelper.showAlert(
-            '¡Bienvenido!',
-            type: AlertType.success,
-          );
+      if (!mounted) return;
 
-          Navigator.pushReplacementNamed(context, '/home');
-        }
+      if (result == true) {
+        AlertHelper.showAlert('¡Bienvenido!', type: AlertType.success);
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
-        debugPrint('❌ Login falló');
-        if (mounted) {
-          setState(() {
-            _loginError = _getSpecificErrorMessage(user);
-          });
-        }
+        setState(() {
+          _loginError = _getSpecificErrorMessage(user);
+        });
       }
     } catch (e) {
-      debugPrint('❌ Error en login: $e');
       if (mounted) {
         setState(() {
           _loginError =
-              'Error de conexión.\nVerifica tu internet e intenta nuevamente.';
+              'Error de conexión. Verifica tu internet e intenta nuevamente.';
         });
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
 
-  String _getCredentialType(String input) {
-    if (input.contains('@')) return 'Email';
-    if (input.length == 18) return 'CURP';
-    if (input == 'ORG1213456789') return 'RFC Excepción';
-    if (input.length >= 9 && input.length <= 13) return 'RFC';
-    return 'Desconocido';
-  }
-
   String _getSpecificErrorMessage(String user) {
     if (user.contains('@')) {
-      return 'Email o contraseña incorrectos.\nVerifica tus credenciales.';
+      return 'Email o contraseña incorrectos.';
     } else if (user.length == 18) {
-      return 'CURP o contraseña incorrectos.\nVerifica tus credenciales.';
-    } else if (user == 'ORG1213456789') {
-      return 'RFC o contraseña incorrectos.\nVerifica que tu RFC esté registrado en el sistema.';
-    } else if (user.length >= 9 && user.length <= 13) {
-      return 'RFC o contraseña incorrectos.\nVerifica que tu RFC esté registrado en el sistema.';
-    } else {
-      return 'Usuario o contraseña incorrectos.\nVerifica tus credenciales e intenta nuevamente.';
+      return 'CURP o contraseña incorrectos.';
     }
+    return 'RFC o contraseña incorrectos.';
   }
 
   Future<void> _launchPasswordRecovery() async {
     const urlString =
         'https://cus.sanjuandelrio.gob.mx/tramites-sjr/public/forgot-password.html';
+    final Uri url = Uri.parse(urlString);
 
-    try {
-      final Uri url = Uri.parse(urlString);
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
       if (mounted) {
         AlertHelper.showAlert(
-          'No se pudo abrir el enlace. Verifica tu conexión a internet.',
+          'No se pudo abrir el enlace.',
           type: AlertType.error,
         );
       }

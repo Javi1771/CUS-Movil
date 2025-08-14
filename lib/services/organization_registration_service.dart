@@ -34,7 +34,7 @@ class OrganizationRegistrationService {
     required String email,
   }) async {
     try {
-      final url = Uri.parse('$_baseUrl/insert_organizacion_mobile');
+      final url = Uri.parse('$_baseUrl/auth');
 
       // Construir el JSON según el formato requerido
       final requestBody = {
@@ -100,13 +100,17 @@ class OrganizationRegistrationService {
         // Detección heurística por código de estado o texto en la respuesta
         final isDuplicateEmail =
             response.statusCode == 409 && lower.contains('email') ||
-            lower.contains('ya existe') && (lower.contains('correo') || lower.contains('email')) ||
-            lower.contains('duplic') && (lower.contains('correo') || lower.contains('email'));
+                lower.contains('ya existe') &&
+                    (lower.contains('correo') || lower.contains('email')) ||
+                lower.contains('duplic') &&
+                    (lower.contains('correo') || lower.contains('email'));
 
-        final isDuplicatePassword =
-            response.statusCode == 409 && (lower.contains('password') || lower.contains('contrase')) ||
-            lower.contains('ya existe') && (lower.contains('password') || lower.contains('contrase')) ||
-            lower.contains('duplic') && (lower.contains('password') || lower.contains('contrase'));
+        final isDuplicatePassword = response.statusCode == 409 &&
+                (lower.contains('password') || lower.contains('contrase')) ||
+            lower.contains('ya existe') &&
+                (lower.contains('password') || lower.contains('contrase')) ||
+            lower.contains('duplic') &&
+                (lower.contains('password') || lower.contains('contrase'));
 
         if (isDuplicateEmail) {
           errorCode = 'duplicate_email';
@@ -165,29 +169,29 @@ class OrganizationRegistrationService {
 
       // Datos del representante
       'curpRepresentante': formData.length > 2 ? formData[2] : '',
-      'nombreRepresentante': formData.length > 3 ? formData[3] : '',
-      'primerApellidoRepresentante': formData.length > 4 ? formData[4] : '',
-      'segundoApellidoRepresentante': formData.length > 5 ? formData[5] : '',
+      'nombreRepresentante': formData.length > 3 ? formData[4] : '',
+      'primerApellidoRepresentante': formData.length > 4 ? formData[5] : '',
+      'segundoApellidoRepresentante': formData.length > 5 ? formData[6] : '',
       'fechaNacimientoRepresentante':
-          formData.length > 6 ? _formatFechaNacimiento(formData[6]) : '',
-      'sexoRepresentante': formData.length > 7 ? formData[7] : '',
-      'estadoRepresentante': formData.length > 8 ? formData[8] : '',
-      'password': formData.length > 9 ? formData[9] : '',
+          formData.length > 6 ? _formatFechaNacimiento(formData[7]) : '',
+      'sexoRepresentante': formData.length > 7 ? formData[8] : '',
+      'estadoRepresentante': formData.length > 8 ? formData[9] : '',
+      'password': formData.length > 9 ? formData[10] : '',
 
       // Dirección
-      'codigoPostal': formData.length > 10 ? formData[10] : '',
-      'asentamiento': formData.length > 11 ? formData[11] : '',
-      'calle': formData.length > 12 ? formData[12] : '',
-      'numeroExterior': formData.length > 13 ? formData[13] : '',
-      'numeroInterior': formData.length > 14 ? formData[14] : 'S/N',
+      'codigoPostal': formData.length > 10 ? formData[12] : '',
+      'asentamiento': formData.length > 11 ? formData[13] : '',
+      'calle': formData.length > 12 ? formData[14] : '',
+      'numeroExterior': formData.length > 13 ? formData[15] : '',
+      'numeroInterior': formData.length > 14 ? formData[16] : 'S/N',
       'latitud':
-          formData.length > 15 ? double.tryParse(formData[15]) ?? 0.0 : 0.0,
+          formData.length > 15 ? double.tryParse(formData[17]) ?? 0.0 : 0.0,
       'longitud':
-          formData.length > 16 ? double.tryParse(formData[16]) ?? 0.0 : 0.0,
+          formData.length > 16 ? double.tryParse(formData[18]) ?? 0.0 : 0.0,
 
       // Contacto
-      'telefono': formData.length > 17 ? formData[17] : '',
-      'email': formData.length > 18 ? formData[18] : '',
+      'telefono': formData.length > 17 ? formData[21] : '',
+      'email': formData.length > 18 ? formData[20] : '',
 
       // Campos calculados
       'nombreCompletoRepresentante':
@@ -209,9 +213,9 @@ class OrganizationRegistrationService {
 
   /// Construye el nombre completo del representante a partir de los componentes
   static String _buildNombreCompletoRepresentante(List<String> formData) {
-    final nombre = formData.length > 3 ? formData[3] : '';
-    final apellidoP = formData.length > 4 ? formData[4] : '';
-    final apellidoM = formData.length > 5 ? formData[5] : '';
+    final nombre = formData.length > 3 ? formData[4] : '';
+    final apellidoP = formData.length > 4 ? formData[5] : '';
+    final apellidoM = formData.length > 5 ? formData[6] : '';
 
     return '$nombre $apellidoP $apellidoM'.trim();
   }

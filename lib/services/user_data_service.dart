@@ -355,7 +355,8 @@ class UserDataService {
   ///? - nomina (si es trabajador usa su nómina; si no, INICIALES-SUB)
   ///? - id_usuario (sub del token)
   ///? - rol (1 admin, 2 trabajador, 3 ciudadano, 4 organización)
-  static Future<Map<String, dynamic>> uploadDocument(String tipo, String filePath) async {
+  static Future<Map<String, dynamic>> uploadDocument(
+      String tipo, String filePath) async {
     final token = await AuthService.getToken();
     if (token == null) {
       throw Exception('Usuario no autenticado');
@@ -395,7 +396,8 @@ class UserDataService {
       final rol = _roleToNumeric(usuario.tipoPerfil).toString();
 
       //? 4) Request al endpoint público
-      final uri = Uri.parse('https://sanjuandelrio.gob.mx/tramites-sjr/Api/principal/upload_document');
+      final uri = Uri.parse(
+          'https://sanjuandelrio.gob.mx/tramites-sjr/Api/principal/upload_document');
       final request = http.MultipartRequest('POST', uri)
         ..fields['nomina'] = nomina
         ..fields['id_usuario'] = sub
@@ -414,17 +416,20 @@ class UserDataService {
       );
       request.files.add(multipartFile);
 
-      final streamed = await request.send().timeout(const Duration(seconds: 60));
+      final streamed =
+          await request.send().timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamed);
 
       if (response.statusCode != 200) {
         //* Intenta leer JSON de error; si no, regresar texto plano acortado
         try {
           final err = jsonDecode(response.body);
-          throw Exception(err['message']?.toString() ?? 'Error ${response.statusCode}');
+          throw Exception(
+              err['message']?.toString() ?? 'Error ${response.statusCode}');
         } catch (_) {
           final body = response.body.trim().replaceAll(RegExp(r'\s+'), ' ');
-          throw Exception(body.length > 260 ? '${body.substring(0, 260)}…' : body);
+          throw Exception(
+              body.length > 260 ? '${body.substring(0, 260)}…' : body);
         }
       }
 
@@ -438,14 +443,19 @@ class UserDataService {
         return {
           'success': true,
           'url': '',
-          'name': file.uri.pathSegments.isNotEmpty ? file.uri.pathSegments.last : 'documento.pdf',
+          'name': file.uri.pathSegments.isNotEmpty
+              ? file.uri.pathSegments.last
+              : 'documento.pdf',
           'raw': body,
         };
       }
 
-      final success = data['success'] == true || data['status'] == 'success' || data['ok'] == true;
+      final success = data['success'] == true ||
+          data['status'] == 'success' ||
+          data['ok'] == true;
       if (!success) {
-        throw Exception(data['message']?.toString() ?? 'Error al subir documento');
+        throw Exception(
+            data['message']?.toString() ?? 'Error al subir documento');
       }
 
       final url = (data['url_documento'] ??
@@ -454,13 +464,16 @@ class UserDataService {
               data['public_url'] ??
               data['link'] ??
               data['file_url'] ??
-              (data['data'] is Map ? (data['data']['url'] ?? data['data']['secure_url']) : null) ??
+              (data['data'] is Map
+                  ? (data['data']['url'] ?? data['data']['secure_url'])
+                  : null) ??
               '')
           .toString()
           .trim();
 
       if (url.isEmpty) {
-        debugPrint('[UserDataService] Advertencia: la API no retornó URL del documento');
+        debugPrint(
+            '[UserDataService] Advertencia: la API no retornó URL del documento');
       }
 
       final defaultName = file.uri.pathSegments.isNotEmpty
@@ -782,7 +795,7 @@ class UserDataService {
         return 4;
       case TipoPerfilCUS.ciudadano:
       case TipoPerfilCUS.usuario:
-      return 3; //! por defecto, ciudadano
+        return 3; //! por defecto, ciudadano
     }
   }
 }

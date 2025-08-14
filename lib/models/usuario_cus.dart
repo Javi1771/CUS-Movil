@@ -114,6 +114,10 @@ class DocumentoCUS {
     return documento;
   }
 
+  get tamano => null;
+
+  get extension => null;
+
   Map<String, dynamic> toJson() {
     return {
       'nombreDocumento': nombreDocumento,

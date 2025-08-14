@@ -19,122 +19,40 @@ class PersonTypeScreen extends StatefulWidget {
 class _PersonTypeScreenState extends State<PersonTypeScreen> {
   String? selectedType;
 
+  // Navegación protegida
   void _navigate() {
-    Widget nextPage;
+    if (selectedType == null) return;
 
-    switch (selectedType) {
-      case 'fisica':
-        nextPage = const FisicaDataScreen();
-        break;
-      case 'moral':
-        nextPage = const MoralDataScreen();
-        break;
-      case 'trabajador':
-        nextPage = const WorkDataScreen();
-        break;
-      default:
-        return;
+    final nextPage = switch (selectedType) {
+      'fisica' => const FisicaDataScreen(),
+      'moral' => const MoralDataScreen(),
+      'trabajador' => const WorkDataScreen(),
+      _ => null,
+    };
+
+    if (nextPage != null) {
+      Navigator.of(context).push(SlideUpRoute(page: nextPage));
     }
-
-    Navigator.of(context).push(SlideUpRoute(page: nextPage));
   }
 
-  void _showInfoAndSelect(String type, String title, String content) {
-    IconData icon;
-    switch (type) {
-      case 'fisica':
-        icon = Icons.person_outline;
-        break;
-      case 'moral':
-        icon = Icons.apartment_outlined;
-        break;
-      case 'trabajador':
-        icon = Icons.engineering_outlined;
-        break;
-      default:
-        icon = Icons.info_outline;
-    }
-
+  // Diálogo separado para claridad
+  void _showInfoAndSelect({
+    required String type,
+    required String title,
+    required String content,
+    required IconData icon,
+  }) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: govBlue,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-              ),
-              child: Icon(icon, size: 48, color: Colors.white),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Column(
-                children: [
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    content,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black54,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16, left: 12, right: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: govBlue,
-                      side: const BorderSide(color: govBlue),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text('Cancelar'),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: govBlue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () {
-                      setState(() => selectedType = type);
-                      Navigator.of(ctx).pop();
-                    },
-                    child: const Text('Seleccionar'),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      builder: (ctx) => _InfoDialog(
+        title: title,
+        content: content,
+        icon: icon,
+        onSelect: () {
+          setState(() => selectedType = type);
+          Navigator.of(ctx).pop();
+        },
       ),
     );
   }
@@ -146,10 +64,17 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
     required String infoText,
   }) {
     final isSelected = selectedType == type;
-    return GestureDetector(
-      onTap: () => _showInfoAndSelect(type, title, infoText),
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => _showInfoAndSelect(
+        type: type,
+        title: title,
+        content: infoText,
+        icon: icon,
+      ),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         decoration: BoxDecoration(
           color: isSelected ? govBlue : Colors.white,
@@ -221,7 +146,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                           icon: Icons.person_outline,
                           type: 'fisica',
                           infoText:
-                              'Una persona física es cualquier individuo con derechos y obligaciones, es decir, cualquier persona capaz de actuar y responder ante la ley.',
+                              'Una persona física es cualquier individuo con derechos y obligaciones.',
                         ),
                       ),
                       const SizedBox(width: 24),
@@ -232,7 +157,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                           icon: Icons.apartment_outlined,
                           type: 'moral',
                           infoText:
-                              'Una persona moral es una entidad legal conformada por una o más personas físicas, como empresas, asociaciones o instituciones, con personalidad jurídica propia.',
+                              'Una persona moral es una entidad legal conformada por una o más personas físicas.',
                         ),
                       ),
                     ],
@@ -248,7 +173,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                           icon: Icons.engineering_outlined,
                           type: 'trabajador',
                           infoText:
-                              'Un trabajador es una persona física que presta un servicio personal subordinado a una persona o entidad a cambio de un salario.',
+                              'Un trabajador es una persona física que presta un servicio personal subordinado.',
                         ),
                       ),
                     ],
@@ -266,10 +191,11 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                     width: double.infinity,
                     height: 72,
                     child: ElevatedButton(
-                      onPressed: selectedType != null ? _navigate : null,
+                      onPressed: _navigate,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: govBlue,
-                        disabledBackgroundColor: govBlue.withOpacity(0.4),
+                        backgroundColor: selectedType != null
+                            ? govBlue
+                            : govBlue.withOpacity(0.4),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -286,10 +212,7 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                             ),
                           ),
                           SizedBox(height: 6),
-                          Icon(
-                            Icons.arrow_forward_rounded,
-                            size: 28,
-                          ),
+                          Icon(Icons.arrow_forward_rounded, size: 28),
                         ],
                       ),
                     ),
@@ -297,6 +220,97 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                   const SizedBox(height: 30),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Widget separado para el diálogo
+class _InfoDialog extends StatelessWidget {
+  final String title;
+  final String content;
+  final IconData icon;
+  final VoidCallback onSelect;
+
+  const _InfoDialog({
+    required this.title,
+    required this.content,
+    required this.icon,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: govBlue,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+            ),
+            child: Icon(icon, size: 48, color: Colors.white),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Column(
+              children: [
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  content,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16, left: 12, right: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: govBlue,
+                    side: const BorderSide(color: govBlue),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: govBlue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: onSelect,
+                  child: const Text('Seleccionar'),
+                ),
+              ],
             ),
           ),
         ],
