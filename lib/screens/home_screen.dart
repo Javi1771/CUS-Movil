@@ -889,6 +889,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   // Resto de métodos sin cambios...
+  // Saludo dinámico por tipo de perfil
+  String _saludoPorPerfil() {
+    final tipo = _usuario?.tipoPerfil;
+    switch (tipo) {
+      case TipoPerfilCUS.trabajador:
+        return 'Hola Trabajador!';
+      case TipoPerfilCUS.personaMoral:
+      case TipoPerfilCUS.organizacion:
+        return 'Hola Organización!';
+      case TipoPerfilCUS.ciudadano:
+        return 'Hola Ciudadano!';
+      case TipoPerfilCUS.usuario:
+      default:
+        return 'Hola!';
+    }
+  }
+
   Widget _buildNewHeader() {
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
@@ -949,7 +966,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Hola Ciudadano!',
+                          _saludoPorPerfil(),
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: titleFontSize.clamp(
