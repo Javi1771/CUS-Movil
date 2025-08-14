@@ -12,7 +12,7 @@ class UserDataService {
   static final String _apiUrl = dotenv.env['API_URL']!;
   static final String _apiKey = dotenv.env['API_KEY']!;
 
-  /// Obtiene los datos del usuario desde la API
+  ///* Obtiene los datos del usuario desde la API
   static Future<UsuarioCUS?> getUserData() async {
     final token = await AuthService.getToken();
     if (token == null) {
@@ -37,7 +37,7 @@ class UserDataService {
             }),
           )
           .timeout(
-            const Duration(seconds: 8), // Reduced timeout to prevent ANR
+            const Duration(seconds: 8), //* Reduced timeout to prevent ANR
             onTimeout: () => throw TimeoutException('Tiempo de espera agotado'),
           );
 
@@ -80,7 +80,7 @@ class UserDataService {
     debugPrint('[UserDataService] Nómina: ${userData['nomina']}');
     debugPrint('[UserDataService] no_nomina: ${userData['no_nomina']}');
 
-    // Buscar todos los campos que podrían contener la nómina
+    //* Buscar todos los campos que podrían contener la nómina
     final nominaFields = ['no_nomina', 'nomina', 'nómina', 'numeroNomina'];
     for (final field in nominaFields) {
       if (userData[field] != null) {
@@ -89,12 +89,12 @@ class UserDataService {
       }
     }
 
-    // Verificar el resultado final de _getField para nómina
+    //* Verificar el resultado final de _getField para nómina
     final nominaFinal =
         _getField(userData, ['no_nomina', 'nomina', 'nómina', 'numeroNomina']);
     debugPrint('[UserDataService] 🎯 Nómina final obtenida: $nominaFinal');
 
-    // Buscar ID ciudadano en todos los campos posibles
+    //* Buscar ID ciudadano en todos los campos posibles
     final possibleIdFields = [
       'id_ciudadano',
       'idCiudadano',
@@ -126,14 +126,14 @@ class UserDataService {
   static Map<String, dynamic>? _extractUserData(Map<String, dynamic> data) {
     final possibleKeys = ['data', 'user', 'usuario', 'result', 'payload'];
 
-    // Caso 1: Datos directamente en el nivel raíz
+    //? Caso 1: Datos directamente en el nivel raíz
     if (data.containsKey('nombre') ||
         data.containsKey('curp') ||
         data.containsKey('email')) {
       return data;
     }
 
-    // Caso 2: Datos en una propiedad anidada
+    //? Caso 2: Datos en una propiedad anidada
     for (final key in possibleKeys) {
       if (data[key] != null && data[key] is Map<String, dynamic>) {
         return data[key];
@@ -172,7 +172,7 @@ class UserDataService {
   static UsuarioCUS _createMinimalUser(Map<String, dynamic> data) {
     debugPrint('[UserDataService] Creando usuario con datos mínimos');
 
-    // Determinar tipo de perfil
+    //? Determinar tipo de perfil
     TipoPerfilCUS tipoPerfil = _determineProfileType(data);
 
     return UsuarioCUS(
@@ -216,7 +216,7 @@ class UserDataService {
   }
 
   static TipoPerfilCUS _determineProfileType(Map<String, dynamic> data) {
-    // Buscar tipo de perfil explícito
+    //? Buscar tipo de perfil explícito
     final tipoPerfilExplicito = _getField(data, [
       'tipoPerfil',
       'tipo_perfil',
@@ -251,7 +251,7 @@ class UserDataService {
       }
     }
 
-    // Determinar por identificadores
+    //? Determinar por identificadores
     final folio = _getField(data, ['folio', 'folioCUS', 'folio_cus']);
     final nomina =
         _getField(data, ['no_nomina', 'nomina', 'nómina', 'numeroNomina']);
@@ -259,7 +259,7 @@ class UserDataService {
     if (folio != null) return TipoPerfilCUS.ciudadano;
     if (nomina != null) return TipoPerfilCUS.trabajador;
 
-    // Verificar ID ciudadano
+    //? Verificar ID ciudadano
     final idCiudadano = _getField(data, [
       'id_ciudadano',
       'idCiudadano',
@@ -273,16 +273,16 @@ class UserDataService {
 
     if (idCiudadano != null) return TipoPerfilCUS.ciudadano;
 
-    // Verificar otros indicadores
+    //? Verificar otros indicadores
     if (data['razonSocial'] != null) return TipoPerfilCUS.personaMoral;
 
-    // Si tiene CURP, es persona física
+    //? Si tiene CURP, es persona física
     final curp = _getField(data, ['curp', 'CURP']);
     if (curp != null && curp.isNotEmpty && curp != 'Sin CURP') {
       return TipoPerfilCUS.ciudadano;
     }
 
-    // Por defecto, asumir ciudadano
+    //? Por defecto, asumir ciudadano
     return TipoPerfilCUS.ciudadano;
   }
 
@@ -296,7 +296,7 @@ class UserDataService {
     return defaultValue;
   }
 
-  /// Actualiza los datos del usuario en la API
+  ///* Actualiza los datos del usuario en la API
   static Future<bool> updateUserData(UsuarioCUS usuario) async {
     final token = await AuthService.getToken();
     if (token == null) {
@@ -339,7 +339,7 @@ class UserDataService {
     }
   }
 
-  /// Método helper para limpiar tokens inválidos
+  ///* Método helper para limpiar tokens inválidos
   static Future<void> _clearInvalidToken() async {
     try {
       final authService = AuthService('temp');
@@ -350,6 +350,11 @@ class UserDataService {
     }
   }
 
+  ///? Sube documento a la API pública de SJR con:
+  ///? - file (PDF)
+  ///? - nomina (si es trabajador usa su nómina; si no, INICIALES-SUB)
+  ///? - id_usuario (sub del token)
+  ///? - rol (1 admin, 2 trabajador, 3 ciudadano, 4 organización)
   static Future<Map<String, dynamic>> uploadDocument(
       String tipo, String filePath) async {
     final token = await AuthService.getToken();
@@ -366,15 +371,40 @@ class UserDataService {
     }
 
     try {
-      final uri = Uri.parse(_apiUrl);
+      //? 1) Traer datos del usuario para nomina/rol y preparar el sub (id_usuario)
+      final usuario = await getUserData();
+      if (usuario == null) {
+        throw Exception('No se pudieron obtener datos del usuario');
+      }
+
+      final sub = _extractSubFromJwt(token) ??
+          usuario.idCiudadano ??
+          usuario.usuarioId ??
+          usuario.idGeneral ??
+          '';
+
+      //? 2) Calcular NOMINA:
+      //*    - Si es trabajador y tiene nómina -> usarla
+      // *   - Si no, INICIALES-SUB
+      final isTrabajador = usuario.tipoPerfil == TipoPerfilCUS.trabajador;
+      final initials = _getInitials(usuario.nombre_completo ?? usuario.nombre);
+      final nomina = (isTrabajador && (usuario.nomina?.isNotEmpty ?? false))
+          ? usuario.nomina!
+          : '${initials.isEmpty ? 'USR' : initials}-${sub.isEmpty ? '0' : sub}';
+
+      //? 3) Rol numérico
+      final rol = _roleToNumeric(usuario.tipoPerfil).toString();
+
+      //? 4) Request al endpoint público
+      final uri = Uri.parse(
+          'https://sanjuandelrio.gob.mx/tramites-sjr/Api/principal/upload_document');
       final request = http.MultipartRequest('POST', uri)
+        ..fields['nomina'] = nomina
+        ..fields['id_usuario'] = sub
+        ..fields['rol'] = rol
         ..headers.addAll({
-          'Authorization': 'Bearer $token',
-          'X-API-KEY': _apiKey,
-        })
-        ..fields['action'] = 'uploadUserDocument'
-        ..fields['token'] = token
-        ..fields['tipo'] = tipo;
+          'Accept': 'application/json',
+        });
 
       final multipartFile = await http.MultipartFile.fromPath(
         'file',
@@ -390,46 +420,72 @@ class UserDataService {
           await request.send().timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamed);
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final success = data['success'] == true || data['status'] == 'success';
-        if (!success) {
+      if (response.statusCode != 200) {
+        //* Intenta leer JSON de error; si no, regresar texto plano acortado
+        try {
+          final err = jsonDecode(response.body);
           throw Exception(
-              data['message']?.toString() ?? 'Error al subir documento');
+              err['message']?.toString() ?? 'Error ${response.statusCode}');
+        } catch (_) {
+          final body = response.body.trim().replaceAll(RegExp(r'\s+'), ' ');
+          throw Exception(
+              body.length > 260 ? '${body.substring(0, 260)}…' : body);
         }
-
-        // Intentar obtener la URL del documento desde varias claves comunes
-        final url = (data['url']?.toString() ??
-                data['secure_url']?.toString() ??
-                data['urlDocumento']?.toString() ??
-                data['public_url']?.toString() ??
-                data['link']?.toString() ??
-                data['file_url']?.toString() ??
-                data['data']?['url']?.toString() ??
-                data['data']?['secure_url']?.toString() ??
-                '')
-            .trim();
-
-        if (url.isEmpty) {
-          throw Exception('La API no devolvió una URL del documento');
-        }
-
-        final defaultName = file.uri.pathSegments.isNotEmpty
-            ? file.uri.pathSegments.last
-            : 'documento.pdf';
-        final nombre = (data['nombre'] ??
-                data['fileName'] ??
-                data['original_filename'] ??
-                defaultName)
-            .toString();
-
-        return {'success': true, 'url': url, 'name': nombre};
-      } else if (response.statusCode == 401) {
-        await _clearInvalidToken();
-        throw Exception('Sesión expirada. Por favor inicia sesión nuevamente');
-      } else {
-        throw _handleErrorResponse(response);
       }
+
+      //? 5) Parse de respuesta (prioriza url_documento)
+      final body = response.body.trim();
+      Map<String, dynamic> data;
+      try {
+        data = jsonDecode(body) as Map<String, dynamic>;
+      } catch (_) {
+        // Respuesta no JSON
+        return {
+          'success': true,
+          'url': '',
+          'name': file.uri.pathSegments.isNotEmpty
+              ? file.uri.pathSegments.last
+              : 'documento.pdf',
+          'raw': body,
+        };
+      }
+
+      final success = data['success'] == true ||
+          data['status'] == 'success' ||
+          data['ok'] == true;
+      if (!success) {
+        throw Exception(
+            data['message']?.toString() ?? 'Error al subir documento');
+      }
+
+      final url = (data['url_documento'] ??
+              data['url'] ??
+              data['secure_url'] ??
+              data['public_url'] ??
+              data['link'] ??
+              data['file_url'] ??
+              (data['data'] is Map
+                  ? (data['data']['url'] ?? data['data']['secure_url'])
+                  : null) ??
+              '')
+          .toString()
+          .trim();
+
+      if (url.isEmpty) {
+        debugPrint(
+            '[UserDataService] Advertencia: la API no retornó URL del documento');
+      }
+
+      final defaultName = file.uri.pathSegments.isNotEmpty
+          ? file.uri.pathSegments.last
+          : 'documento.pdf';
+      final nombre = (data['nombre'] ??
+              data['fileName'] ??
+              data['original_filename'] ??
+              defaultName)
+          .toString();
+
+      return {'success': true, 'url': url, 'name': nombre};
     } on TimeoutException {
       throw Exception('Tiempo de espera agotado al subir el documento');
     } catch (e) {
@@ -438,7 +494,7 @@ class UserDataService {
     }
   }
 
-  /// MÉTODO MEJORADO PARA CLOUDINARY: Obtiene los documentos del usuario
+  //? MÉTODO MEJORADO PARA CLOUDINARY: Obtiene los documentos del usuario
   static Future<List<DocumentoCUS>> getUserDocuments() async {
     final token = await AuthService.getToken();
     if (token == null) {
@@ -448,7 +504,7 @@ class UserDataService {
     try {
       debugPrint('[UserDataService] 📄 Obteniendo documentos del usuario...');
 
-      // Intentar primero con acción específica para documentos
+      //* Intentar primero con acción específica para documentos
       final response = await http
           .post(
             Uri.parse(_apiUrl),
@@ -473,7 +529,7 @@ class UserDataService {
 
         List<dynamic> documentosData = [];
 
-        // Buscar documentos en múltiples ubicaciones posibles
+        //* Buscar documentos en múltiples ubicaciones posibles
         final possiblePaths = [
           data['documentos'],
           data['documents'],
@@ -498,7 +554,7 @@ class UserDataService {
           }
         }
 
-        // Si no se encontraron documentos con la acción específica, intentar getUserData
+        //! Si no se encontraron documentos con la acción específica, intentar getUserData
         if (documentosData.isEmpty) {
           debugPrint(
               '[UserDataService] 📄 No se encontraron documentos con getUserDocuments, intentando getUserData...');
@@ -551,7 +607,7 @@ class UserDataService {
           return [];
         }
 
-        // Procesar cada documento
+        //* Procesar cada documento
         final documentosProcesados = <DocumentoCUS>[];
 
         for (int i = 0; i < documentosData.length; i++) {
@@ -569,7 +625,7 @@ class UserDataService {
                 '[UserDataService] 📄 ❌ Error parseando documento $i: $e');
             debugPrint('[UserDataService] 📄 Documento problemático: $doc');
 
-            // Intentar crear documento manualmente con campos básicos
+            //* Intentar crear documento manualmente con campos básicos
             try {
               final documentoManual = DocumentoCUS(
                 nombreDocumento: doc['nombre']?.toString() ??
@@ -627,7 +683,7 @@ class UserDataService {
     }
   }
 
-  /// Obtiene el resumen general del usuario (estadísticas y actividad reciente)
+  ///* Obtiene el resumen general del usuario (estadísticas y actividad reciente)
   static Future<Map<String, dynamic>> getResumenGeneral() async {
     final token = await AuthService.getToken();
     if (token == null) {
@@ -662,7 +718,7 @@ class UserDataService {
         final data = jsonDecode(response.body);
         debugPrint('[UserDataService] Resumen general obtenido: $data');
 
-        // Validar estructura de respuesta
+        //* Validar estructura de respuesta
         if (data is Map<String, dynamic>) {
           return {
             'estadisticas': data['estadisticas'] ??
@@ -692,5 +748,54 @@ class UserDataService {
     }
   }
 
-  static Future<void> deleteDocument(String tipo, {String? id}) async {}
+  //? --------------------- Helpers para uploadDocument ---------------------
+
+  ///* Extrae el `sub` de un JWT (si es que el token lo contiene).
+  static String? _extractSubFromJwt(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+      String normalized = parts[1].replaceAll('-', '+').replaceAll('_', '/');
+      switch (normalized.length % 4) {
+        case 2:
+          normalized += '==';
+          break;
+        case 3:
+          normalized += '=';
+          break;
+      }
+      final payload = utf8.decode(base64.decode(normalized));
+      final map = jsonDecode(payload);
+      final sub = map['sub']?.toString();
+      return (sub == 'null' || sub?.isEmpty == true) ? null : sub;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  ///* Obtiene iniciales de un nombre (e.g., "Juan Pérez López" -> "JPL")
+  static String _getInitials(String? fullName) {
+    if (fullName == null || fullName.trim().isEmpty) return '';
+    return fullName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .map((p) => p.trim().substring(0, 1).toUpperCase())
+        .join();
+  }
+
+  ///* Mapea el enum del usuario a rol numérico exigido por la API.
+  ///* 1: admin, 2: trabajador, 3: ciudadano, 4: organización
+  static int _roleToNumeric(TipoPerfilCUS tipo) {
+    switch (tipo) {
+      case TipoPerfilCUS.trabajador:
+        return 2;
+      case TipoPerfilCUS.personaMoral:
+      case TipoPerfilCUS.organizacion:
+        return 4;
+      case TipoPerfilCUS.ciudadano:
+      case TipoPerfilCUS.usuario:
+        return 3; //! por defecto, ciudadano
+    }
+  }
 }

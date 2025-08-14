@@ -15,7 +15,6 @@ class OrganizationConfirmationScreen extends StatefulWidget {
 class _OrganizationConfirmationScreenState
     extends State<OrganizationConfirmationScreen>
     with SingleTickerProviderStateMixin {
-  static const govBlue = Color(0xFF0B3B60);
   static const successColor = Color(0xFF059669);
   static const errorColor = Color(0xFFDC2626);
   static const organizationColor =

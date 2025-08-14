@@ -1,28 +1,26 @@
-// models/usuario_cus.dart
+// ignore_for_file: avoid_print, non_constant_identifier_names
 
-// ignore_for_file: avoid_print
-
-/// Enum para definir los tipos de perfil en el sistema CUS
+///* Enum para definir los tipos de perfil en el sistema CUS
 enum TipoPerfilCUS {
-  /// Perfil para ciudadanos con folio CUS
+  //* Perfil para ciudadanos con folio CUS
   ciudadano,
 
-  /// Perfil para trabajadores del gobierno con nómina
+  ///* Perfil para trabajadores del gobierno con nómina
   trabajador,
 
-  /// Perfil para personas morales/organizaciones con RFC de 12 dígitos
+  ///* Perfil para personas morales/organizaciones con RFC de 12 dígitos
   personaMoral,
 
-  /// Perfil genérico para usuarios sin clasificación específica
+  ///* Perfil genérico para usuarios sin clasificación específica
   usuario,
 
-  /// Alias para personaMoral (mantener compatibilidad)
+  ///* Alias para personaMoral (mantener compatibilidad)
   organizacion,
 }
 
-/// Extensión para obtener descripciones legibles de los tipos de perfil
+///? Extensión para obtener descripciones legibles de los tipos de perfil
 extension TipoPerfilCUSExtension on TipoPerfilCUS {
-  /// Obtiene la descripción en español del tipo de perfil
+  ///! Obtiene la descripción en español del tipo de perfil
   String get descripcion {
     switch (this) {
       case TipoPerfilCUS.ciudadano:
@@ -37,20 +35,19 @@ extension TipoPerfilCUSExtension on TipoPerfilCUS {
     }
   }
 
-  /// Indica si el perfil requiere folio CUS
+  ///* Indica si el perfil requiere folio CUS
   bool get requiereFolio {
     return this == TipoPerfilCUS.ciudadano;
   }
 
-  /// Indica si el perfil requiere número de nómina
+  ///* Indica si el perfil requiere número de nómina
   bool get requiereNomina {
     return this == TipoPerfilCUS.trabajador;
   }
 
-  /// Indica si el perfil requiere RFC
+  ///* Indica si el perfil requiere RFC
   bool get requiereRFC {
-    return this == TipoPerfilCUS.personaMoral ||
-        this == TipoPerfilCUS.organizacion;
+    return this == TipoPerfilCUS.personaMoral || this == TipoPerfilCUS.organizacion;
   }
 }
 
@@ -68,8 +65,8 @@ class DocumentoCUS {
   factory DocumentoCUS.fromJson(Map<String, dynamic> json) {
     print('[DocumentoCUS] 🔍 PROCESANDO DOCUMENTO: $json');
 
-    // Buscar el nombre del documento en múltiples campos posibles
-    String nombreDoc = json['nombre_documento']?.toString() ??
+    //* Buscar el nombre del documento en múltiples campos posibles
+    final nombreDoc = json['nombre_documento']?.toString() ??
         json['nombreDocumento']?.toString() ??
         json['nombre']?.toString() ??
         json['name']?.toString() ??
@@ -79,7 +76,7 @@ class DocumentoCUS {
         json['display_name']?.toString() ??
         'Documento sin nombre';
 
-    // Buscar la URL del documento en múltiples campos posibles
+    //* Buscar la URL del documento en múltiples campos posibles (PRIORIZA url_documento)
     String urlDoc = json['url_documento']?.toString() ??
         json['urlDocumento']?.toString() ??
         json['url']?.toString() ??
@@ -91,8 +88,11 @@ class DocumentoCUS {
         json['path']?.toString() ??
         '';
 
-    // Buscar la fecha en múltiples campos posibles
-    String? fechaDoc = json['upload_date']?.toString() ??
+    //* Solo normaliza (escapa espacios/acentos) si ya es absoluta
+    urlDoc = _normalizeUrl(urlDoc);
+
+    //* Buscar la fecha en múltiples campos posibles
+    final fechaDoc = json['upload_date']?.toString() ??
         json['uploadDate']?.toString() ??
         json['fecha']?.toString() ??
         json['created_at']?.toString() ??
@@ -101,34 +101,8 @@ class DocumentoCUS {
         json['date']?.toString();
 
     print('[DocumentoCUS] 📄 Nombre extraído: $nombreDoc');
-    print('[DocumentoCUS] 🔗 URL extraída: $urlDoc');
+    print('[DocumentoCUS] 🔗 URL final: $urlDoc');
     print('[DocumentoCUS] 📅 Fecha extraída: $fechaDoc');
-
-    // Validar y procesar la URL de Cloudinary
-    if (urlDoc.isNotEmpty) {
-      // Si la URL ya es completa y válida, usarla tal como está
-      if (urlDoc.startsWith('https://res.cloudinary.com/')) {
-        print('[DocumentoCUS] ✅ URL de Cloudinary válida detectada');
-      }
-      // Si no es completa pero contiene elementos de Cloudinary, intentar construirla
-      else if (!urlDoc.startsWith('http') &&
-          (urlDoc.contains('/') || urlDoc.length > 10)) {
-        print('[DocumentoCUS] 🔧 Intentando construir URL de Cloudinary...');
-        // Formato típico de Cloudinary: https://res.cloudinary.com/cloud-name/image/upload/v1234567890/path/file.pdf
-        urlDoc = 'https://res.cloudinary.com/dsngx5ckc/raw/upload/$urlDoc';
-        print('[DocumentoCUS] 🔧 URL construida: $urlDoc');
-      }
-
-      // Validación final de URL
-      if (urlDoc.startsWith('http')) {
-        print('[DocumentoCUS] ✅ URL final válida: $urlDoc');
-      } else {
-        print(
-            '[DocumentoCUS] ⚠️ URL no válida después del procesamiento: $urlDoc');
-      }
-    } else {
-      print('[DocumentoCUS] ❌ URL de documento vacía para $nombreDoc');
-    }
 
     final documento = DocumentoCUS(
       nombreDocumento: nombreDoc,
@@ -136,8 +110,7 @@ class DocumentoCUS {
       uploadDate: fechaDoc,
     );
 
-    print(
-        '[DocumentoCUS] 🎯 Documento creado: ${documento.nombreDocumento} -> ${documento.urlDocumento}');
+    print('[DocumentoCUS] 🎯 Documento creado: ${documento.nombreDocumento} -> ${documento.urlDocumento}');
     return documento;
   }
 
@@ -155,28 +128,28 @@ class DocumentoCUS {
 }
 
 class UsuarioCUS {
-  // Tipo de perfil
+  //? Tipo de perfil
   final TipoPerfilCUS tipoPerfil;
 
-  // Identificadores
+  //? Identificadores
   final String? usuarioId;
-  final String? folio; // Para ciudadanos
-  final String? nomina; // Para trabajadores
+  final String? folio; //* Para ciudadanos
+  final String? nomina; //* Para trabajadores
   final String? idCiudadano;
-  final String? rfc; // CORRECIÓN: Campo RFC agregado
+  final String? rfc; //* Campo RFC
 
-  // Información básica
+  //? Información básica
   final String nombre;
   final String? nombre_completo;
-  final String? razonSocial; // Para organizaciones
+  final String? razonSocial; //* Para organizaciones
 
-  // Información Personal (puede ser del representante legal)
+  //? Información Personal (puede ser del representante legal)
   final String curp;
   final String? fechaNacimiento;
   final String? nacionalidad;
   final String? estadoCivil;
 
-  // Información de Contacto
+  //? Información de Contacto
   final String email;
   final String? telefono;
   final String? calle;
@@ -186,12 +159,12 @@ class UsuarioCUS {
   final String? direccion;
   final String? idGeneral;
 
-  // Información Laboral (para trabajadores o info de la empresa)
+  //? Información Laboral (para trabajadores o info de la empresa)
   final String? ocupacion;
   final String? departamento;
   final String? puesto;
 
-  // Documentos y foto
+  //? Documentos y foto
   final List<DocumentoCUS>? documentos;
   final String? foto;
 
@@ -221,7 +194,7 @@ class UsuarioCUS {
     this.puesto,
     this.documentos,
     this.foto,
-    this.rfc, // CORRECIÓN: Agregado al constructor
+    this.rfc,
   });
 
   factory UsuarioCUS.fromJson(Map<String, dynamic> json) {
@@ -240,25 +213,18 @@ class UsuarioCUS {
       return null;
     }
 
-    // --- Extracción de Datos ---
+    //? --- Extracción de Datos ---
     final folio = getStringValue(['folio', 'folioCUS']);
     final nomina = getStringValue(['no_nomina', 'nomina']);
-    final idCiudadano =
-        getStringValue(['id_ciudadano', 'idCiudadano', 'id_general', 'sub']);
-    final razonSocial = getStringValue(
-        ['razonSocial', 'razon_social', 'nombreEmpresa', 'businessName']);
+    final idCiudadano = getStringValue(['id_ciudadano', 'idCiudadano', 'id_general', 'sub']);
+    final razonSocial = getStringValue(['razonSocial', 'razon_social', 'nombreEmpresa', 'businessName']);
+    final rfcValue = getStringValue(['rfc', 'RFC', 'rfcOrganizacion', 'rfc_organizacion', 'rfcEmpresa']);
 
-    // CORRECIÓN: Se usa una variable dedicada para el RFC y se busca en múltiples claves
-    final rfcValue = getStringValue(
-        ['rfc', 'RFC', 'rfcOrganizacion', 'rfc_organizacion', 'rfcEmpresa']);
-
-    final tipoPerfilExplicito =
-        getStringValue(['tipoPerfil', 'tipo_perfil', 'userType']);
+    final tipoPerfilExplicito = getStringValue(['tipoPerfil', 'tipo_perfil', 'userType']);
     final curp = getStringValue(['curp', 'CURP']);
     final nombre = getStringValue(['nombre', 'name', 'firstName']) ?? '';
     final email = getStringValue(['email', 'correo', 'mail']) ?? '';
 
-    // DIAGNÓSTICO: Buscar fecha de nacimiento en múltiples campos
     final fechaNacimiento = getStringValue([
       'fechaNacimiento',
       'fecha_nacimiento',
@@ -272,7 +238,7 @@ class UsuarioCUS {
     ]);
     print('[UsuarioCUS] JSON recibido completo: $json');
 
-    // --- Lógica de Detección de Perfil ---
+    //? --- Lógica de Detección de Perfil ---
     TipoPerfilCUS tipoPerfil;
 
     if (tipoPerfilExplicito != null) {
@@ -294,12 +260,10 @@ class UsuarioCUS {
           tipoPerfil = TipoPerfilCUS.usuario;
       }
     } else if (razonSocial != null && razonSocial.isNotEmpty) {
-      print(
-          '[UsuarioCUS] ✅ ORGANIZACIÓN detectada por Razón Social: $razonSocial');
+      print('[UsuarioCUS] ✅ ORGANIZACIÓN detectada por Razón Social: $razonSocial');
       tipoPerfil = TipoPerfilCUS.personaMoral;
     } else if (rfcValue != null && rfcValue.length == 12) {
-      print(
-          '[UsuarioCUS] ✅ ORGANIZACIÓN detectada por RFC de 12 caracteres: $rfcValue');
+      print('[UsuarioCUS] ✅ ORGANIZACIÓN detectada por RFC de 12 caracteres: $rfcValue');
       tipoPerfil = TipoPerfilCUS.personaMoral;
     } else if (nomina != null && nomina.isNotEmpty) {
       print('[UsuarioCUS] ✅ TRABAJADOR detectado por nómina: $nomina');
@@ -309,9 +273,7 @@ class UsuarioCUS {
       tipoPerfil = TipoPerfilCUS.ciudadano;
     } else {
       print('[UsuarioCUS] ⚠️ Tipo determinado por defecto: USUARIO (Fallback)');
-      tipoPerfil = (curp != null && curp.length == 18)
-          ? TipoPerfilCUS.ciudadano
-          : TipoPerfilCUS.usuario;
+      tipoPerfil = (curp != null && curp.length == 18) ? TipoPerfilCUS.ciudadano : TipoPerfilCUS.usuario;
     }
 
     print('[UsuarioCUS] 🎯 TIPO DE PERFIL FINAL: $tipoPerfil');
@@ -325,8 +287,7 @@ class UsuarioCUS {
           .toList();
       print('[UsuarioCUS] ✅ Documentos parseados: ${documentosList.length}');
       for (final doc in documentosList) {
-        print(
-            '[UsuarioCUS] 📄 Documento: ${doc.nombreDocumento} -> ${doc.urlDocumento}');
+        print('[UsuarioCUS] 📄 Documento: ${doc.nombreDocumento} -> ${doc.urlDocumento}');
       }
     }
 
@@ -340,8 +301,7 @@ class UsuarioCUS {
       nombre_completo: getStringValue(['nombre_completo', 'fullName']),
       curp: curp ?? 'Sin CURP',
       fechaNacimiento: fechaNacimiento,
-      nacionalidad:
-          getStringValue(['nacionalidad', 'nationality']) ?? 'Mexicana',
+      nacionalidad: getStringValue(['nacionalidad', 'nationality']) ?? 'Mexicana',
       email: email.isNotEmpty ? email : 'sin-email@ejemplo.com',
       telefono: getStringValue(['telefono', 'phone']),
       calle: getStringValue(['calle', 'street']),
@@ -357,32 +317,22 @@ class UsuarioCUS {
       puesto: getStringValue(['puesto', 'position']),
       documentos: documentosList,
       foto: getStringValue(['foto', 'photo', 'avatar']),
-      rfc: rfcValue, // CORRECIÓN: Asignando el valor de RFC parseado
+      rfc: rfcValue,
     );
   }
 
-  // --- GETTERS PARA LA UI (Mejorados) ---
-
-  /// Obtiene el nombre a mostrar según el tipo de perfil
+  //? --- GETTERS PARA LA UI (Mejorados) ---
   String get nombreDisplay {
-    if (tipoPerfil == TipoPerfilCUS.personaMoral ||
-        tipoPerfil == TipoPerfilCUS.organizacion) {
-      return razonSocial ?? nombre; // Prioriza razón social para organizaciones
+    if (tipoPerfil == TipoPerfilCUS.personaMoral || tipoPerfil == TipoPerfilCUS.organizacion) {
+      return razonSocial ?? nombre; //* Prioriza razón social para organizaciones
     }
     return nombre_completo ?? nombre;
   }
 
-  /// Obtiene la nacionalidad con valor por defecto
-  String get nacionalidadDisplay {
-    return nacionalidad ?? 'Mexicana';
-  }
+  String get nacionalidadDisplay => nacionalidad ?? 'Mexicana';
 
-  /// Obtiene la descripción del tipo de perfil
-  String get tipoPerfilDescripcion {
-    return tipoPerfil.descripcion;
-  }
+  String get tipoPerfilDescripcion => tipoPerfil.descripcion;
 
-  /// Obtiene el identificador principal según el tipo de perfil
   String? get identificadorPrincipal {
     switch (tipoPerfil) {
       case TipoPerfilCUS.ciudadano:
@@ -397,7 +347,6 @@ class UsuarioCUS {
     }
   }
 
-  /// Obtiene la etiqueta del identificador principal
   String get etiquetaIdentificador {
     switch (tipoPerfil) {
       case TipoPerfilCUS.ciudadano:
@@ -412,26 +361,17 @@ class UsuarioCUS {
     }
   }
 
-  /// Construye la dirección completa
   String get direccionCompleta {
     final partes = <String>[];
-
     if (calle?.isNotEmpty == true) partes.add(calle!);
     if (asentamiento?.isNotEmpty == true) partes.add(asentamiento!);
     if (estado?.isNotEmpty == true) partes.add(estado!);
     if (codigoPostal?.isNotEmpty == true) partes.add('CP $codigoPostal');
-
     return partes.isNotEmpty ? partes.join(', ') : 'Sin dirección registrada';
   }
 
-  /// Verifica si el perfil está completo según su tipo
   bool get perfilCompleto {
-    // Validaciones básicas para todos los perfiles
-    if (nombre.isEmpty || email.isEmpty || curp.isEmpty) {
-      return false;
-    }
-
-    // Validaciones específicas por tipo de perfil
+    if (nombre.isEmpty || email.isEmpty || curp.isEmpty) return false;
     switch (tipoPerfil) {
       case TipoPerfilCUS.ciudadano:
         return folio?.isNotEmpty == true || idCiudadano?.isNotEmpty == true;
@@ -441,14 +381,12 @@ class UsuarioCUS {
       case TipoPerfilCUS.organizacion:
         return rfc?.isNotEmpty == true && razonSocial?.isNotEmpty == true;
       case TipoPerfilCUS.usuario:
-        return true; // Usuario genérico no requiere campos específicos
+        return true;
     }
   }
 
-  /// Obtiene una lista de campos faltantes para completar el perfil
   List<String> get camposFaltantes {
     final faltantes = <String>[];
-
     if (nombre.isEmpty) faltantes.add('Nombre');
     if (email.isEmpty) faltantes.add('Correo electrónico');
     if (curp.isEmpty) faltantes.add('CURP');
@@ -468,23 +406,15 @@ class UsuarioCUS {
         if (razonSocial?.isEmpty != false) faltantes.add('Razón Social');
         break;
       case TipoPerfilCUS.usuario:
-        break; // No requiere campos adicionales
+        break;
     }
-
     return faltantes;
   }
 
-  /// Verifica si tiene documentos cargados
-  bool get tieneDocumentos {
-    return documentos?.isNotEmpty == true;
-  }
+  bool get tieneDocumentos => documentos?.isNotEmpty == true;
 
-  /// Obtiene el número de documentos cargados
-  int get numeroDocumentos {
-    return documentos?.length ?? 0;
-  }
+  int get numeroDocumentos => documentos?.length ?? 0;
 
-  // Método toJson para serializar el objeto a JSON
   Map<String, dynamic> toJson() {
     return {
       'tipoPerfil': tipoPerfil.toString().split('.').last,
@@ -514,6 +444,16 @@ class UsuarioCUS {
       'foto': foto,
     };
   }
+}
 
-  // CORRECIÓN: Eliminado el getter `rfc` que devolvía null. Ahora es un campo de la clase.
+///* Escapa espacios/acentos si la URL ya es absoluta; si no, la deja tal cual.
+String _normalizeUrl(String url) {
+  if (url.isEmpty) return url;
+  if (!url.startsWith('http')) return url; //* el backend decide si quiere relativas
+  if (url.contains('%')) return url; //* ya viene escapada
+  try {
+    return Uri.encodeFull(url);
+  } catch (_) {
+    return url;
+  }
 }
