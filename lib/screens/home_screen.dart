@@ -2091,6 +2091,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
+  // Construye los íconos de navegación, usando variantes rellenas cuando están seleccionados
+  List<Widget> _buildNavItems() {
+    const color = Colors.white;
+    return [
+      Icon(_page == 0 ? Icons.home : Icons.home_outlined, size: 24, color: color),
+      Icon(_page == 1 ? Icons.folder : Icons.folder_outlined, size: 24, color: color),
+      Icon(_page == 2 ? Icons.description : Icons.description_outlined, size: 24, color: color),
+      Icon(_page == 3 ? Icons.account_balance : Icons.account_balance_outlined, size: 24, color: color),
+      Icon(_page == 4 ? Icons.person : Icons.person_outline, size: 24, color: color),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2099,13 +2111,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       bottomNavigationBar: CurvedNavigationBar(
         index: _page,
         height: 60.0,
-        items: const [
-          Icon(Icons.home_rounded, size: 24, color: Colors.white),
-          Icon(Icons.folder_open_rounded, size: 24, color: Colors.white),
-          Icon(Icons.description_rounded, size: 24, color: Colors.white),
-          Icon(Icons.account_balance, size: 24, color: Colors.white),
-          Icon(Icons.person_rounded, size: 24, color: Colors.white),
-        ],
+        items: _buildNavItems(),
         color: const Color(0xFF0B3B60),
         buttonBackgroundColor: const Color(0xFF0B3B60),
         backgroundColor: Colors.transparent,
