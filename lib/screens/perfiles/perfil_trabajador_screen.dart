@@ -114,25 +114,6 @@ class _PerfilTrabajadorScreenState extends State<PerfilTrabajadorScreen> {
     return parts.isEmpty ? 'No especificada' : parts.join(', ');
   }
 
-  String _getIdGeneral() {
-    if (usuario == null) return 'Sin ID';
-    // 1) Si idGeneral viene del JSON, úsalo
-    if (usuario!.idGeneral != null && usuario!.idGeneral!.isNotEmpty) {
-      return usuario!.idGeneral!;
-    }
-    // 2) Si no, caemos en las llaves anteriores
-    if (usuario!.nomina != null && usuario!.nomina!.isNotEmpty) {
-      return usuario!.nomina!;
-    }
-    if (usuario!.usuarioId != null && usuario!.usuarioId!.isNotEmpty) {
-      return usuario!.usuarioId!;
-    }
-    if (usuario!.folio != null && usuario!.folio!.isNotEmpty) {
-      return usuario!.folio!;
-    }
-    return 'Sin ID';
-  }
-
   @override
   Widget build(BuildContext context) {
     const bgGray = Color(0xFFF5F7FA);
