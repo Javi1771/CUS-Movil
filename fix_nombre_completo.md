@@ -60,7 +60,7 @@ static String? _buildFullName(Map<String, dynamic> data) {
   ]);
   
   if (nombreCompleto != null && nombreCompleto.isNotEmpty) {
-    debugPrint('[UserDataService] 👤 Nombre completo directo encontrado: $nombreCompleto');
+    debugPrint('[UserDataService] Nombre completo directo encontrado: $nombreCompleto');
     return nombreCompleto;
   }
 
@@ -85,7 +85,7 @@ static String? _buildFullName(Map<String, dynamic> data) {
     }
     
     final nombreConstruido = partes.join(' ');
-    debugPrint('[UserDataService] 👤 Nombre completo construido: $nombreConstruido');
+    debugPrint('[UserDataService] Nombre completo construido: $nombreConstruido');
     return nombreConstruido;
   }
 

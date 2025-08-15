@@ -245,14 +245,14 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Widget _buildLoginForm() {
     return Container(
-      margin: const EdgeInsets.only(top: 300),
-      padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+      margin: const EdgeInsets.only(top: 200),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black12, blurRadius: 24, offset: Offset(0, -8)),
+              color: Colors.black12, blurRadius: 24, offset: Offset(0, -100)),
         ],
       ),
       child: Form(
