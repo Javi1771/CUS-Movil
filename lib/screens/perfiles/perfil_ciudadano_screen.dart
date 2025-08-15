@@ -108,12 +108,11 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
       _animationController.forward();
 
       // DIAGNÓSTICO: Verificar datos del usuario
-      print(
-          '[PerfilCiudadano] 🎂 Fecha de nacimiento: ${user.fechaNacimiento}');
-      print('[PerfilCiudadano] 👤 Nombre: ${user.nombre}');
-      print('[PerfilCiudadano] 👤 Nombre completo: ${user.nombre_completo}');
-      print('[PerfilCiudadano] 🆔 Folio: ${user.folio}');
-      print('[PerfilCiudadano] 🆔 ID Ciudadano: ${user.idCiudadano}');
+      print('[PerfilCiudadano] Fecha de nacimiento: ${user.fechaNacimiento}');
+      print('[PerfilCiudadano] Nombre: ${user.nombre}');
+      print('[PerfilCiudadano] Nombre completo: ${user.nombre_completo}');
+      print('[PerfilCiudadano] Folio: ${user.folio}');
+      print('[PerfilCiudadano] ID Ciudadano: ${user.idCiudadano}');
     } catch (e) {
       setState(() {
         _error = 'Error al obtener datos del ciudadano: ${e.toString()}';
@@ -164,7 +163,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
   String _getNombreCompleto() {
     if (usuario == null) return 'Sin nombre';
 
-    print('[PerfilCiudadano] 🔍 CONSTRUYENDO NOMBRE COMPLETO:');
+    print('[PerfilCiudadano] CONSTRUYENDO NOMBRE COMPLETO:');
     print('[PerfilCiudadano] - nombre: ${usuario!.nombre}');
     print('[PerfilCiudadano] - nombre_completo: ${usuario!.nombre_completo}');
 
@@ -174,7 +173,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
         usuario!.nombre_completo!.trim().length >
             usuario!.nombre.trim().length) {
       print(
-          '[PerfilCiudadano] ✅ Usando nombre_completo: ${usuario!.nombre_completo}');
+          '[PerfilCiudadano] Usando nombre_completo: ${usuario!.nombre_completo}');
       return usuario!.nombre_completo!;
     }
 
@@ -185,17 +184,17 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
       // Si el nombre no contiene espacios, probablemente solo es el primer nombre
       if (!nombreFinal.contains(' ')) {
         print(
-            '[PerfilCiudadano] ⚠️ Nombre parece incompleto (sin apellidos): $nombreFinal');
+            '[PerfilCiudadano] Nombre parece incompleto (sin apellidos): $nombreFinal');
         // Mostrar advertencia de que faltan apellidos
         return '$nombreFinal [Apellidos no disponibles]';
       }
 
       // Si ya contiene espacios, probablemente es completo
-      print('[PerfilCiudadano] ✅ Nombre parece completo: $nombreFinal');
+      print('[PerfilCiudadano] Nombre parece completo: $nombreFinal');
       return nombreFinal;
     }
 
-    print('[PerfilCiudadano] ❌ No hay nombre disponible');
+    print('[PerfilCiudadano] No hay nombre disponible');
     return 'Sin nombre completo';
   }
 
@@ -1038,4 +1037,3 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
     );
   }
 }
-

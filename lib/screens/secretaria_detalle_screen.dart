@@ -430,7 +430,7 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
                   index: index,
                   isLast: index == widget.secretaria.direcciones.length - 1,
                 );
-              }).toList(),
+              }),
             ],
           ),
         ),
