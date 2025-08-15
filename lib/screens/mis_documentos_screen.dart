@@ -91,11 +91,13 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
   }
 
   Future<void> _cargarDocumentosDesdeAPI() async {
-    debugPrint('[MisDocumentosScreen] 📥 Iniciando carga de documentos desde API...');
+    debugPrint(
+        '[MisDocumentosScreen] 📥 Iniciando carga de documentos desde API...');
     setState(() => _isLoading = true);
     try {
       final docs = await UserDataService.getUserDocuments();
-      debugPrint('[MisDocumentosScreen] 📥 Documentos obtenidos de la API: ${docs.length}');
+      debugPrint(
+          '[MisDocumentosScreen] 📥 Documentos obtenidos de la API: ${docs.length}');
 
       //* Limpiar mapa (para no dejar residuos de sesiones previas)
       for (final k in _documentos.keys.toList()) {
@@ -106,15 +108,18 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       int documentosProcesados = 0;
       for (final doc in docs) {
         final nombreApi = (doc.nombreDocumento).toLowerCase();
-        debugPrint('[MisDocumentosScreen] 📥 Procesando documento: ${doc.nombreDocumento}');
-        debugPrint('[MisDocumentosScreen] 📥 URL del documento: ${doc.urlDocumento}');
-        
+        debugPrint(
+            '[MisDocumentosScreen] 📥 Procesando documento: ${doc.nombreDocumento}');
+        debugPrint(
+            '[MisDocumentosScreen] 📥 URL del documento: ${doc.urlDocumento}');
+
         String? key;
-        
+
         // Primero, verificar si tenemos una relación guardada para este documento
         if (_documentoTipoMap.containsKey(doc.nombreDocumento)) {
           key = _documentoTipoMap[doc.nombreDocumento];
-          debugPrint('[MisDocumentosScreen] 📥 🎯 Usando relación guardada: ${doc.nombreDocumento} -> $key');
+          debugPrint(
+              '[MisDocumentosScreen] 📥 🎯 Usando relación guardada: ${doc.nombreDocumento} -> $key');
         } else {
           // Si no, usar el mapeo por nombre como antes
           if (nombreApi.contains('ine')) {
@@ -134,14 +139,16 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
         }
 
         if (key != null && _documentos.containsKey(key)) {
-          debugPrint('[MisDocumentosScreen] 📥 Documento mapeado a categoría: $key');
-          
+          debugPrint(
+              '[MisDocumentosScreen] 📥 Documento mapeado a categoría: $key');
+
           // Validar que la URL no esté vacía
           if (doc.urlDocumento.isEmpty) {
-            debugPrint('[MisDocumentosScreen] ⚠️ Documento sin URL válida, omitiendo: ${doc.nombreDocumento}');
+            debugPrint(
+                '[MisDocumentosScreen] ⚠️ Documento sin URL válida, omitiendo: ${doc.nombreDocumento}');
             continue;
           }
-          
+
           //* Renderiza usando la URL que llegue (Cloudinary u otra)
           _documentos[key] = DocumentoItem(
             nombre: doc.nombreDocumento,
@@ -152,16 +159,20 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
             extension: 'pdf',
           );
           documentosProcesados++;
-          debugPrint('[MisDocumentosScreen] 📥 ✅ Documento procesado correctamente: $key');
+          debugPrint(
+              '[MisDocumentosScreen] 📥 ✅ Documento procesado correctamente: $key');
         } else {
-          debugPrint('[MisDocumentosScreen] 📥 ⚠️ Documento no reconocido o categoría no válida: ${doc.nombreDocumento}');
+          debugPrint(
+              '[MisDocumentosScreen] 📥 ⚠️ Documento no reconocido o categoría no válida: ${doc.nombreDocumento}');
         }
       }
-      
-      debugPrint('[MisDocumentosScreen] 📥 Total documentos procesados: $documentosProcesados');
+
+      debugPrint(
+          '[MisDocumentosScreen] 📥 Total documentos procesados: $documentosProcesados');
       setState(() {});
     } catch (e) {
-      debugPrint('[MisDocumentosScreen] ❌ Error cargando documentos desde API: $e');
+      debugPrint(
+          '[MisDocumentosScreen] ❌ Error cargando documentos desde API: $e');
       // Mostrar un mensaje de error al usuario si es necesario
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -186,15 +197,13 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
 
   Future<void> _seleccionarDocumento(String tipo) async {
     try {
-      if (tipo == 'Acta de Matrimonio' &&
-          _documentos['Acta de Concubinato'] != null) {
+      if (tipo == 'actaMatrimonio' && _documentos['actaConcubinato'] != null) {
         _mostrarAlertaError(
             "Ya se ha subido un acta de concubinato. No puedes subir ambas.");
         return;
       }
 
-      if (tipo == 'Acta de Concubinato' &&
-          _documentos['Acta de Matrimonio'] != null) {
+      if (tipo == 'actaConcubinato' && _documentos['actaMatrimonio'] != null) {
         _mostrarAlertaError(
             "Ya se ha subido un acta de matrimonio. No puedes subir ambas.");
         return;
@@ -221,17 +230,21 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           throw Exception('Archivo demasiado grande (>10MB)');
         }
 
-        debugPrint('[MisDocumentosScreen] 📤 Iniciando subida de documento: $tipo');
-        debugPrint('[MisDocumentosScreen] 📤 Archivo: ${file.name} (${file.size} bytes)');
+        debugPrint(
+            '[MisDocumentosScreen] 📤 Iniciando subida de documento: $tipo');
+        debugPrint(
+            '[MisDocumentosScreen] 📤 Archivo: ${file.name} (${file.size} bytes)');
 
         //* Sube a la API (usa la URL pública de SJR configurada en UserDataService)
-        final uploadRes = await UserDataService.uploadDocument(tipo, file.path!);
-        
+        final uploadRes =
+            await UserDataService.uploadDocument(tipo, file.path!);
+
         debugPrint('[MisDocumentosScreen] 📤 Respuesta de subida: $uploadRes');
-        
+
         final success = uploadRes['success'] == true;
         if (!success) {
-          throw Exception('Error en la subida: ${uploadRes['message'] ?? 'Error desconocido'}');
+          throw Exception(
+              'Error en la subida: ${uploadRes['message'] ?? 'Error desconocido'}');
         }
 
         final url = (uploadRes['url'] as String?) ?? '';
@@ -257,20 +270,23 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           // Guardar la relación nombre -> tipo para futuras cargas
           _documentoTipoMap[nombreSrv] = tipo;
         });
-        
+
         debugPrint('[MisDocumentosScreen] 📤 Documento guardado localmente');
-        debugPrint('[MisDocumentosScreen] 📤 Relación guardada: $nombreSrv -> $tipo');
-        
+        debugPrint(
+            '[MisDocumentosScreen] 📤 Relación guardada: $nombreSrv -> $tipo');
+
         if (progreso == 1.0) _confettiController.play();
 
         _mostrarAlertaExito(tipo, documento);
 
         //! Refrescar lista desde API para asegurar persistencia y estados
-        debugPrint('[MisDocumentosScreen] 📤 Refrescando documentos desde API...');
+        debugPrint(
+            '[MisDocumentosScreen] 📤 Refrescando documentos desde API...');
         await _cargarDocumentosDesdeAPI();
         debugPrint('[MisDocumentosScreen] 📤 Proceso de subida completado');
       } else {
-        debugPrint('[MisDocumentosScreen] ❌ Usuario canceló la selección de archivo');
+        debugPrint(
+            '[MisDocumentosScreen] ❌ Usuario canceló la selección de archivo');
       }
     } catch (e) {
       debugPrint('[MisDocumentosScreen] ❌ Error en _seleccionarDocumento: $e');
@@ -544,17 +560,23 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     });
   }
 
-  //* Dado un nombre de archivo, intenta inferir su tipo en nuestra lista
   String _tipoDesdeNombre(String nombre) {
     final n = nombre.toLowerCase();
-    if (n.contains('ine')) return 'INE';
-    if (n.contains('nacimiento')) return 'Acta de Nacimiento';
-    if (n.contains('curp')) return 'CURP';
+
+    if (n.contains('ine') || n.contains('inecomite')) return 'ine';
+    if (n.contains('nacimiento')) return 'actaNacimiento';
+    if (n.contains('curp')) return 'curp';
     if (n.contains('domicilio') || n.contains('comprobante')) {
-      return 'Comprobante Domicilio';
+      if (n.contains('comite')) return 'comprobanteDomicilioComite';
+      return 'comprobanteDomicilio';
     }
-    if (n.contains('matrimonio')) return 'Acta de Matrimonio';
-    if (n.contains('concubinato')) return 'Acta de Concubinato';
+    if (n.contains('matrimonio')) return 'actaMatrimonio';
+    if (n.contains('concubinato')) return 'actaConcubinato';
+    if (n.contains('cv')) return 'cv';
+    if (n.contains('carta_motivos')) return 'carta_motivos';
+    if (n.contains('carta_protestapp')) return 'carta_protestapp';
+    if (n.contains('carta_servpub')) return 'carta_servpub';
+
     //! fallback: el primero requerido
     return _documentosRequeridos.first;
   }
@@ -1384,52 +1406,52 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     final prog = totalDocs == 0 ? 0.0 : docsSubidos / totalDocs;
 
     return Scaffold(
-        backgroundColor: const Color(0xFFF5F7FA),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildBannerHeader(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 30),
-                    Column(
-                      children:
-                          _documentosRequeridos.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final doc = entry.value;
-                        final item = _documentos[doc];
-                        return _buildDocumentCard(doc, item, index);
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 50),
-                  ],
-                ),
+      backgroundColor: const Color(0xFFF5F7FA),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildBannerHeader(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  const SizedBox(height: 30),
+                  Column(
+                    children:
+                        _documentosRequeridos.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final doc = entry.value;
+                      final item = _documentos[doc];
+                      return _buildDocumentCard(doc, item, index);
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 50),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-        floatingActionButton: prog >= 1.0
-            ? Align(
-                alignment: Alignment.topCenter,
-                child: ConfettiWidget(
-                  confettiController: _confettiController,
-                  blastDirection: 3.14 / 2,
-                  blastDirectionality: BlastDirectionality.explosive,
-                  shouldLoop: false,
-                  colors: const [
-                    govBlue,
-                    govBlueLight,
-                    successColor,
-                    Color(0xFF10B981),
-                    Color(0xFF3B82F6),
-                  ],
-                  numberOfParticles: 40,
-                  gravity: 0.3,
-                ),
-              )
-            : null,
+      ),
+      floatingActionButton: prog >= 1.0
+          ? Align(
+              alignment: Alignment.topCenter,
+              child: ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirection: 3.14 / 2,
+                blastDirectionality: BlastDirectionality.explosive,
+                shouldLoop: false,
+                colors: const [
+                  govBlue,
+                  govBlueLight,
+                  successColor,
+                  Color(0xFF10B981),
+                  Color(0xFF3B82F6),
+                ],
+                numberOfParticles: 40,
+                gravity: 0.3,
+              ),
+            )
+          : null,
     );
   }
 }
