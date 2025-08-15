@@ -2095,11 +2095,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<Widget> _buildNavItems() {
     const color = Colors.white;
     return [
-      Icon(_page == 0 ? Icons.home_rounded : Icons.home_outlined, size: 24, color: color),
-      Icon(_page == 1 ? Icons.folder_rounded : Icons.folder_outlined, size: 24, color: color),
-      Icon(_page == 2 ? Icons.description_rounded : Icons.description_outlined, size: 24, color: color),
-      Icon(_page == 3 ? Icons.account_balance_rounded : Icons.account_balance_outlined, size: 24, color: color),
-      Icon(_page == 4 ? Icons.person_rounded : Icons.person_outline, size: 24, color: color),
+      Icon(_page == 0 ? Icons.home : Icons.home_outlined, size: 24, color: color),
+      Icon(_page == 1 ? Icons.folder : Icons.folder_outlined, size: 24, color: color),
+      Icon(_page == 2 ? Icons.description : Icons.description_outlined, size: 24, color: color),
+      Icon(_page == 3 ? Icons.account_balance : Icons.account_balance_outlined, size: 24, color: color),
+      Icon(_page == 4 ? Icons.person : Icons.person_outline, size: 24, color: color),
     ];
   }
 
