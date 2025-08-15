@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, curly_braces_in_flow_control_structures
 
 import 'dart:io';
 import 'dart:math';
@@ -7,6 +7,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:confetti/confetti.dart';
 import '../services/user_data_service.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 class MisDocumentosScreen extends StatefulWidget {
   const MisDocumentosScreen({super.key});
@@ -60,7 +62,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     'Acta de Concubinato': null,
   };
 
-  // Mapa para recordar qué tipo de documento se subió con cada nombre
+  //* (opcional) recordatorio de mapeos nombre->tipo si el backend devuelve otros nombres
   final Map<String, String> _documentoTipoMap = {};
 
   final Map<String, IconData> _iconosDocumentos = {
@@ -72,8 +74,10 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     'Acta de Concubinato': Icons.people,
   };
 
+  //* Loader global
   bool _isLoading = false;
-  bool _vistaPreviaAbierta = false;
+
+  //* Confetti
   late ConfettiController _confettiController;
 
   int get documentosSubidos =>
@@ -90,206 +94,223 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     _cargarDocumentosDesdeAPI();
   }
 
-  Future<void> _cargarDocumentosDesdeAPI() async {
-    debugPrint(
-        '[MisDocumentosScreen] 📥 Iniciando carga de documentos desde API...');
-    setState(() => _isLoading = true);
-    try {
-      final docs = await UserDataService.getUserDocuments();
-      debugPrint(
-          '[MisDocumentosScreen] 📥 Documentos obtenidos de la API: ${docs.length}');
-
-      //* Limpiar mapa (para no dejar residuos de sesiones previas)
-      for (final k in _documentos.keys.toList()) {
-        _documentos[k] = null;
-      }
-      debugPrint('[MisDocumentosScreen] 📥 Mapa de documentos limpiado');
-
-      int documentosProcesados = 0;
-      for (final doc in docs) {
-        final nombreApi = (doc.nombreDocumento).toLowerCase();
-        debugPrint(
-            '[MisDocumentosScreen] 📥 Procesando documento: ${doc.nombreDocumento}');
-        debugPrint(
-            '[MisDocumentosScreen] 📥 URL del documento: ${doc.urlDocumento}');
-
-        String? key;
-
-        // Primero, verificar si tenemos una relación guardada para este documento
-        if (_documentoTipoMap.containsKey(doc.nombreDocumento)) {
-          key = _documentoTipoMap[doc.nombreDocumento];
-          debugPrint(
-              '[MisDocumentosScreen] 📥 🎯 Usando relación guardada: ${doc.nombreDocumento} -> $key');
-        } else {
-          // Si no, usar el mapeo por nombre como antes
-          if (nombreApi.contains('ine')) {
-            key = 'INE';
-          } else if (nombreApi.contains('nacimiento')) {
-            key = 'Acta de Nacimiento';
-          } else if (nombreApi.contains('curp')) {
-            key = 'CURP';
-          } else if (nombreApi.contains('domicilio') ||
-              nombreApi.contains('comprobante')) {
-            key = 'Comprobante Domicilio';
-          } else if (nombreApi.contains('matrimonio')) {
-            key = 'Acta de Matrimonio';
-          } else if (nombreApi.contains('concubinato')) {
-            key = 'Acta de Concubinato';
-          }
-        }
-
-        if (key != null && _documentos.containsKey(key)) {
-          debugPrint(
-              '[MisDocumentosScreen] 📥 Documento mapeado a categoría: $key');
-
-          // Validar que la URL no esté vacía
-          if (doc.urlDocumento.isEmpty) {
-            debugPrint(
-                '[MisDocumentosScreen] ⚠️ Documento sin URL válida, omitiendo: ${doc.nombreDocumento}');
-            continue;
-          }
-
-          //* Renderiza usando la URL que llegue (Cloudinary u otra)
-          _documentos[key] = DocumentoItem(
-            nombre: doc.nombreDocumento,
-            ruta: doc.urlDocumento, //* <<--- URL remota para renderizar
-            fechaSubida:
-                DateTime.tryParse(doc.uploadDate ?? '') ?? DateTime.now(),
-            tamano: 0, //! Desconocido desde API
-            extension: 'pdf',
-          );
-          documentosProcesados++;
-          debugPrint(
-              '[MisDocumentosScreen] 📥 ✅ Documento procesado correctamente: $key');
-        } else {
-          debugPrint(
-              '[MisDocumentosScreen] 📥 ⚠️ Documento no reconocido o categoría no válida: ${doc.nombreDocumento}');
-        }
-      }
-
-      debugPrint(
-          '[MisDocumentosScreen] 📥 Total documentos procesados: $documentosProcesados');
-      setState(() {});
-    } catch (e) {
-      debugPrint(
-          '[MisDocumentosScreen] ❌ Error cargando documentos desde API: $e');
-      // Mostrar un mensaje de error al usuario si es necesario
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al cargar documentos: ${e.toString()}'),
-            backgroundColor: errorColor,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-      debugPrint('[MisDocumentosScreen] 📥 Carga de documentos finalizada');
-    }
-  }
-
   @override
   void dispose() {
     _confettiController.dispose();
     super.dispose();
   }
 
-  Future<void> _seleccionarDocumento(String tipo) async {
+  //? ---- Canonicalización de tipos y nombres ----
+
+  String _canonicalTypeId(String tipo) {
+    final t = tipo.toLowerCase().trim();
+    if (t.contains('ine')) return 'ine';
+    if (t.contains('curp')) return 'curp';
+    if (t.contains('nacimiento')) return 'actaNacimiento';
+    if (t.contains('domicilio') || t.contains('comprobante')) {
+      return 'comprobanteDomicilio';
+    }
+    if (t.contains('matrimonio')) return 'actaMatrimonio';
+    if (t.contains('concubinato')) return 'actaConcubinato';
+    return '';
+  }
+
+  String? _canonicalFilenameForTipo(String tipo) {
+    switch (_canonicalTypeId(tipo)) {
+      case 'ine':
+        return 'ine.pdf';
+      case 'curp':
+        return 'curp.pdf';
+      case 'actaNacimiento':
+        return 'actaNacimiento.pdf';
+      case 'comprobanteDomicilio':
+        return 'comprobanteDomicilio.pdf';
+      case 'actaMatrimonio':
+        return 'actaMatrimonio.pdf';
+      case 'actaConcubinato':
+        return 'actaConcubinato.pdf';
+      default:
+        return null;
+    }
+  }
+
+  //? ---- Utilidades UI ----
+
+  void _mostrarInfo(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  //? ---- Carga inicial desde API ----
+
+  Future<void> _cargarDocumentosDesdeAPI() async {
+    debugPrint('[MisDocumentos] Cargando documentos...');
+    if (mounted) setState(() => _isLoading = true);
     try {
-      if (tipo == 'actaMatrimonio' && _documentos['actaConcubinato'] != null) {
-        _mostrarAlertaError(
-            "Ya se ha subido un acta de concubinato. No puedes subir ambas.");
+      final docs = await UserDataService.getUserDocuments();
+
+      //* Limpia estado previo
+      for (final k in _documentos.keys.toList()) {
+        _documentos[k] = null;
+      }
+
+      for (final doc in docs) {
+        final nombreApi = (doc.nombreDocumento).toLowerCase();
+        String? key;
+
+        if (_documentoTipoMap.containsKey(doc.nombreDocumento)) {
+          key = _documentoTipoMap[doc.nombreDocumento];
+        } else {
+          if (nombreApi.contains('ine')) key = 'INE';
+          else if (nombreApi.contains('nacimiento')) key = 'Acta de Nacimiento';
+          else if (nombreApi.contains('curp')) key = 'CURP';
+          else if (nombreApi.contains('domicilio') || nombreApi.contains('comprobante')) {
+            key = 'Comprobante Domicilio';
+          } else if (nombreApi.contains('matrimonio')) key = 'Acta de Matrimonio';
+          else if (nombreApi.contains('concubinato')) key = 'Acta de Concubinato';
+        }
+
+        if (key != null && _documentos.containsKey(key)) {
+          if ((doc.urlDocumento).isEmpty) continue;
+
+          _documentos[key] = DocumentoItem(
+            nombre: doc.nombreDocumento,
+            ruta: doc.urlDocumento, //* URL remota
+            fechaSubida:
+                DateTime.tryParse(doc.uploadDate ?? '') ?? DateTime.now(),
+            tamano: 0, //! desconocido
+            extension: 'pdf',
+          );
+        }
+      }
+
+      if (mounted) setState(() {}); //* refresca UI
+    } catch (e) {
+      debugPrint('[MisDocumentos] Error al cargar: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar documentos: $e'),
+            backgroundColor: errorColor,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  //? ---- Subida (solo si no existe) con nombre canónico ----
+
+  Future<void> _seleccionarDocumento(String tipoVisible) async {
+    try {
+      //! Bloquea si ya hay uno de ese tipo
+      if (_documentos[tipoVisible] != null) {
+        _mostrarInfo('Acción no permitida',
+            'Ya existe un documento para "$tipoVisible". Solo puedes visualizarlo.');
         return;
       }
 
-      if (tipo == 'actaConcubinato' && _documentos['actaMatrimonio'] != null) {
-        _mostrarAlertaError(
-            "Ya se ha subido un acta de matrimonio. No puedes subir ambas.");
+      //* Exclusión Matrimonio/Concubinato
+      if (tipoVisible == 'Acta de Matrimonio' &&
+          _documentos['Acta de Concubinato'] != null) {
+        _mostrarInfo('Acción no permitida',
+            'Ya se subió Acta de Concubinato. No puedes subir ambas.');
         return;
       }
-
-      setState(() => _isLoading = true);
+      if (tipoVisible == 'Acta de Concubinato' &&
+          _documentos['Acta de Matrimonio'] != null) {
+        _mostrarInfo('Acción no permitida',
+            'Ya se subió Acta de Matrimonio. No puedes subir ambas.');
+        return;
+      }
 
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
         allowMultiple: false,
       );
-
       if (!mounted) return;
 
-      if (result != null && result.files.single.path != null) {
-        final file = result.files.first;
-        final selectedFile = File(file.path!);
-
-        if (!await selectedFile.exists()) {
-          throw Exception('El archivo no existe');
-        }
-        if (file.size > 10 * 1024 * 1024) {
-          throw Exception('Archivo demasiado grande (>10MB)');
-        }
-
-        debugPrint(
-            '[MisDocumentosScreen] 📤 Iniciando subida de documento: $tipo');
-        debugPrint(
-            '[MisDocumentosScreen] 📤 Archivo: ${file.name} (${file.size} bytes)');
-
-        //* Sube a la API (usa la URL pública de SJR configurada en UserDataService)
-        final uploadRes =
-            await UserDataService.uploadDocument(tipo, file.path!);
-
-        debugPrint('[MisDocumentosScreen] 📤 Respuesta de subida: $uploadRes');
-
-        final success = uploadRes['success'] == true;
-        if (!success) {
-          throw Exception(
-              'Error en la subida: ${uploadRes['message'] ?? 'Error desconocido'}');
-        }
-
-        final url = (uploadRes['url'] as String?) ?? '';
-        final nombreSrv = (uploadRes['name'] as String?) ?? file.name;
-
-        debugPrint('[MisDocumentosScreen] 📤 URL obtenida: $url');
-        debugPrint('[MisDocumentosScreen] 📤 Nombre del servidor: $nombreSrv');
-
-        final documento = DocumentoItem(
-          nombre: nombreSrv,
-          ruta: url.isNotEmpty
-              ? url
-              : file.path!, //* fallback local si no hay URL
-          fechaSubida: DateTime.now(),
-          tamano: file.size,
-          extension: (file.extension?.isNotEmpty ?? false)
-              ? file.extension!.toUpperCase()
-              : "PDF",
-        );
-
-        setState(() {
-          _documentos[tipo] = documento;
-          // Guardar la relación nombre -> tipo para futuras cargas
-          _documentoTipoMap[nombreSrv] = tipo;
-        });
-
-        debugPrint('[MisDocumentosScreen] 📤 Documento guardado localmente');
-        debugPrint(
-            '[MisDocumentosScreen] 📤 Relación guardada: $nombreSrv -> $tipo');
-
-        if (progreso == 1.0) _confettiController.play();
-
-        _mostrarAlertaExito(tipo, documento);
-
-        //! Refrescar lista desde API para asegurar persistencia y estados
-        debugPrint(
-            '[MisDocumentosScreen] 📤 Refrescando documentos desde API...');
-        await _cargarDocumentosDesdeAPI();
-        debugPrint('[MisDocumentosScreen] 📤 Proceso de subida completado');
-      } else {
-        debugPrint(
-            '[MisDocumentosScreen] ❌ Usuario canceló la selección de archivo');
+      if (result == null || result.files.single.path == null) {
+        debugPrint('[MisDocumentos] Selección cancelada');
+        return;
       }
+
+      final picked = result.files.first;
+      final pickedFile = File(picked.path!);
+
+      if (!await pickedFile.exists()) {
+        throw Exception('El archivo no existe');
+      }
+      if (picked.size > 10 * 1024 * 1024) {
+        throw Exception('Archivo demasiado grande (>10MB)');
+      }
+
+      final desiredName = _canonicalFilenameForTipo(tipoVisible);
+      if (desiredName == null) {
+        _mostrarInfo('Tipo no soportado',
+            'No hay nombre canónico para "$tipoVisible".');
+        return;
+      }
+
+      //* Loader ON
+      if (mounted) setState(() => _isLoading = true);
+
+      //* Copia temporal con nombre canónico (sobrescribe si existe)
+      final tmpDir = await getTemporaryDirectory();
+      final tempPath = p.join(tmpDir.path, desiredName);
+      final tempFile = File(tempPath);
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
+      final copied = await pickedFile.copy(tempPath);
+
+      debugPrint('[MisDocumentos] Subiendo "$desiredName" desde ${copied.path}');
+
+      //* Sube al backend
+      final uploadRes =
+          await UserDataService.uploadDocument(tipoVisible, copied.path);
+
+      final success = uploadRes['success'] == true;
+      if (!success) {
+        throw Exception(
+            uploadRes['message'] ?? 'Error desconocido al subir el documento');
+      }
+
+      final url = (uploadRes['url'] as String?) ?? '';
+      final documento = DocumentoItem(
+        nombre: desiredName,
+        ruta: url.isNotEmpty ? url : copied.path, //* fallback local
+        fechaSubida: DateTime.now(),
+        tamano: picked.size,
+        extension: 'PDF',
+      );
+
+      //* Refleja inmediatamente en UI
+      setState(() {
+        _documentos[tipoVisible] = documento;
+        _documentoTipoMap[desiredName] = _canonicalTypeId(tipoVisible);
+      });
+
+      if (progreso == 1.0) _confettiController.play();
+      _mostrarAlertaExito(tipoVisible, documento);
+
+      //* Refresca desde API (por si el backend modifica nombre/URL)
+      await _cargarDocumentosDesdeAPI();
     } catch (e) {
-      debugPrint('[MisDocumentosScreen] ❌ Error en _seleccionarDocumento: $e');
+      debugPrint('[MisDocumentos] Error al subir: $e');
       if (!mounted) return;
       _mostrarAlertaError(e.toString());
     } finally {
@@ -297,22 +318,9 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     }
   }
 
-  Future<void> _editarDocumento(String tipo) async {
-    //* Reaprovecha el flujo de selección para reemplazarlo
-    await _seleccionarDocumento(tipo);
-  }
-
-  void _eliminarDocumento(String tipo) async {
-    //* Nota: Aquí eliminamos SOLO en la app.
-    //* Si tienes un endpoint para borrar en el servidor, podrías llamarlo aquí.
-    setState(() => _documentos[tipo] = null);
-    _mostrarAlertaEliminacion(tipo);
-  }
+  //? ---- Vista previa en diálogo (solo lectura) ----
 
   void _mostrarVistaPreviaDialog(DocumentoItem documento) {
-    if (_vistaPreviaAbierta) return;
-    _vistaPreviaAbierta = true;
-
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -339,7 +347,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              //* Header minimalista
+              //* Header
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -400,11 +408,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(
-                        Icons.close,
-                        size: 20,
-                        color: textSecondary,
-                      ),
+                      icon: const Icon(Icons.close, size: 20, color: textSecondary),
                       style: IconButton.styleFrom(
                         backgroundColor: Colors.grey.withOpacity(0.1),
                         padding: const EdgeInsets.all(8),
@@ -414,16 +418,13 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                 ),
               ),
 
-              //* Contenido del PDF (si ruta es URL la renderiza por red)
+              //* PDF
               Flexible(
                 child: Container(
                   margin: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: const Color(0xFFE5E7EB),
-                      width: 1,
-                    ),
+                    border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.02),
@@ -460,18 +461,13 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                             top: 8,
                             right: 8,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: Colors.black.withOpacity(0.7),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                documento.ruta.startsWith('http')
-                                    ? 'Desde URL'
-                                    : 'Local',
+                                documento.ruta.startsWith('http') ? 'Desde URL' : 'Local',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 11,
@@ -486,42 +482,26 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   ),
                 ),
               ),
-              //* Información del documento
+
+              //* Info y botón cerrar
               Container(
                 margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: const Color(0xFFE5E7EB),
-                    width: 1,
-                  ),
+                  border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
                 ),
                 child: Row(
                   children: [
-                    _buildDocumentInfo(
-                      'Formato',
-                      documento.extension.toUpperCase(),
-                      Icons.insert_drive_file,
-                    ),
+                    _buildDocumentInfo('Formato', documento.extension.toUpperCase(), Icons.insert_drive_file),
                     const SizedBox(width: 20),
-                    _buildDocumentInfo(
-                      'Tamaño',
-                      _formatFileSize(documento.tamano),
-                      Icons.storage,
-                    ),
+                    _buildDocumentInfo('Tamaño', _formatFileSize(documento.tamano), Icons.storage),
                     const SizedBox(width: 20),
-                    _buildDocumentInfo(
-                      'Subido',
-                      _formatDate(documento.fechaSubida),
-                      Icons.schedule,
-                    ),
+                    _buildDocumentInfo('Subido', _formatDate(documento.fechaSubida), Icons.schedule),
                   ],
                 ),
               ),
-
-              //* Acciones rápidas en la vista previa
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
                 child: Row(
@@ -534,19 +514,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                         isPrimary: false,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildMinimalButton(
-                        onPressed: () async {
-                          Navigator.of(context).pop();
-                          await _editarDocumento(
-                              _tipoDesdeNombre(documento.nombre));
-                        },
-                        icon: Icons.edit_outlined,
-                        label: 'Reemplazar',
-                        isPrimary: true,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -555,115 +522,10 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           ),
         ),
       ),
-    ).then((_) {
-      _vistaPreviaAbierta = false;
-    });
-  }
-
-  String _tipoDesdeNombre(String nombre) {
-    final n = nombre.toLowerCase();
-
-    if (n.contains('ine') || n.contains('inecomite')) return 'ine';
-    if (n.contains('nacimiento')) return 'actaNacimiento';
-    if (n.contains('curp')) return 'curp';
-    if (n.contains('domicilio') || n.contains('comprobante')) {
-      if (n.contains('comite')) return 'comprobanteDomicilioComite';
-      return 'comprobanteDomicilio';
-    }
-    if (n.contains('matrimonio')) return 'actaMatrimonio';
-    if (n.contains('concubinato')) return 'actaConcubinato';
-    if (n.contains('cv')) return 'cv';
-    if (n.contains('carta_motivos')) return 'carta_motivos';
-    if (n.contains('carta_protestapp')) return 'carta_protestapp';
-    if (n.contains('carta_servpub')) return 'carta_servpub';
-
-    //! fallback: el primero requerido
-    return _documentosRequeridos.first;
-  }
-
-  //* Hoja inferior con opciones Ver / Editar / Eliminar
-  void _mostrarOpcionesDocumento(String tipo, DocumentoItem item) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.black12,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ListTile(
-                  leading:
-                      const Icon(Icons.visibility_outlined, color: govBlue),
-                  title: const Text('Ver documento'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _mostrarVistaPreviaDialog(item);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.edit_outlined, color: govBlue),
-                  title: const Text('Reemplazar (editar)'),
-                  onTap: () async {
-                    Navigator.of(context).pop();
-                    await _editarDocumento(tipo);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.delete_outline_rounded,
-                      color: errorColor),
-                  title: const Text('Eliminar'),
-                  onTap: () async {
-                    Navigator.of(context).pop();
-                    final ok = await _confirmar(
-                      title: 'Eliminar documento',
-                      message:
-                          '¿Seguro que deseas eliminar “${item.nombre}” de $tipo en esta app?',
-                    );
-                    if (ok == true) {
-                      _eliminarDocumento(tipo);
-                    }
-                  },
-                ),
-                const SizedBox(height: 10),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
-  Future<bool?> _confirmar({required String title, required String message}) {
-    return showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar')),
-          ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Eliminar')),
-        ],
-      ),
-    );
-  }
+  //? ---- Helpers UI ----
 
   Widget _buildDocumentInfo(String label, String value, IconData icon) {
     return Expanded(
@@ -673,20 +535,12 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 10, color: textSecondary, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 2),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF1F2937),
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF1F2937), fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
           ),
         ],
@@ -705,12 +559,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       decoration: BoxDecoration(
         color: isPrimary ? govBlue : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
-        border: isPrimary
-            ? null
-            : Border.all(
-                color: const Color(0xFFE5E7EB),
-                width: 1,
-              ),
+        border: isPrimary ? null : Border.all(color: const Color(0xFFE5E7EB), width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -722,11 +571,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  icon,
-                  color: isPrimary ? Colors.white : textSecondary,
-                  size: 16,
-                ),
+                Icon(icon, color: isPrimary ? Colors.white : textSecondary, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   label,
@@ -773,8 +618,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       builder: (BuildContext context) {
         return Center(
           child: Dialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             backgroundColor: Colors.white,
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -786,31 +630,19 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     height: 60,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [successColor, Color(0xFF10B981)],
-                      ),
+                      gradient: LinearGradient(colors: [successColor, Color(0xFF10B981)]),
                     ),
-                    child: const Icon(Icons.check_rounded,
-                        color: Colors.white, size: 30),
+                    child: const Icon(Icons.check_rounded, color: Colors.white, size: 30),
                   ),
                   const SizedBox(height: 16),
                   const Text(
                     '¡Documento Subido!',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: textPrimary,
-                      letterSpacing: -0.3,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: textPrimary, letterSpacing: -0.3),
                   ),
                   const SizedBox(height: 6),
                   const Text(
                     'El documento se ha guardado correctamente.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: textSecondary,
-                      height: 1.4,
-                    ),
+                    style: TextStyle(fontSize: 14, color: textSecondary, height: 1.4),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -833,8 +665,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       builder: (BuildContext context) {
         return Center(
           child: Dialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             backgroundColor: Colors.white,
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -846,31 +677,19 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     height: 60,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [errorColor, Color(0xFFEF4444)],
-                      ),
+                      gradient: LinearGradient(colors: [errorColor, Color(0xFFEF4444)]),
                     ),
-                    child: const Icon(Icons.error_outline_rounded,
-                        color: Colors.white, size: 30),
+                    child: const Icon(Icons.error_outline_rounded, color: Colors.white, size: 30),
                   ),
                   const SizedBox(height: 16),
                   const Text(
                     'Error al subir',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: textPrimary,
-                      letterSpacing: -0.3,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: textPrimary, letterSpacing: -0.3),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     _obtenerMensajeError(error),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: textSecondary,
-                      height: 1.4,
-                    ),
+                    style: const TextStyle(fontSize: 14, color: textSecondary, height: 1.4),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -886,77 +705,19 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     });
   }
 
-  void _mostrarAlertaEliminacion(String tipo) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Center(
-          child: Dialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            backgroundColor: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [textSecondary, Color(0xFF9CA3AF)],
-                      ),
-                    ),
-                    child: const Icon(Icons.delete_outline_rounded,
-                        color: Colors.white, size: 30),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Documento eliminado',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: textPrimary,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Puedes volver a cargarlo cuando sea necesario.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: textSecondary,
-                      height: 1.4,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-
-    Future.delayed(const Duration(seconds: 2), () {
-      if (Navigator.canPop(context)) Navigator.of(context).pop();
-    });
-  }
-
   String _obtenerMensajeError(String error) {
     if (error.contains('demasiado grande')) {
       return 'El archivo es demasiado grande. Debe ser menor a 10MB.';
     } else if (error.contains('no existe')) {
       return 'No se pudo acceder al archivo seleccionado.';
-    } else if (error.contains('PDF')) {
+    } else if (error.toLowerCase().contains('pdf')) {
       return 'Solo se permiten archivos en formato PDF.';
     } else {
       return 'Ocurrió un error inesperado. Intenta nuevamente.';
     }
   }
+
+  //? ---- Tarjeta por documento ----
 
   Widget _buildDocumentCard(String tipo, DocumentoItem? item, int index) {
     bool estaBloquedo = false;
@@ -1002,9 +763,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           color: Colors.transparent,
           child: InkWell(
             onTap: item != null ? () => _mostrarVistaPreviaDialog(item) : null,
-            onLongPress: item != null
-                ? () => _mostrarOpcionesDocumento(tipo, item)
-                : null,
+            onLongPress: null, //! sin acciones de contexto
             borderRadius: BorderRadius.circular(16),
             splashColor: govBlue.withOpacity(0.05),
             highlightColor: govBlue.withOpacity(0.02),
@@ -1037,7 +796,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                 children: [
                   Row(
                     children: [
-                      //* Icono del documento
+                      //* Icono
                       SizedBox(
                         width: 44,
                         height: 44,
@@ -1047,10 +806,9 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                           size: 32,
                         ),
                       ),
-
                       const SizedBox(width: 12),
 
-                      //* Información del documento
+                      //* Info
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1069,10 +827,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-
                             const SizedBox(height: 6),
-
-                            //* Estado
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -1110,7 +865,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                                 ],
                               ),
                             ),
-
                             if (item != null) ...[
                               const SizedBox(height: 6),
                               Text(
@@ -1133,13 +887,13 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                              ]
+                              ],
                             ],
                           ],
                         ),
                       ),
 
-                      //* Botones de acción
+                      //* Acción
                       if (item == null && !estaBloquedo)
                         _buildActionButton(
                           icon: Icons.add_rounded,
@@ -1147,36 +901,15 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                           onPressed: () => _seleccionarDocumento(tipo),
                         )
                       else if (item != null)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _buildActionButton(
-                              icon: Icons.more_horiz_rounded,
-                              color: govBlue,
-                              onPressed: () =>
-                                  _mostrarOpcionesDocumento(tipo, item),
-                              size: 18,
-                            ),
-                            const SizedBox(width: 6),
-                            _buildActionButton(
-                              icon: Icons.refresh_rounded,
-                              color: govBlueLight,
-                              onPressed: () => _editarDocumento(tipo),
-                              size: 18,
-                            ),
-                            const SizedBox(width: 6),
-                            _buildActionButton(
-                              icon: Icons.delete_outline_rounded,
-                              color: errorColor,
-                              onPressed: () => _eliminarDocumento(tipo),
-                              size: 18,
-                            ),
-                          ],
+                        _buildActionButton(
+                          icon: Icons.visibility_outlined,
+                          color: govBlue,
+                          onPressed: () => _mostrarVistaPreviaDialog(item),
+                          size: 18,
                         ),
                     ],
                   ),
 
-                  //* Información adicional
                   if (item != null) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -1191,11 +924,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                       ),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.visibility_outlined,
-                            color: successColor,
-                            size: 14,
-                          ),
+                          const Icon(Icons.visibility_outlined, color: successColor, size: 14),
                           const SizedBox(width: 6),
                           const Expanded(
                             child: Text(
@@ -1207,17 +936,13 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                               ),
                             ),
                           ),
-                          Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            color: successColor.withOpacity(0.7),
-                            size: 10,
-                          ),
+                          Icon(Icons.arrow_forward_ios_rounded,
+                              color: successColor.withOpacity(0.7), size: 10),
                         ],
                       ),
                     ),
                   ],
 
-                  //* Mensaje de bloqueo
                   if (estaBloquedo && item == null) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -1233,11 +958,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons.info_outline_rounded,
-                            color: errorColor,
-                            size: 14,
-                          ),
+                          const Icon(Icons.info_outline_rounded,
+                              color: errorColor, size: 14),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -1275,10 +997,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.2), width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -1288,15 +1007,14 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           borderRadius: BorderRadius.circular(10),
           splashColor: color.withOpacity(0.2),
           highlightColor: color.withOpacity(0.1),
-          child: Center(
-            child: Icon(icon, color: color, size: size),
-          ),
+          child: Center(child: Icon(icon, color: color, size: size)),
         ),
       ),
     );
   }
 
-  //* Banner header widget - Sin círculo de progreso
+  //? ---- Header ----
+
   Widget _buildBannerHeader() {
     return Container(
       width: double.infinity,
@@ -1312,7 +1030,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
         padding: const EdgeInsets.fromLTRB(20, 50, 20, 40),
         child: Column(
           children: [
-            //* Title
             const Text(
               "Mis Documentos",
               style: TextStyle(
@@ -1324,8 +1041,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-
-            //* Subtitle
             const Text(
               "Gestiona tus documentos de forma segura",
               style: TextStyle(
@@ -1336,19 +1051,13 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
               ),
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 20),
-
-            //* Estadísticas de documentos
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(25),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1,
-                ),
+                border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
               ),
               child: Text(
                 "$documentosSubidos de $totalDocumentos documentos",
@@ -1365,74 +1074,58 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
     );
   }
 
+  //? ---- Build ----
+
   @override
   Widget build(BuildContext context) {
-    //* Cálculo dinámico de documentos subidos
-    int calcularDocumentosSubidos(Map<String, DocumentoItem?> docs) {
-      int count = 0;
-      bool matrimonioContado = false;
-
-      docs.forEach((key, value) {
-        if (value != null) {
-          if ((key == 'Acta de Matrimonio' || key == 'Acta de Concubinato') &&
-              !matrimonioContado) {
-            count++;
-            matrimonioContado = true;
-          } else if (key != 'Acta de Matrimonio' &&
-              key != 'Acta de Concubinato') {
-            count++;
-          }
-        }
-      });
-
-      return count;
-    }
-
-    //* Cálculo del total necesario
-    int calcularTotalEsperado(Map<String, DocumentoItem?> docs) {
-      final matrimonioSubido = docs['Acta de Matrimonio'] != null;
-      final concubinatoSubido = docs['Acta de Concubinato'] != null;
-      int total = _documentosRequeridos.length;
-
-      if (matrimonioSubido || concubinatoSubido) {
-        total -= 1;
-      }
-
-      return total;
-    }
-
-    final docsSubidos = calcularDocumentosSubidos(_documentos);
-    final totalDocs = calcularTotalEsperado(_documentos);
-    final prog = totalDocs == 0 ? 0.0 : docsSubidos / totalDocs;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildBannerHeader(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  const SizedBox(height: 30),
-                  Column(
-                    children:
-                        _documentosRequeridos.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final doc = entry.value;
-                      final item = _documentos[doc];
-                      return _buildDocumentCard(doc, item, index);
-                    }).toList(),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildBannerHeader(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 30),
+                      Column(
+                        children: _documentosRequeridos
+                            .asMap()
+                            .entries
+                            .map((entry) {
+                          final index = entry.key;
+                          final doc = entry.value;
+                          final item = _documentos[doc];
+                          return _buildDocumentCard(doc, item, index);
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 50),
+                    ],
                   ),
-                  const SizedBox(height: 50),
-                ],
+                ),
+              ],
+            ),
+          ),
+
+          //* Overlay loader global
+          if (_isLoading)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withOpacity(0.15),
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: govBlue,
+                    strokeWidth: 2.5,
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
-      floatingActionButton: prog >= 1.0
+      floatingActionButton: progreso >= 1.0
           ? Align(
               alignment: Alignment.topCenter,
               child: ConfettiWidget(
@@ -1452,129 +1145,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
               ),
             )
           : null,
-    );
-  }
-}
-
-//* Pantalla de visualización de PDF mejorada
-class _PDFViewerScreen extends StatefulWidget {
-  final DocumentoItem documento;
-
-  const _PDFViewerScreen({required this.documento});
-
-  @override
-  State<_PDFViewerScreen> createState() => _PDFViewerScreenState();
-}
-
-class _PDFViewerScreenState extends State<_PDFViewerScreen> {
-  static const govBlue = Color(0xFF0B3B60);
-  late PdfViewerController _pdfViewerController;
-  int _currentPageNumber = 1;
-  int _totalPages = 0;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _pdfViewerController = PdfViewerController();
-  }
-
-  @override
-  void dispose() {
-    _pdfViewerController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: govBlue,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.documento.nombre,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (_totalPages > 0)
-              Text(
-                'Página $_currentPageNumber de $_totalPages',
-                style: const TextStyle(fontSize: 11, color: Colors.white70),
-              ),
-          ],
-        ),
-      ),
-      body: Stack(
-        children: [
-          widget.documento.ruta.startsWith('http')
-              ? SfPdfViewer.network(
-                  widget.documento.ruta,
-                  controller: _pdfViewerController,
-                  enableDoubleTapZooming: true,
-                  enableTextSelection: true,
-                  canShowScrollHead: true,
-                  canShowScrollStatus: true,
-                  canShowPaginationDialog: true,
-                  onDocumentLoaded: (PdfDocumentLoadedDetails details) {
-                    setState(() {
-                      _totalPages = details.document.pages.count;
-                      _isLoading = false;
-                    });
-                  },
-                  onPageChanged: (PdfPageChangedDetails details) {
-                    setState(() {
-                      _currentPageNumber = details.newPageNumber;
-                    });
-                  },
-                )
-              : SfPdfViewer.file(
-                  File(widget.documento.ruta),
-                  controller: _pdfViewerController,
-                  enableDoubleTapZooming: true,
-                  enableTextSelection: true,
-                  canShowScrollHead: true,
-                  canShowScrollStatus: true,
-                  canShowPaginationDialog: true,
-                  onDocumentLoaded: (PdfDocumentLoadedDetails details) {
-                    setState(() {
-                      _totalPages = details.document.pages.count;
-                      _isLoading = false;
-                    });
-                  },
-                  onPageChanged: (PdfPageChangedDetails details) {
-                    setState(() {
-                      _currentPageNumber = details.newPageNumber;
-                    });
-                  },
-                ),
-          if (_isLoading)
-            Container(
-              color: Colors.white.withOpacity(0.9),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: govBlue, strokeWidth: 2.5),
-                    SizedBox(height: 16),
-                    Text(
-                      'Cargando documento...',
-                      style: TextStyle(
-                        color: govBlue,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }

@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +6,7 @@ import 'package:cus_movil/services/auth_service.dart';
 import 'package:cus_movil/utils/rfc_test_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cus_movil/widgets/alert_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -22,6 +23,12 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isLoading = false;
   String? _loginError;
 
+  //* ✅ Recordarme
+  bool _rememberMe = false;
+  static const _kRemember = 'remember_me';
+  static const _kSavedUser = 'saved_user';
+  static const _kSavedPass = 'saved_pass';
+
   static const Color regal50 = Color(0xFFF0F8FF);
   static const Color regal700 = Color(0xFF045EA0);
   static const Color regal900 = Color(0xFF0B3B60);
@@ -36,11 +43,41 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   void initState() {
     super.initState();
+    _loadSavedCreds(); // ← carga usuario/contraseña guardados si aplica
     if (kDebugMode) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _testRFCValidation();
       });
     }
+  }
+
+  //* ✅ Cargar/guardar/limpiar credenciales
+  Future<void> _loadSavedCreds() async {
+    final prefs = await SharedPreferences.getInstance();
+    _rememberMe = prefs.getBool(_kRemember) ?? false;
+    if (_rememberMe) {
+      userCtrl.text = prefs.getString(_kSavedUser) ?? '';
+      passCtrl.text = prefs.getString(_kSavedPass) ?? '';
+    }
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _saveCredsIfNeeded(String user, String pass) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kRemember, _rememberMe);
+    if (_rememberMe) {
+      await prefs.setString(_kSavedUser, user);
+      await prefs.setString(_kSavedPass, pass);
+    } else {
+      await _clearSavedCreds();
+    }
+  }
+
+  Future<void> _clearSavedCreds() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kSavedUser);
+    await prefs.remove(_kSavedPass);
+    await prefs.setBool(_kRemember, false);
   }
 
   void _testRFCValidation() {
@@ -118,6 +155,7 @@ class _AuthScreenState extends State<AuthScreen> {
       if (!mounted) return;
 
       if (result == true) {
+        await _saveCredsIfNeeded(user, pass); //* ← guarda según checkbox
         AlertHelper.showAlert('¡Bienvenido!', type: AlertType.success);
         Navigator.pushReplacementNamed(context, '/home');
       } else {
@@ -292,6 +330,23 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               validator: _validatePassword,
             ),
+
+            //* ✅ Checkbox “Recordarme”
+            Row(
+              children: [
+                Checkbox(
+                  value: _rememberMe,
+                  onChanged: (v) => setState(() => _rememberMe = v ?? false),
+                  shape:
+                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                  activeColor: regal900,
+                ),
+                const Expanded(
+                  child: Text('Recordarme en este dispositivo'),
+                ),
+              ],
+            ),
+
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
