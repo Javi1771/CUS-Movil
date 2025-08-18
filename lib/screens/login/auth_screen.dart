@@ -213,7 +213,7 @@ class _AuthScreenState extends State<AuthScreen> {
           Align(
             alignment: Alignment.bottomCenter,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 24),
+              padding: const EdgeInsets.only(bottom: 2),
               child: _buildLoginForm(),
             ),
           ),
@@ -309,7 +309,7 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               validator: _validateEmailCurpOrRfc,
               onChanged: (value) {
-                // Mostrar información en tiempo real sobre el tipo detectado
+                //* Mostrar información en tiempo real sobre el tipo detectado
                 if (kDebugMode && value.length >= 9) {
                   _showCredentialTypeInfo(value);
                 }

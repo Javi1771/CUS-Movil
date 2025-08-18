@@ -172,13 +172,19 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
         if (_documentoTipoMap.containsKey(doc.nombreDocumento)) {
           key = _documentoTipoMap[doc.nombreDocumento];
         } else {
-          if (nombreApi.contains('ine')) key = 'INE';
-          else if (nombreApi.contains('nacimiento')) key = 'Acta de Nacimiento';
-          else if (nombreApi.contains('curp')) key = 'CURP';
-          else if (nombreApi.contains('domicilio') || nombreApi.contains('comprobante')) {
+          if (nombreApi.contains('ine'))
+            key = 'INE';
+          else if (nombreApi.contains('nacimiento'))
+            key = 'Acta de Nacimiento';
+          else if (nombreApi.contains('curp'))
+            key = 'CURP';
+          else if (nombreApi.contains('domicilio') ||
+              nombreApi.contains('comprobante')) {
             key = 'Comprobante Domicilio';
-          } else if (nombreApi.contains('matrimonio')) key = 'Acta de Matrimonio';
-          else if (nombreApi.contains('concubinato')) key = 'Acta de Concubinato';
+          } else if (nombreApi.contains('matrimonio'))
+            key = 'Acta de Matrimonio';
+          else if (nombreApi.contains('concubinato'))
+            key = 'Acta de Concubinato';
         }
 
         if (key != null && _documentos.containsKey(key)) {
@@ -260,8 +266,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
 
       final desiredName = _canonicalFilenameForTipo(tipoVisible);
       if (desiredName == null) {
-        _mostrarInfo('Tipo no soportado',
-            'No hay nombre canónico para "$tipoVisible".');
+        _mostrarInfo(
+            'Tipo no soportado', 'No hay nombre canónico para "$tipoVisible".');
         return;
       }
 
@@ -277,7 +283,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       }
       final copied = await pickedFile.copy(tempPath);
 
-      debugPrint('[MisDocumentos] Subiendo "$desiredName" desde ${copied.path}');
+      debugPrint(
+          '[MisDocumentos] Subiendo "$desiredName" desde ${copied.path}');
 
       //* Sube al backend
       final uploadRes =
@@ -408,7 +415,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close, size: 20, color: textSecondary),
+                      icon: const Icon(Icons.close,
+                          size: 20, color: textSecondary),
                       style: IconButton.styleFrom(
                         backgroundColor: Colors.grey.withOpacity(0.1),
                         padding: const EdgeInsets.all(8),
@@ -424,7 +432,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   margin: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+                    border:
+                        Border.all(color: const Color(0xFFE5E7EB), width: 1),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.02),
@@ -461,13 +470,16 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                             top: 8,
                             right: 8,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: Colors.black.withOpacity(0.7),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                documento.ruta.startsWith('http') ? 'Desde URL' : 'Local',
+                                documento.ruta.startsWith('http')
+                                    ? 'Desde URL'
+                                    : 'Local',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 11,
@@ -494,11 +506,16 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                 ),
                 child: Row(
                   children: [
-                    _buildDocumentInfo('Formato', documento.extension.toUpperCase(), Icons.insert_drive_file),
+                    _buildDocumentInfo(
+                        'Formato',
+                        documento.extension.toUpperCase(),
+                        Icons.insert_drive_file),
                     const SizedBox(width: 20),
-                    _buildDocumentInfo('Tamaño', _formatFileSize(documento.tamano), Icons.storage),
+                    _buildDocumentInfo('Tamaño',
+                        _formatFileSize(documento.tamano), Icons.storage),
                     const SizedBox(width: 20),
-                    _buildDocumentInfo('Subido', _formatDate(documento.fechaSubida), Icons.schedule),
+                    _buildDocumentInfo('Subido',
+                        _formatDate(documento.fechaSubida), Icons.schedule),
                   ],
                 ),
               ),
@@ -517,7 +534,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -535,12 +552,18 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(fontSize: 10, color: textSecondary, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+                fontSize: 10,
+                color: textSecondary,
+                fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 2),
           Text(
             value,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF1F2937), fontWeight: FontWeight.w600),
+            style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFF1F2937),
+                fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
           ),
         ],
@@ -559,7 +582,9 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       decoration: BoxDecoration(
         color: isPrimary ? govBlue : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
-        border: isPrimary ? null : Border.all(color: const Color(0xFFE5E7EB), width: 1),
+        border: isPrimary
+            ? null
+            : Border.all(color: const Color(0xFFE5E7EB), width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -571,7 +596,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, color: isPrimary ? Colors.white : textSecondary, size: 16),
+                Icon(icon,
+                    color: isPrimary ? Colors.white : textSecondary, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   label,
@@ -618,7 +644,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       builder: (BuildContext context) {
         return Center(
           child: Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             backgroundColor: Colors.white,
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -630,19 +657,26 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     height: 60,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(colors: [successColor, Color(0xFF10B981)]),
+                      gradient: LinearGradient(
+                          colors: [successColor, Color(0xFF10B981)]),
                     ),
-                    child: const Icon(Icons.check_rounded, color: Colors.white, size: 30),
+                    child: const Icon(Icons.check_rounded,
+                        color: Colors.white, size: 30),
                   ),
                   const SizedBox(height: 16),
                   const Text(
                     '¡Documento Subido!',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: textPrimary, letterSpacing: -0.3),
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                        letterSpacing: -0.3),
                   ),
                   const SizedBox(height: 6),
                   const Text(
                     'El documento se ha guardado correctamente.',
-                    style: TextStyle(fontSize: 14, color: textSecondary, height: 1.4),
+                    style: TextStyle(
+                        fontSize: 14, color: textSecondary, height: 1.4),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -665,7 +699,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       builder: (BuildContext context) {
         return Center(
           child: Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             backgroundColor: Colors.white,
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -677,19 +712,26 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     height: 60,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(colors: [errorColor, Color(0xFFEF4444)]),
+                      gradient: LinearGradient(
+                          colors: [errorColor, Color(0xFFEF4444)]),
                     ),
-                    child: const Icon(Icons.error_outline_rounded, color: Colors.white, size: 30),
+                    child: const Icon(Icons.error_outline_rounded,
+                        color: Colors.white, size: 30),
                   ),
                   const SizedBox(height: 16),
                   const Text(
                     'Error al subir',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: textPrimary, letterSpacing: -0.3),
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                        letterSpacing: -0.3),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     _obtenerMensajeError(error),
-                    style: const TextStyle(fontSize: 14, color: textSecondary, height: 1.4),
+                    style: const TextStyle(
+                        fontSize: 14, color: textSecondary, height: 1.4),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -909,7 +951,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                         ),
                     ],
                   ),
-
                   if (item != null) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -924,7 +965,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.visibility_outlined, color: successColor, size: 14),
+                          const Icon(Icons.visibility_outlined,
+                              color: successColor, size: 14),
                           const SizedBox(width: 6),
                           const Expanded(
                             child: Text(
@@ -942,7 +984,6 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                       ),
                     ),
                   ],
-
                   if (estaBloquedo && item == null) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -1057,7 +1098,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                border:
+                    Border.all(color: Colors.white.withOpacity(0.2), width: 1),
               ),
               child: Text(
                 "$documentosSubidos de $totalDocumentos documentos",
@@ -1092,10 +1134,8 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     children: [
                       const SizedBox(height: 30),
                       Column(
-                        children: _documentosRequeridos
-                            .asMap()
-                            .entries
-                            .map((entry) {
+                        children:
+                            _documentosRequeridos.asMap().entries.map((entry) {
                           final index = entry.key;
                           final doc = entry.value;
                           final item = _documentos[doc];
@@ -1106,6 +1146,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                     ],
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           ),
