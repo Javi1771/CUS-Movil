@@ -134,11 +134,6 @@ class SecretariasData {
             objetivo:
                 'Vincular con los sectores educativo, empresarial y turístico con las autoridades de distintos niveles y ciudadanía en general.',
           ),
-          DireccionDepartamento(
-            nombre: 'Dirección de Desarrollo Político',
-            objetivo:
-                'Promover y coordinar las acciones de comunicación y concertación del Gobierno Municipal con las organizaciones sociopolíticas del municipio, en un marco de pluralidad, respeto, transparencia y corresponsabilidad.',
-          ),
         ],
         imagen:
             'https://via.placeholder.com/300x200/0B3B60/FFFFFF?text=Particular',

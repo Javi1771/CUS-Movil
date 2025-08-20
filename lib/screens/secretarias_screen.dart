@@ -1,9 +1,47 @@
-// screens/secretarias_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/secretaria.dart';
 import 'secretaria_detalle_screen.dart';
+
+// OPTIMIZACIÓN: Constantes movidas fuera de la clase State para que no se reinicialicen.
+const Map<String, IconData> _secretariaIcons = {
+  'Secretaría Particular': Icons.perm_contact_calendar_rounded,
+  'Secretaría de Gobierno': Icons.assured_workload_rounded,
+  'Secretaría de Administración': Icons.admin_panel_settings_rounded,
+  'Secretaría de Seguridad Pública': Icons.security_rounded,
+  'Secretaría de Desarrollo Social': Icons.diversity_3,
+  'Secretaría de la Mujer': Icons.woman_rounded,
+  'Secretaría del Ayuntamiento': Icons.location_city_rounded,
+  'Secretaría de Desarrollo Integral': Icons.hub_rounded,
+  'Secretaría de Desarrollo Agropecuario': Icons.agriculture_rounded,
+  'Órgano Interno de Control': Icons.list_alt_rounded,
+};
+
+const List<IconData> _uniqueIcons = [
+  Icons.volunteer_activism_rounded,
+  Icons.engineering_rounded,
+  Icons.shield_rounded,
+  Icons.savings_rounded,
+  Icons.menu_book_rounded,
+  Icons.medical_services_rounded,
+  Icons.forest_rounded,
+  Icons.landscape_rounded,
+  Icons.business_center_rounded,
+  Icons.theater_comedy_rounded,
+  Icons.fitness_center_rounded,
+  Icons.handyman_rounded,
+  Icons.groups_rounded,
+  Icons.woman_rounded,
+  Icons.agriculture_rounded,
+  Icons.computer_rounded,
+  Icons.home_work_rounded,
+  Icons.architecture_rounded,
+  Icons.gavel_rounded,
+  Icons.local_library_rounded,
+  Icons.science_rounded,
+  Icons.restaurant_rounded,
+  Icons.pets_rounded,
+];
 
 class SecretariasScreen extends StatefulWidget {
   const SecretariasScreen({super.key});
@@ -17,61 +55,7 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
   List<Secretaria> secretariasFiltradas = [];
   String filtroTexto = '';
   bool isLoading = true;
-  bool _disposed = false;
   final TextEditingController _searchController = TextEditingController();
-
-  // Íconos únicos y específicos para cada tipo de secretaría
-  final Map<String, IconData> secretariaIcons = {
-    'Secretaría Particular': Icons.perm_contact_calendar_rounded,
-    'Secretaría de Gobierno': Icons.assured_workload_rounded,
-    'Secretaría de Administración': Icons.admin_panel_settings_rounded,
-    'Secretaría de Seguridad Pública': Icons.security_rounded,
-    'Secretaría de Desarrollo Social': Icons.diversity_3,
-    'Secretaría de la Mujer': Icons.woman_rounded,
-    'Secretaría del Ayuntamiento': Icons.location_city_rounded,
-    'Secretaría de Desarrollo Integral': Icons.hub_rounded,
-    'Secretaría de Desarrollo Agropecuario': Icons.agriculture_rounded,
-    'Órgano Interno de Control': Icons.list_alt_rounded,
-  };
-
-  // Degradados azules sutiles usando tu paleta
-  final List<List<Color>> blueGradients = [
-    [const Color(0xFF7ECBFB), const Color(0xFF39B0F7)], // 300-400 (muy sutil)
-    [const Color(0xFF39B0F7), const Color(0xFF0F96E8)], // 400-500 (sutil)
-    [const Color(0xFF0F96E8), const Color(0xFF0377C6)], // 500-600 (principal)
-    [const Color(0xFF0377C6), const Color(0xFF045EA0)], // 600-700 (medio)
-    [const Color(0xFF7ECBFB), const Color(0xFF0F96E8)], // 300-500 (suave)
-    [const Color(0xFF39B0F7), const Color(0xFF0377C6)], // 400-600 (equilibrado)
-    [const Color(0xFF0F96E8), const Color(0xFF045EA0)], // 500-700 (elegante)
-    [const Color(0xFF7ECBFB), const Color(0xFF0377C6)], // 300-600 (amplio pero sutil)
-  ];
-
-  // Lista de íconos únicos para asegurar variedad
-  final List<IconData> uniqueIcons = [
-    Icons.volunteer_activism_rounded,
-    Icons.engineering_rounded,
-    Icons.shield_rounded,
-    Icons.savings_rounded,
-    Icons.menu_book_rounded,
-    Icons.medical_services_rounded,
-    Icons.forest_rounded,
-    Icons.landscape_rounded,
-    Icons.business_center_rounded,
-    Icons.theater_comedy_rounded,
-    Icons.fitness_center_rounded,
-    Icons.handyman_rounded,
-    Icons.groups_rounded,
-    Icons.woman_rounded,
-    Icons.agriculture_rounded,
-    Icons.computer_rounded,
-    Icons.home_work_rounded,
-    Icons.architecture_rounded,
-    Icons.gavel_rounded,
-    Icons.local_library_rounded,
-    Icons.science_rounded,
-    Icons.restaurant_rounded,
-    Icons.pets_rounded,
-  ];
 
   @override
   void initState() {
@@ -81,17 +65,15 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
 
   @override
   void dispose() {
-    _disposed = true;
     _searchController.dispose();
     super.dispose();
   }
 
   Future<void> _cargarSecretarias() async {
-    if (_disposed) return;
+    // Simulación de carga
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    await Future.microtask(() {});
-
-    if (_disposed || !mounted) return;
+    if (!mounted) return;
 
     setState(() {
       secretarias = SecretariasData.getSecretariasEjemplo();
@@ -101,7 +83,8 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
   }
 
   void _filtrarSecretarias(String query) {
-    if (_disposed || !mounted) return;
+    // OPTIMIZACIÓN: Se convierte el query a minúsculas una sola vez.
+    final lowerCaseQuery = query.toLowerCase();
 
     setState(() {
       filtroTexto = query;
@@ -109,39 +92,35 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
         secretariasFiltradas = secretarias;
       } else {
         secretariasFiltradas = secretarias.where((secretaria) {
-          return secretaria.nombre
-                  .toLowerCase()
-                  .contains(query.toLowerCase()) ||
-              secretaria.descripcion
-                  .toLowerCase()
-                  .contains(query.toLowerCase()) ||
-              secretaria.servicios.any((servicio) =>
-                  servicio.toLowerCase().contains(query.toLowerCase()));
+          final nombre = secretaria.nombre.toLowerCase();
+          final descripcion = secretaria.descripcion.toLowerCase();
+          final servicios = secretaria.servicios
+              .any((s) => s.toLowerCase().contains(lowerCaseQuery));
+
+          return nombre.contains(lowerCaseQuery) ||
+              descripcion.contains(lowerCaseQuery) ||
+              servicios;
         }).toList();
       }
     });
   }
 
   IconData _getIconForSecretaria(String nombre, int index) {
-    // Primero buscar ícono específico por nombre
-    for (String key in secretariaIcons.keys) {
+    for (String key in _secretariaIcons.keys) {
       if (nombre.toLowerCase().contains(key.toLowerCase().split(' ').last)) {
-        return secretariaIcons[key]!;
+        return _secretariaIcons[key]!;
       }
     }
-    // Si no encuentra, usar ícono único basado en el índice
-    return uniqueIcons[index % uniqueIcons.length];
+    return _uniqueIcons[index % _uniqueIcons.length];
   }
 
-  List<Color> _getColorsForIndex(int index) {
-    // Usar siempre los mismos colores que la Secretaría de Seguridad
-    return [const Color(0xFF0F96E8), const Color(0xFF0377C6)]; // 500-600 (principal)
+  // OPTIMIZACIÓN: Método simplificado, ya que siempre retorna lo mismo.
+  List<Color> _getCardColors() {
+    return [const Color(0xFF0F96E8), const Color(0xFF0377C6)];
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_disposed) return const SizedBox.shrink();
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
@@ -179,14 +158,9 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+        padding: const EdgeInsets.fromLTRB(20, 30, 20, 30),
         child: Column(
           children: [
-            // Botón de regreso (opcional)
-
-            const SizedBox(height: 10),
-
-            // Title
             const Text(
               "Secretarías",
               style: TextStyle(
@@ -198,8 +172,6 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-
-            // Subtitle
             const Text(
               "Municipio de San Juan del Río",
               style: TextStyle(
@@ -210,19 +182,13 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 20),
-
-            // Estadísticas de secretarías
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(25),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1,
-                ),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
               ),
               child: Text(
                 "${secretarias.length} secretarías disponibles",
@@ -262,18 +228,12 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
-          prefixIcon: const Icon(
-            Icons.search_rounded,
-            color: Color(0xFF94A3B8),
-            size: 20,
-          ),
+          prefixIcon: const Icon(Icons.search_rounded,
+              color: Color(0xFF94A3B8), size: 20),
           suffixIcon: filtroTexto.isNotEmpty
               ? IconButton(
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    color: Color(0xFF94A3B8),
-                    size: 20,
-                  ),
+                  icon: const Icon(Icons.close_rounded,
+                      color: Color(0xFF94A3B8), size: 20),
                   onPressed: () {
                     _searchController.clear();
                     _filtrarSecretarias('');
@@ -281,10 +241,8 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
         style: const TextStyle(
           fontSize: 16,
@@ -333,9 +291,8 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
         itemCount: secretariasFiltradas.length,
         itemBuilder: (context, index) {
           final secretaria = secretariasFiltradas[index];
-          final colors = _getColorsForIndex(index);
+          final colors = _getCardColors();
           final icon = _getIconForSecretaria(secretaria.nombre, index);
-
           return _buildColorfulCard(secretaria, colors, icon);
         },
       ),
@@ -345,7 +302,7 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
   Widget _buildColorfulCard(
       Secretaria secretaria, List<Color> colors, IconData icon) {
     return Material(
-      elevation: 0,
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -359,7 +316,7 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
             ),
           );
         },
-        child: Container(
+        child: Ink(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -372,13 +329,11 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
                 color: colors[0].withOpacity(0.25),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
-                spreadRadius: 0,
               ),
             ],
           ),
           child: Stack(
             children: [
-              // Patrón decorativo sutil
               Positioned(
                 top: -20,
                 right: -20,
@@ -387,7 +342,7 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
                   height: 80,
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(40),
+                    shape: BoxShape.circle,
                   ),
                 ),
               ),
@@ -399,18 +354,15 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
                   height: 60,
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(30),
+                    shape: BoxShape.circle,
                   ),
                 ),
               ),
-              // Contenido principal con layout flexible - SOLUCIÓN AL OVERFLOW
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Ícono
                     Container(
                       width: 44,
                       height: 44,
@@ -418,20 +370,13 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(
-                        icon,
-                        color: Colors.white,
-                        size: 22,
-                      ),
+                      child: Icon(icon, color: Colors.white, size: 22),
                     ),
-
-                    // Espacio flexible que se adapta al contenido
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          // Nombre de la secretaría con mejor control de overflow
                           Flexible(
                             child: Text(
                               secretaria.nombre,
@@ -443,18 +388,12 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              softWrap: true,
                             ),
                           ),
-
                           const SizedBox(height: 6),
-
-                          // Indicador sutil de servicios
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 3,
-                            ),
+                                horizontal: 6, vertical: 3),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(6),
@@ -516,6 +455,7 @@ class _SecretariasScreenState extends State<SecretariasScreen> {
               color: Color(0xFF64748B),
               fontWeight: FontWeight.w500,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(

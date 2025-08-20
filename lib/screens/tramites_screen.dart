@@ -1993,7 +1993,6 @@ class _TramitesScreenState extends State<TramitesScreen>
     } catch (e) {
       if (mounted) {
         Navigator.of(context).pop(); // Cerrar el diálogo de carga
-
         AlertHelper.showAlert(
           'Error al obtener diagnóstico: $e',
           type: AlertType.error,

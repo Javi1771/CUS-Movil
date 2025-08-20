@@ -1,5 +1,3 @@
-// screens/secretaria_detalle_screen.dart
-
 // ignore_for_file: unused_field
 
 import 'package:flutter/material.dart';
@@ -7,6 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/secretaria.dart';
+
+// OPTIMIZACIÓN: Constante de color movida al nivel superior para ser reutilizada.
+const Color _govBlue = Color(0xFF045ea0);
 
 class SecretariaDetalleScreen extends StatefulWidget {
   final Secretaria secretaria;
@@ -23,18 +24,14 @@ class SecretariaDetalleScreen extends StatefulWidget {
 
 class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
     with TickerProviderStateMixin {
-  // Color azul uniforme para todas las secretarías
-  static const govBlue = Color(0xFF045ea0);
-
-  late AnimationController _animationController;
-  late AnimationController _mapAnimationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _scaleAnimation;
+  late final AnimationController _animationController;
+  late final AnimationController _mapAnimationController;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<Offset> _slideAnimation;
+  late final Animation<double> _scaleAnimation;
 
   GoogleMapController? _mapController;
-  Set<Marker> _markers = {};
-  bool _isMapReady = false;
+  late final Set<Marker> _markers;
 
   @override
   void initState() {
@@ -55,29 +52,20 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
     ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+        parent: _animationController, curve: Curves.easeOutCubic));
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _mapAnimationController,
-      curve: Curves.easeOutBack,
-    ));
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+          parent: _mapAnimationController, curve: Curves.easeOutBack),
+    );
   }
 
   void _setupMarkers() {
@@ -96,15 +84,15 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
-    setState(() {
-      _isMapReady = true;
-    });
+    // OPTIMIZACIÓN: Se eliminó la variable y el setState innecesario para _isMapReady.
     _mapAnimationController.forward();
   }
 
   Future<void> _launchPhone() async {
     final uri = Uri.parse('tel:${widget.secretaria.telefono}');
     if (await canLaunchUrl(uri)) {
+      // OPTIMIZACIÓN: Comprobación de 'mounted' para seguridad en métodos async.
+      if (!mounted) return;
       await launchUrl(uri);
     }
   }
@@ -114,6 +102,8 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
       'https://www.google.com/maps/search/?api=1&query=${widget.secretaria.latitud},${widget.secretaria.longitud}',
     );
     if (await canLaunchUrl(uri)) {
+      // OPTIMIZACIÓN: Comprobación de 'mounted' para seguridad en métodos async.
+      if (!mounted) return;
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
@@ -133,6 +123,7 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
         child: Column(
           children: [
             _buildCleanHeader(),
+            // OPTIMIZACIÓN: Se usan los widgets/métodos refactorizados para mayor claridad.
             _buildInfoSection(),
             _buildDireccionesSection(),
             _buildMapSection(),
@@ -152,13 +143,12 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [govBlue, Color(0xFF0377C6)],
+          colors: [_govBlue, Color(0xFF0377C6)],
         ),
       ),
       child: SafeArea(
         child: Stack(
           children: [
-            // Patrón decorativo
             Positioned(
               right: -50,
               top: 50,
@@ -183,7 +173,6 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
                 ),
               ),
             ),
-            // Botón de regreso
             Positioned(
               top: 16,
               left: 16,
@@ -192,7 +181,6 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
                 onPressed: () => Navigator.pop(context),
               ),
             ),
-            // Contenido principal centrado
             Center(
               child: SlideTransition(
                 position: _slideAnimation,
@@ -233,9 +221,7 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
                       const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
@@ -260,61 +246,49 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
     );
   }
 
+  // OPTIMIZACIÓN: Encabezado de sección refactorizado en un método para reutilizarlo.
+  Widget _buildSectionHeader({required IconData icon, required String title}) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: _govBlue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: _govBlue, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1F2937),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildInfoSection() {
     return SlideTransition(
       position: _slideAnimation,
       child: FadeTransition(
         opacity: _fadeAnimation,
-        child: Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: govBlue.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
+        child: _InfoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: govBlue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.info_outline,
-                      color: govBlue,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Información General',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
-                    ),
-                  ),
-                ],
+              _buildSectionHeader(
+                icon: Icons.info_outline,
+                title: 'Información General',
               ),
               const SizedBox(height: 20),
               Text(
                 widget.secretaria.descripcion,
                 style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.grey[700],
-                  height: 1.6,
-                ),
+                    fontSize: 15, color: Colors.grey[700], height: 1.6),
               ),
               const SizedBox(height: 20),
               _buildInfoRow(
@@ -339,7 +313,7 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: govBlue),
+        Icon(icon, size: 18, color: _govBlue),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -373,58 +347,22 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
     if (widget.secretaria.direcciones.isEmpty) {
       return const SizedBox.shrink();
     }
-
     return SlideTransition(
       position: _slideAnimation,
       child: FadeTransition(
         opacity: _fadeAnimation,
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: govBlue.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
+        child: _InfoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: govBlue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.account_tree_outlined,
-                      color: govBlue,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Direcciones Internas',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
-                    ),
-                  ),
-                ],
+              _buildSectionHeader(
+                icon: Icons.account_tree_outlined,
+                title: 'Direcciones Internas',
               ),
               const SizedBox(height: 20),
               ...widget.secretaria.direcciones.asMap().entries.map((entry) {
                 final index = entry.key;
                 final direccion = entry.value;
-
                 return _DireccionExpandibleCard(
                   direccion: direccion,
                   index: index,
@@ -443,19 +381,9 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
       position: _slideAnimation,
       child: FadeTransition(
         opacity: _fadeAnimation,
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: govBlue.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
+        child: _InfoCard(
+          isContainer: true,
+          padding: EdgeInsets.zero,
           child: Column(
             children: [
               Padding(
@@ -465,14 +393,11 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: govBlue.withOpacity(0.1),
+                        color: _govBlue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
-                        Icons.location_on,
-                        color: govBlue,
-                        size: 20,
-                      ),
+                      child: const Icon(Icons.location_on,
+                          color: _govBlue, size: 20),
                     ),
                     const SizedBox(width: 12),
                     const Expanded(
@@ -488,10 +413,10 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
                     TextButton.icon(
                       onPressed: _launchMaps,
                       icon: const Icon(Icons.open_in_new,
-                          size: 16, color: govBlue),
+                          size: 16, color: _govBlue),
                       label: const Text(
                         'Abrir en Maps',
-                        style: TextStyle(color: govBlue, fontSize: 12),
+                        style: TextStyle(color: _govBlue, fontSize: 12),
                       ),
                     ),
                   ],
@@ -500,10 +425,6 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
               Container(
                 height: 200,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[200]!),
-                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: ScaleTransition(
@@ -535,10 +456,7 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
                     Expanded(
                       child: Text(
                         widget.secretaria.direccion,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                       ),
                     ),
                   ],
@@ -556,47 +474,13 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
       position: _slideAnimation,
       child: FadeTransition(
         opacity: _fadeAnimation,
-        child: Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: govBlue.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
+        child: _InfoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: govBlue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.miscellaneous_services,
-                      color: govBlue,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Servicios Disponibles',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
-                    ),
-                  ),
-                ],
+              _buildSectionHeader(
+                icon: Icons.miscellaneous_services,
+                title: 'Servicios Disponibles',
               ),
               const SizedBox(height: 20),
               Wrap(
@@ -604,31 +488,24 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
                 runSpacing: 8,
                 children: widget.secretaria.servicios.map((servicio) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: govBlue.withOpacity(0.1),
+                      color: _govBlue.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: govBlue.withOpacity(0.2),
-                      ),
+                      border: Border.all(color: _govBlue.withOpacity(0.2)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
-                          Icons.check_circle,
-                          size: 14,
-                          color: govBlue,
-                        ),
+                        const Icon(Icons.check_circle,
+                            size: 14, color: _govBlue),
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
                             servicio,
                             style: const TextStyle(
-                              color: govBlue,
+                              color: _govBlue,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),
@@ -651,58 +528,22 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
       position: _slideAnimation,
       child: FadeTransition(
         opacity: _fadeAnimation,
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: govBlue.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
+        child: _InfoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: govBlue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.contact_phone,
-                      color: govBlue,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Información de Contacto',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
-                    ),
-                  ),
-                ],
+              _buildSectionHeader(
+                icon: Icons.contact_phone,
+                title: 'Información de Contacto',
               ),
               const SizedBox(height: 20),
-              // Solo mostrar teléfono
               _buildContactButton(
                 icon: Icons.phone,
                 label: 'Teléfono de Contacto',
                 value: widget.secretaria.telefono,
-                color: govBlue,
+                color: _govBlue,
                 onTap: _launchPhone,
               ),
-              const SizedBox(height: 12),
             ],
           ),
         ),
@@ -730,9 +571,7 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
           decoration: BoxDecoration(
             color: color.withOpacity(0.05),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: color.withOpacity(0.2),
-            ),
+            border: Border.all(color: color.withOpacity(0.2)),
           ),
           child: Row(
             children: [
@@ -742,11 +581,7 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 18,
-                ),
+                child: Icon(icon, color: color, size: 18),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -756,27 +591,20 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
                     Text(
                       label,
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: color,
-                      ),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: color),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       value,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 14,
-                color: color.withOpacity(0.7),
-              ),
+              Icon(Icons.arrow_forward_ios,
+                  size: 14, color: color.withOpacity(0.7)),
             ],
           ),
         ),
@@ -785,7 +613,39 @@ class _SecretariaDetalleScreenState extends State<SecretariaDetalleScreen>
   }
 }
 
-// Widget para mostrar direcciones expandibles
+// OPTIMIZACIÓN: Widget reutilizable para las tarjetas de información.
+class _InfoCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  final bool isContainer;
+
+  const _InfoCard({
+    required this.child,
+    this.padding,
+    this.isContainer = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(20, 0, 20, isContainer ? 0 : 20),
+      padding: padding ?? const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: _govBlue.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
 class _DireccionExpandibleCard extends StatefulWidget {
   final DireccionDepartamento direccion;
   final int index;
@@ -805,9 +665,8 @@ class _DireccionExpandibleCard extends StatefulWidget {
 class _DireccionExpandibleCardState extends State<_DireccionExpandibleCard>
     with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
-  late AnimationController _animationController;
-  late Animation<double> _expandAnimation;
-  static const govBlue = Color(0xFF045ea0);
+  late final AnimationController _animationController;
+  late final Animation<double> _expandAnimation;
 
   @override
   void initState() {
@@ -844,15 +703,12 @@ class _DireccionExpandibleCardState extends State<_DireccionExpandibleCard>
     return Container(
       margin: EdgeInsets.only(bottom: widget.isLast ? 0 : 12),
       decoration: BoxDecoration(
-        color: govBlue.withOpacity(0.03),
+        color: _govBlue.withOpacity(0.03),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: govBlue.withOpacity(0.1),
-        ),
+        border: Border.all(color: _govBlue.withOpacity(0.1)),
       ),
       child: Column(
         children: [
-          // Header clickeable
           Material(
             color: Colors.transparent,
             child: InkWell(
@@ -866,14 +722,14 @@ class _DireccionExpandibleCardState extends State<_DireccionExpandibleCard>
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: govBlue.withOpacity(0.1),
+                        color: _govBlue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Center(
                         child: Text(
                           '${widget.index + 1}',
                           style: const TextStyle(
-                            color: govBlue,
+                            color: _govBlue,
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                           ),
@@ -897,7 +753,7 @@ class _DireccionExpandibleCardState extends State<_DireccionExpandibleCard>
                       duration: const Duration(milliseconds: 300),
                       child: Icon(
                         Icons.keyboard_arrow_down,
-                        color: govBlue.withOpacity(0.7),
+                        color: _govBlue.withOpacity(0.7),
                         size: 24,
                       ),
                     ),
@@ -906,7 +762,6 @@ class _DireccionExpandibleCardState extends State<_DireccionExpandibleCard>
               ),
             ),
           ),
-          // Contenido expandible
           SizeTransition(
             sizeFactor: _expandAnimation,
             child: Container(
@@ -921,27 +776,22 @@ class _DireccionExpandibleCardState extends State<_DireccionExpandibleCard>
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: govBlue.withOpacity(0.1),
-                      ),
+                      border: Border.all(color: _govBlue.withOpacity(0.1)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 16,
-                              color: govBlue.withOpacity(0.7),
-                            ),
+                            Icon(Icons.info_outline,
+                                size: 16, color: _govBlue.withOpacity(0.7)),
                             const SizedBox(width: 8),
                             Text(
                               'Objetivo',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: govBlue.withOpacity(0.8),
+                                color: _govBlue.withOpacity(0.8),
                               ),
                             ),
                           ],
@@ -950,27 +800,23 @@ class _DireccionExpandibleCardState extends State<_DireccionExpandibleCard>
                         Text(
                           widget.direccion.objetivo,
                           style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[700],
-                            height: 1.4,
-                          ),
+                              fontSize: 13,
+                              color: Colors.grey[700],
+                              height: 1.4),
                         ),
                         if (widget.direccion.ubicacion != null) ...[
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              Icon(
-                                Icons.location_on,
-                                size: 16,
-                                color: govBlue.withOpacity(0.7),
-                              ),
+                              Icon(Icons.location_on,
+                                  size: 16, color: _govBlue.withOpacity(0.7)),
                               const SizedBox(width: 8),
                               Text(
                                 'Ubicación',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: govBlue.withOpacity(0.8),
+                                  color: _govBlue.withOpacity(0.8),
                                 ),
                               ),
                             ],
@@ -979,28 +825,24 @@ class _DireccionExpandibleCardState extends State<_DireccionExpandibleCard>
                           Text(
                             widget.direccion.ubicacion!,
                             style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                              height: 1.3,
-                            ),
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                                height: 1.3),
                           ),
                         ],
                         if (widget.direccion.servicios.isNotEmpty) ...[
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              Icon(
-                                Icons.list_alt,
-                                size: 16,
-                                color: govBlue.withOpacity(0.7),
-                              ),
+                              Icon(Icons.list_alt,
+                                  size: 16, color: _govBlue.withOpacity(0.7)),
                               const SizedBox(width: 8),
                               Text(
                                 'Servicios Específicos',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: govBlue.withOpacity(0.8),
+                                  color: _govBlue.withOpacity(0.8),
                                 ),
                               ),
                             ],
@@ -1018,7 +860,7 @@ class _DireccionExpandibleCardState extends State<_DireccionExpandibleCard>
                                     margin:
                                         const EdgeInsets.only(top: 6, right: 8),
                                     decoration: BoxDecoration(
-                                      color: govBlue.withOpacity(0.6),
+                                      color: _govBlue.withOpacity(0.6),
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -1035,7 +877,7 @@ class _DireccionExpandibleCardState extends State<_DireccionExpandibleCard>
                                 ],
                               ),
                             );
-                          }).toList(),
+                          }),
                         ],
                       ],
                     ),

@@ -9,6 +9,7 @@ import 'package:confetti/confetti.dart';
 import '../services/user_data_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:url_launcher/url_launcher.dart'; // abrir no-PDF
 
 class MisDocumentosScreen extends StatefulWidget {
   const MisDocumentosScreen({super.key});
@@ -214,6 +215,40 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  //? ---- Helpers: abrir sin exponer URL ----
+
+  bool _esPdf(DocumentoItem d) {
+    final ext = d.extension.toLowerCase();
+    if (ext == 'pdf') return true;
+    final path =
+        Uri.tryParse(d.ruta)?.path.toLowerCase() ?? d.ruta.toLowerCase();
+    return path.endsWith('.pdf');
+  }
+
+  Future<void> _abrirDocumento(DocumentoItem d) async {
+    try {
+      if (_esPdf(d)) {
+        // PDF → visor (network si URL, file si local)
+        _mostrarVistaPreviaDialog(d);
+      } else {
+        final uri =
+            d.ruta.startsWith('http') ? Uri.parse(d.ruta) : Uri.file(d.ruta);
+        final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (!ok && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No se pudo abrir el documento.')),
+          );
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al abrir el documento.')),
+        );
+      }
     }
   }
 
@@ -804,7 +839,9 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
           borderRadius: BorderRadius.circular(16),
           color: Colors.transparent,
           child: InkWell(
-            onTap: item != null ? () => _mostrarVistaPreviaDialog(item) : null,
+            onTap: item != null
+                ? () => _abrirDocumento(item)
+                : null, // abre según tipo
             onLongPress: null, //! sin acciones de contexto
             borderRadius: BorderRadius.circular(16),
             splashColor: govBlue.withOpacity(0.05),
@@ -917,25 +954,13 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              if (item.ruta.startsWith('http')) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  item.ruta,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.blueGrey,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+                              // 🔒 No mostramos la URL en texto
                             ],
                           ],
                         ),
                       ),
 
-                      //* Acción
+                      //* Acción (solo Ver)
                       if (item == null && !estaBloquedo)
                         _buildActionButton(
                           icon: Icons.add_rounded,
@@ -946,7 +971,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                         _buildActionButton(
                           icon: Icons.visibility_outlined,
                           color: govBlue,
-                          onPressed: () => _mostrarVistaPreviaDialog(item),
+                          onPressed: () => _abrirDocumento(item),
                           size: 18,
                         ),
                     ],
@@ -970,7 +995,7 @@ class _MisDocumentosScreenState extends State<MisDocumentosScreen>
                           const SizedBox(width: 6),
                           const Expanded(
                             child: Text(
-                              'Toca para ver vista previa',
+                              'Toca para ver documento',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: successColor,
