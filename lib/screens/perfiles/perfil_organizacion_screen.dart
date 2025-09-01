@@ -403,8 +403,6 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
     );
   }
 
-  // ... (El resto de tus widgets _buildSection, _buildInfoCard, etc. están bien y no necesitan cambios)
-
   Widget _buildSection(
       {required String title,
       required String iconPath,

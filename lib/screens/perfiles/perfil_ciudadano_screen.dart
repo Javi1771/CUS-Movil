@@ -8,7 +8,7 @@ import 'package:cus_movil/widgets/alert_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-// NUEVO: Importaciones necesarias para el guardado local
+// Guardado local
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -54,14 +54,12 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  // NUEVO: Nombre de archivo constante para la imagen de perfil.
   static const String _profileImageFilename = 'profile_image.jpg';
 
   @override
   void initState() {
     super.initState();
     _setupAnimations();
-    // MODIFICADO: Cargamos la imagen local primero.
     _loadProfileImage();
     _fetchUserData();
   }
@@ -95,24 +93,27 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
       final user = await UserDataService.getUserData();
       if (!mounted) return;
 
-      if (user == null)
+      if (user == null) {
         throw Exception('No se pudo obtener la información del ciudadano.');
-      if (user.tipoPerfil != TipoPerfilCUS.ciudadano)
+      }
+      if (user.tipoPerfil != TipoPerfilCUS.ciudadano) {
         throw Exception('Este perfil es solo para ciudadanos.');
+      }
 
       setState(() {
         _usuario = user;
       });
       _animationController.forward();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error = e.toString().replaceFirst("Exception: ", ""));
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // NUEVO: Función para cargar la imagen desde el almacenamiento local.
+  // Cargar imagen local
   Future<void> _loadProfileImage() async {
     try {
       final dir = await getApplicationDocumentsDirectory();
@@ -130,7 +131,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
     }
   }
 
-  // NUEVO: Función para guardar la imagen en el almacenamiento local.
+  // Guardar imagen local
   Future<void> _saveImageLocally(Uint8List bytes) async {
     try {
       final dir = await getApplicationDocumentsDirectory();
@@ -142,9 +143,9 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
     }
   }
 
-  // MODIFICADO: Ahora muestra un menú de opciones (Cámara/Galería).
+  // Menú para origen de imagen
   Future<void> _showImageSourceActionSheet() async {
-    showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
         child: Wrap(
@@ -169,9 +170,10 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
         ),
       ),
     );
+    return;
   }
 
-  // MODIFICADO: Lógica de selección de imagen centralizada.
+  // Selección de imagen
   Future<void> _pickImage(ImageSource source) async {
     try {
       final picked = await ImagePicker().pickImage(
@@ -182,7 +184,6 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
       if (picked != null) {
         final bytes = await picked.readAsBytes();
         setState(() => _imageBytes = bytes);
-        // NUEVO: Llama a la función de guardado.
         await _saveImageLocally(bytes);
 
         HapticFeedback.lightImpact();
@@ -270,9 +271,9 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                         const SizedBox(height: 10),
                         _buildInfoSections(),
                         const SizedBox(height: 30),
-                        _LogoutButton(
-                            onPressed: () => _showLogoutDialog(context)),
-                        const SizedBox(height: 50),
+                        // === MISMO CTA QUE ORGANIZACIÓN ===
+                        _buildLogoutButton(context),
+                        const SizedBox(height: 100),
                       ],
                     ),
                   ),
@@ -284,7 +285,6 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
             top: 180,
             left: 0,
             right: 0,
-            // MODIFICADO: El onTap ahora llama al menú de opciones.
             child: _ProfileAvatar(
                 imageBytes: _imageBytes,
                 onPickImage: _showImageSourceActionSheet),
@@ -318,7 +318,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
                   fallbackIcon: Icons.confirmation_number),
             _InfoCard(
                 label: 'CURP',
-                value: user.curp ?? 'Sin CURP',
+                value: user.curp,
                 imagePath: _assetIcons['badge']!,
                 fallbackIcon: Icons.badge),
             _InfoCard(
@@ -352,7 +352,7 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
           children: [
             _InfoCard(
                 label: 'Correo Electrónico',
-                value: user.email ?? 'Sin correo',
+                value: user.email,
                 imagePath: _assetIcons['email']!,
                 fallbackIcon: Icons.email),
             _InfoCard(
@@ -373,36 +373,238 @@ class _PerfilCiudadanoScreenState extends State<PerfilCiudadanoScreen>
     );
   }
 
+  // =========================
+  // === BOTÓN & DIÁLOGO  ===
+  // ===   (igual org)    ===
+  // =========================
+
+  Widget _buildLogoutButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () => _showLogoutDialog(context),
+        icon: const Icon(Icons.logout_rounded, size: 20),
+        label: const Text(
+          "Cerrar sesión",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _logoutButtonColor,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          elevation: 6,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          shadowColor: Colors.black.withOpacity(0.25),
+        ).copyWith(
+          overlayColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.pressed)) {
+              return _logoutButtonColor;
+            }
+            return null;
+          }),
+        ),
+      ),
+    );
+  }
+
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        return _LogoutDialog(
-          onConfirm: () async {
-            Navigator.of(dialogContext).pop();
-            showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (_) =>
-                    const Center(child: CircularProgressIndicator()));
-            try {
-              await AuthService('temp').logout();
-              if (mounted) {
-                Navigator.of(context).pop();
-                AlertHelper.showAlert('Sesión cerrada',
-                    type: AlertType.success);
-                await Future.delayed(const Duration(milliseconds: 500));
-                Navigator.pushReplacementNamed(context, '/auth');
-              }
-            } catch (e) {
-              if (mounted) {
-                Navigator.of(context).pop();
-                AlertHelper.showAlert('Error al cerrar sesión: $e',
-                    type: AlertType.error);
-              }
-            }
-          },
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 340),
+            margin: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0b3b60).withOpacity(0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: const Color(0xFF0b3b60).withOpacity(0.08),
+                  blurRadius: 40,
+                  offset: const Offset(0, 15),
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  //? Icono principal
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0b3b60).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFF0b3b60).withOpacity(0.2),
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.power_settings_new_rounded,
+                      color: Color(0xFF0b3b60),
+                      size: 28,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  //? Título
+                  const Text(
+                    "Cerrar Sesión",
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0b3b60),
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  //* Contenido
+                  Text(
+                    "¿Estás seguro de que deseas cerrar sesión?\nPerderás el acceso hasta volver a iniciar sesión.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.4,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  //* Botones
+                  Row(
+                    children: [
+                      //! Cancelar
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: OutlinedButton.icon(
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            icon: Icon(Icons.close_rounded,
+                                size: 16, color: Colors.grey[600]),
+                            label: Text(
+                              "Cancelar",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              side: BorderSide(
+                                  color: Colors.grey[300]!, width: 1.5),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              minimumSize: const Size.fromHeight(44),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      //? Confirmar
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF0B3B60), Color(0xFF0B3B60)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                Navigator.of(dialogContext).pop();
+                                //? Loading
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) => const Center(
+                                      child: CircularProgressIndicator()),
+                                );
+                                try {
+                                  await AuthService('temp').logout();
+                                  if (mounted) {
+                                    Navigator.of(context)
+                                        .pop(); //! cierra loading
+                                    AlertHelper.showAlert(
+                                      'Sesión cerrada',
+                                      type: AlertType.success,
+                                    );
+                                    //* Dale un pequeño delay para que la alerta se muestre
+                                    await Future.delayed(
+                                        const Duration(milliseconds: 500));
+                                    Navigator.pushReplacementNamed(
+                                        context, '/auth');
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
+                                    AlertHelper.showAlert(
+                                      'Error al cerrar sesión: $e',
+                                      type: AlertType.error,
+                                    );
+                                  }
+                                }
+                              },
+                              icon: const Icon(Icons.logout_rounded,
+                                  size: 16, color: Colors.white),
+                              label: const Text(
+                                "Aceptar",
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                minimumSize: const Size.fromHeight(44),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );
@@ -731,84 +933,6 @@ class _ProfileStatus extends StatelessWidget {
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-class _LogoutButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  const _LogoutButton({required this.onPressed});
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: const Icon(Icons.logout_rounded, size: 20),
-        label: const Text("Cerrar sesión",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _PerfilCiudadanoScreenState._logoutButtonColor,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          elevation: 6,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          shadowColor: Colors.black.withOpacity(0.25),
-        ),
-      ),
-    );
-  }
-}
-
-class _LogoutDialog extends StatelessWidget {
-  final VoidCallback onConfirm;
-  const _LogoutDialog({required this.onConfirm});
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                  color: _PerfilCiudadanoScreenState._govBlue.withOpacity(0.1),
-                  shape: BoxShape.circle),
-              child: const Icon(Icons.power_settings_new_rounded,
-                  color: _PerfilCiudadanoScreenState._govBlue, size: 28),
-            ),
-            const SizedBox(height: 20),
-            const Text("Cerrar Sesión",
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: _PerfilCiudadanoScreenState._govBlue)),
-            const SizedBox(height: 12),
-            Text("¿Estás seguro de que deseas cerrar sesión?",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: Colors.grey[600], fontSize: 13, height: 1.4)),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                    child: OutlinedButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text("Cancelar"))),
-                const SizedBox(width: 12),
-                Expanded(
-                    child: ElevatedButton(
-                        onPressed: onConfirm, child: const Text("Aceptar"))),
-              ],
-            )
-          ],
-        ),
       ),
     );
   }
