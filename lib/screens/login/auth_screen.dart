@@ -283,7 +283,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Widget _buildLoginForm() {
     return Container(
-      margin: const EdgeInsets.only(top: 200),
+      margin: const EdgeInsets.only(top: 315),
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
       decoration: const BoxDecoration(
         color: Colors.white,

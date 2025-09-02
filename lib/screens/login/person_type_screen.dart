@@ -187,36 +187,44 @@ class _PersonTypeScreenState extends State<PersonTypeScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 72,
-                    child: ElevatedButton(
-                      onPressed: _navigate,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: selectedType != null
-                            ? govBlue
-                            : govBlue.withOpacity(0.4),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                    Center(
+                      child: SizedBox(
+                        width: 350, //* Ancho aumentado de 300 a 350
+                        height: 55, //* Altura aumentada de 45 a 55 (cerca del original de 60)
+                        child: ElevatedButton(
+                          onPressed: _navigate,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: selectedType != null
+                                ? govBlue
+                                : govBlue.withOpacity(0.4),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), //* Padding más compacto
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Continuar',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(width: 8), //* Espacio entre texto e icono
+                              Icon(
+                                selectedType != null 
+                                    ? Icons.arrow_downward 
+                                    : Icons.arrow_forward_rounded, 
+                                size: 24, //* Tamaño del icono aumentado de 20 a 24
+                              ), //* Flecha cambia según el estado
+                            ],
+                          ),
                         ),
                       ),
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Continuar',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          SizedBox(height: 6),
-                          Icon(Icons.arrow_forward_rounded, size: 28),
-                        ],
-                      ),
                     ),
-                  ),
                   const SizedBox(height: 30),
                 ],
               ),

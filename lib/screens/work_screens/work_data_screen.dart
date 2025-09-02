@@ -46,6 +46,9 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
   final _confirmPassCtrl = TextEditingController();
 
   // Focus nodes
+  final _focusNomina = FocusNode();
+  final _focusPuesto = FocusNode();
+  final _focusDepartamento = FocusNode();
   final _focusCurp = FocusNode();
   final _focusCurpVerify = FocusNode();
   final _focusRazonSocial = FocusNode();
@@ -112,6 +115,9 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
 
     // Dispose de focus nodes
     for (var f in [
+      _focusNomina,
+      _focusPuesto,
+      _focusDepartamento,
       _focusCurp,
       _focusCurpVerify,
       _focusRazonSocial,
@@ -324,38 +330,43 @@ class _WorkDataScreenState extends State<WorkDataScreen> {
                     _sectionHeader(Icons.work, 'Datos del Trabajador'),
                     _sectionCard(
                       children: [
+                        // Nómina
                         TextFormField(
                           controller: _nominaCtrl,
+                          focusNode: _focusNomina,                  // <-- FALTA
                           decoration: _inputDecoration('Nómina', Icons.badge),
                           validator: (v) => _validateRequired(v, 'Nómina'),
                           textCapitalization: TextCapitalization.characters,
-                          inputFormatters: [
-                            UpperCaseTextFormatter(),
-                          ],
+                          inputFormatters: [UpperCaseTextFormatter()],
+                          textInputAction: TextInputAction.next,
+                          onFieldSubmitted: (_) =>
+                              FocusScope.of(context).requestFocus(_focusPuesto),
                         ),
-                        const SizedBox(height: 12),
+
+                        // Puesto
                         TextFormField(
                           controller: _puestoCtrl,
+                          focusNode: _focusPuesto,                  // <-- FALTA
                           decoration: _inputDecoration('Puesto', Icons.work),
                           validator: (v) => _validateRequired(v, 'Puesto'),
                           textCapitalization: TextCapitalization.characters,
-                          inputFormatters: [
-                            UpperCaseTextFormatter(),
-                          ],
+                          inputFormatters: [UpperCaseTextFormatter()],
+                          textInputAction: TextInputAction.next,
+                          onFieldSubmitted: (_) =>
+                              FocusScope.of(context).requestFocus(_focusDepartamento),
                         ),
-                        const SizedBox(height: 12),
+
+                        // Departamento
                         TextFormField(
                           controller: _departamentoCtrl,
-                          decoration: _inputDecoration(
-                            'Departamento',
-                            Icons.apartment,
-                          ),
-                          validator: (v) =>
-                              _validateRequired(v, 'Departamento'),
+                          focusNode: _focusDepartamento,            // <-- FALTA
+                          decoration: _inputDecoration('Departamento', Icons.apartment),
+                          validator: (v) => _validateRequired(v, 'Departamento'),
                           textCapitalization: TextCapitalization.characters,
-                          inputFormatters: [
-                            UpperCaseTextFormatter(),
-                          ],
+                          inputFormatters: [UpperCaseTextFormatter()],
+                          textInputAction: TextInputAction.next,
+                          onFieldSubmitted: (_) =>
+                              FocusScope.of(context).requestFocus(_focusCurp),
                         ),
                       ],
                     ),
